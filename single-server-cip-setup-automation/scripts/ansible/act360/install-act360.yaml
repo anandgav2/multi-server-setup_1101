@@ -6,6 +6,8 @@
     comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
     installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
   
+
+  
   tasks:
 
     - name: Load Global parameters
