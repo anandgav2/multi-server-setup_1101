@@ -1,0 +1,260 @@
+- name: Stop Apps
+  hosts: cip-instance
+  become: yes # Run tasks with root privileges
+
+  vars:
+    #log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
+    #comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
+    #installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+    installer_path: "/disk1/installer"
+
+  tasks:
+    - name: Load CIP Config parameters
+      include_vars:
+        file: ../CIP/config-params.yml
+
+    - name: Load Global config parameters
+      include_vars:
+        file: "{{ installer_path }}/cip_setup_automation.yml"
+
+    - name: Stop CIP Subsystems
+      ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
+      with_items:
+        - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh forced_stop all"
+      register: command_output
+      become_user: abinitio
+      ignore_errors: true
+      args:
+        chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
+
+    - name: Pause for 5 seconds
+      pause:
+        seconds: 5
+
+    - name: Abandon Subsystems
+      ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
+      with_items:
+        - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh abandon all"
+      register: command_output
+      become_user: abinitio
+      ignore_errors: true
+      args:
+        chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
+
+    - name: Display Status
+      ansible.builtin.debug:
+        var: command_output
+
+    - name: Create StopCIP Expect File
+      ansible.builtin.copy:
+        content: |
+          #!/usr/bin/expect -f
+
+          set timeout 20
+
+          set confirmation "Y"
+
+          cd "{{ sandbox_root }}/abinitio/cip/ui/web/"
+
+          spawn npm run stopcip
+
+          expect "Stop Y/N? :"
+
+          send  "$confirmation\r"
+
+          interact
+        dest: "{{ sandbox_root }}/abinitio/cip/ui/web/stop_cip.exp"
+        mode: "0755"
+        owner: abinitio
+      ignore_errors: true
+
+    - name: StopCIP
+      shell: |
+        #! bin/bash
+        echo "Stopping CIP UI..."
+        source /etc/profile
+        expect {{ sandbox_root }}/abinitio/cip/ui/web/stop_cip.exp
+      register: command_output
+      become_user: abinitio
+      ignore_errors: true
+
+    - name: Print logs
+      debug:
+         var: command_output
+
+    - name: Stop QueryIt Instance
+      ansible.builtin.command:
+        cmd: sh -c "source /etc/profile && ab-qi service stop"
+      register: command_output
+      become_user: abinitio
+      ignore_errors: true
+      args:
+        chdir: "{{ sandbox_root }}/queryit"
+
+    - name: Print logs
+      debug:
+         var: command_output
+
+    - name: Destroy Control Center Application
+      expect:
+        command: sh -c "source /etc/profile && ab-app destroy controlcenter"
+        chdir: "{{ installer_path }}"
+        responses:
+          'Really destroy controlcenter\? \(yes\/no\) \[no\]:' : 'yes'
+        timeout: 60
+      register: command_output
+      become_user: abinitio
+      ignore_errors: true
+
+    - name: Print logs
+      debug:
+         var: command_output
+
+    - name: Destroy Control Center DB
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        - ab-db destroy OPDB
+      register: command_output
+      become_user: abinitio
+      ignore_errors: true
+
+    - name: Print logs
+      debug:
+         var: command_output
+
+    - name: Destroy Cafe Application
+      expect:
+        command: sh -c "source /etc/profile && ab-app destroy cipcafe"
+        chdir: "{{ installer_path }}"
+        responses:
+          'Really destroy cipcafe\? \(yes\/no\) \[no\]:' : 'yes'
+        timeout: 120
+      register: command_output
+      become_user: abinitio
+      ignore_errors: true
+
+    - name: Print logs
+      debug:
+         var: command_output
+
+    - name: Destroy CIP DB
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        - ab-db destroy cipdb
+      register: command_output
+      become_user: abinitio
+      ignore_errors: true
+
+    - name: Print logs
+      debug:
+         var: command_output
+
+    - name: Destroy AG Application
+      expect:
+        command: sh -c "source /etc/profile && ab-app destroy authgateway"
+        chdir: "{{ installer_path }}"
+        responses:
+          'Really destroy authgateway\? \(yes\/no\) \[no\]:' : 'yes'
+        timeout: 120
+      register: command_output
+      become_user: abinitio
+      ignore_errors: true
+
+    - name: Print logs
+      debug:
+         var: command_output
+
+    - name: Destroy AG DB
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        - ab-db destroy authgateway
+      register: command_output
+      become_user: abinitio
+      ignore_errors: true
+
+    - name: Print logs
+      debug:
+         var: command_output
+
+    - name: Shutdown  Repository
+      when: inventory_hostname != 'a360-instance'
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh air repository shutdown"
+      register: command_output
+      become_user: abinitio
+      ignore_errors: true
+
+    - name: Print logs
+      debug:
+         var: command_output
+
+    - name: Destroy repository
+      expect:
+        command: sh -c "{{ installer_path }}/source_and_run.sh air repository destroy"
+        responses:
+          'Are you sure you want to do this \(yes\/no\)\?' : 'yes'
+        timeout: 30
+      register: command_output
+      become_user: abinitio
+      ignore_errors: true
+
+    - name: Print logs
+      debug:
+         var: command_output
+
+    - name: Shutdown  Daemon
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh ab-cinfo-util shutdown"
+      register: command_output
+      become_user: abinitio
+      ignore_errors: true
+
+    - name: Print logs 
+      debug:
+         var: command_output
+
+    - name: Shutdown Abinitio client
+      ansible.builtin.command: "/var/abinitio/data/abkc/abkcd stop"
+      register: command_output
+      become_user: abinitio
+      ignore_errors: true
+
+
+    - name: Print logs
+      debug:
+         var: command_output
+
+    - name: Stop Bridge
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        - ab-bridge stop
+        - ab-bridge status
+      register: command_output
+      become_user: abinitio
+      ignore_errors: true
+
+    - name: Print logs
+      debug:
+         var: command_output
+
+    - name: Stop Reporter
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        - ab-reporter stop
+        - ab-reporter status
+      register: command_output
+      become_user: abinitio
+      ignore_errors: true
+
+    - name: Print logs
+      debug:
+         var: command_output
+
+    - name: Delete root directories
+      shell: |
+        sudo rm -rf {{ installer_path }}
+        sudo rm -rf {{ data_root_path }}
+        sudo rm -rf {{ apps_root_path }}
+        sudo rm -rf /usr/local/abinitio
+        sudo rm -rf /var/abinitio/*
+      loop:
+        - abinitio
+      ignore_errors: true

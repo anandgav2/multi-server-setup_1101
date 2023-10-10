@@ -1,0 +1,3 @@
+AGPrincipalSubType,AGPrincipal,AGProductInstance,AGProductRole
+AGGroup,cipgroup,queryit,ROLE_AUTHENTICATED_USER
+AGGroup,cipgroup,queryit,qi_instance_administrator

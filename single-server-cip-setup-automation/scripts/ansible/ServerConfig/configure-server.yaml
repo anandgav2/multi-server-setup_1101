@@ -1,0 +1,277 @@
+- name: Configure EC2 Instance
+  hosts: 
+    - cip-instance
+    - a360-instance
+  become: true
+  vars:
+    log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+    comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
+  
+  tasks:
+
+    - name: Load Global parameters
+      include_vars:
+        file: "{{ item }}"
+      with_items:
+        - "{{ installer_path }}/cip_setup_automation.yml"
+        - "{{ installer_path }}/installer-versions.yml"
+
+    - name: Set hostname
+      hostname:
+        name: "{{ cip_hostname }}"
+      when: inventory_hostname != 'a360-instance'
+
+    - name: Set A360 hostname
+      hostname:
+        name: "{{ a360_hostname }}"
+      when: inventory_hostname == 'a360-instance'
+
+    - name: Create abinitio Group (if it doesn't exist)
+      group:
+        name: abinitio
+        state: present
+
+    - name: set functional user password
+      set_fact:
+        user_password: "{{ functional_user_password }}"
+        
+    - name: Display Functional user password
+      ansible.builtin.debug:
+        var: user_password
+        
+    - name: Create Users
+      user:
+        name: "{{ functional_user }}"
+        password: "{{ user_password | password_hash('sha512') }}"
+        groups: abinitio
+       # update_password: "on_create"
+      register: command_output
+      
+    - name: Display user creation status
+      ansible.builtin.debug:
+        var: command_output
+
+    - name: Set default Group
+      shell: |
+        usermod -g abinitio {{ functional_user }}
+      register: command_output
+        
+    - name: Create home directory
+      file:
+        path: "/home/{{ item }}"
+        state: directory
+        owner: "{{ item }}"
+        group: "abinitio"
+      loop:
+        - "{{ functional_user }}"
+    
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          =>User Creation Completed on host {{ inventory_hostname }}
+             User : {{ functional_user }}
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+
+    - name: Create directory hierarchy and set ownership
+      shell: |
+        #sudo mkdir -p {{ apps_root_path }}/abinitio/release
+        sudo mkdir -p {{ installer_path }}
+        sudo mkdir -p {{ apps_root_path }}/abinitio/ag_user_feeds
+        sudo mkdir -p {{ data_root_path }}/eme/cipeme
+        sudo mkdir -p {{ data_root_path }}/a360
+        sudo mkdir -p {{ data_root_path }}/sand/appconfdir
+        sudo mkdir -p {{ apps_root_path }}/abinitio/abinitio-install
+        sudo mkdir -p {{ apps_root_path }}/abinitio/abinitio-deployment/ag
+        sudo mkdir -p {{ apps_root_path }}/abinitio/abinitio-deployment/cc
+        sudo chown -R {{ item }}:abinitio {{ installer_path }}
+        sudo chown -R {{ item }}:abinitio {{ apps_root_path }}/abinitio/ag_user_feeds
+        sudo chown -R {{ item }}:abinitio {{ data_root_path }}/eme/cipeme
+        sudo chown -R {{ item }}:abinitio {{ data_root_path }}/a360
+        sudo chown -R {{ item }}:abinitio {{ data_root_path }}
+        sudo chown -R {{ item }}:abinitio {{ apps_root_path }}/abinitio/abinitio-install
+        sudo chown -R {{ item }}:abinitio {{ apps_root_path }}/abinitio/abinitio-deployment
+        sudo chown -R {{ item }}:abinitio {{ apps_root_path }}/abinitio/abinitio-deployment/ag
+        sudo chown -R {{ item }}:abinitio {{ apps_root_path }}/abinitio/abinitio-deployment/cc
+      loop:
+        - "{{ functional_user }}"
+
+    - name: Install OpenJDK 8 on CentOS/RHEL
+      when: ansible_distribution in ['CentOS', 'RedHat'] and inventory_hostname != 'a360-instance'
+      yum:
+        name: java-1.8.0-openjdk
+        state: present
+    
+    - name: Log step
+      when: ansible_distribution in ['CentOS', 'RedHat'] and inventory_hostname != 'a360-instance'
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          =>JDK 8 installed on CIP Instance
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+
+    - name: Install OpenJDK 11 on CentOS/RHEL
+      when: ansible_distribution in ['CentOS', 'RedHat'] and inventory_hostname == 'a360-instance'
+      ansible.builtin.package:
+        name: java-11-openjdk
+        state: present
+
+
+    - name: Log step
+      when: ansible_distribution in ['CentOS', 'RedHat'] and inventory_hostname == 'a360-instance'
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          =>JDK 11 installed on A360 Instance
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+
+    - name: "Fetch JAVA_HOME"
+      shell: "dirname $(dirname $(readlink -f $(which java)))"
+      register: java_home
+
+    - name: Set JAVA_HOME Environment Variable
+      lineinfile:
+        path: /etc/profile
+        regexp: '^export JAVA_HOME='
+        line: 'export JAVA_HOME={{ java_home.stdout }}'
+        insertbefore: '^export PATH='
+      become: yes
+      notify:
+        - Reload Profile
+
+    - name: Install Node.js on CentOS/RHEL
+      when: ansible_distribution in ['CentOS', 'RedHat']
+      yum:
+        name: nodejs
+        state: present
+    
+    - name: Install Node.js on CentOS/RHEL
+      when: ansible_distribution in ['CentOS', 'RedHat']
+      yum:
+        name: expect
+        state: present
+        
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          =>Node.js successfully installed on {{ inventory_hostname }}
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+
+    - name: Install npm (Node Package Manager)
+      when: ansible_distribution in ['CentOS', 'RedHat', 'Debian', 'Ubuntu']
+      package:
+        name: npm
+        state: present
+
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          =>npm successfully installed on {{ inventory_hostname }}
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+    
+    - name: Install ksh on Red Hat-based systems
+      yum:
+        name: ksh
+        state: present
+      when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' 
+  
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          =>ksh shell successfully installed on {{ inventory_hostname }}
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+
+    - name: Install pip3
+      yum:
+        name: python3-pip
+        state: present
+      when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' 
+
+    - name: Fetch python Version
+      shell: "python3 --version"
+      register: p_version
+
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          =>pip3 successfully installed on {{ inventory_hostname }}. Python Version "{{ p_version.stdout }}"
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+
+    - name: Install jq
+      yum:
+        name: jq
+        state: present
+      when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' 
+
+    - name: Fetch jq Version
+      shell: "jq --version"
+      register: jq_version
+
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          =>jq successfully installed on {{ inventory_hostname }}. Jq Version "{{ jq_version.stdout }}"
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+
+    - name: Install lsof
+      yum:
+        name: lsof
+        state: present
+      when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' 
+
+    - name: Install net-tools
+      yum:
+        name: net-tools
+        state: present
+      when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'       
+
+    - name: Install telnet
+      yum:
+        name: telnet
+        state: present
+      when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'       
+
+    - name: Install pexpect library using pip
+      pip:
+        name: pexpect
+        state: present
+
+    - name: Install passlib library using pip
+      pip:
+        name: passlib
+        state: present        
+  
+  handlers:
+    - name: Reload Profile
+      shell: source /etc/profile  # Command to reload the profile
+    

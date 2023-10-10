@@ -1,0 +1,21 @@
+sandbox_root: "/disk1/data/sandbox"
+apps_root_path: "/disk1/apps"
+data_root_path: "/disk1/data"
+cip_host: "10.226.102.14"
+cip_host_key_file: "/tmp/rhel1.pem"
+a360_host: "10.226.102.13"
+a360_host_key_file: "/tmp/rhel2.pem"
+ab_key_client_host_urls: "abks://keyserver1.str15914.gcp.abinitio.com:6150"
+ab_key_client_users_urls: "abks://keyserver1.str15914.gcp.abinitio.com:6151"
+ab_key_group: "CIPSK"
+functional_user: "abinitio"
+functional_user_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          35303639316561376437303934323764353836356232396630613765323231316539663462373537
+          3033613965633464613237616136373063616463646130630a666434316363393134613332633136
+          35323663326565643362633330393231393737366166646262393863613436613135626235323732
+          6638343935626637370a666162316135393266366132383362363336343737656138626231396635
+          3234
+web_app_user: "rranjan"
+a360_hostname: "rhel2.str15914.gcp.abinitio.com"
+cip_hostname: "rhel1.str15914.gcp.abinitio.com"

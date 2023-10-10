@@ -1,0 +1,21 @@
+#Vars
+vault_key: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          63313037323239306465393366636161316265363030383138383733366564383130306266396536
+          6138393666343332666262336233663364373566386131330a373537616465616332393330316466
+          61336162373234396633646633626530346464393130353731373430323365653366343038363637
+          3563666161373363380a616235353537356463383439313332306530663437313233656436303032
+          3939
+ab_aiuser_name: "abinitio"
+ab_aiuser_group: "abinitio"
+ab_key_host_source: "server"
+ab_key_users_source: "server"
+act_base_port_prefix: "290"
+act_name: "act360"
+act_portal_scaled_binary_type_decimal_places: "2"
+act_runtime_messagebus_commit_topic_width: "1"
+act_runtime_messagebus_topic_width: "3"
+act_runtime_messagebus_log_entry_topic_width: "3"
+act_runtime_messagebus_log_accum_topic_width: "3"
+act_runtime_messagebus_service_reject_topic_width: "3"
+installer_cloud : "True"
