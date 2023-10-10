@@ -1,5 +1,0 @@
-ChildPrincipalSubType,ChildPrincipal,ParentPrincipalSubType,ParentPrincipal
-AGUser,WEB_APP_USER,AGGroup,aiadmin
-AGUser,WEB_APP_USER,AGGroup,ActPortalAdminUsers_act360
-AGUser,WEB_APP_USER,AGGroup,ActPortalApiUsers_act360
-AGUser,WEB_APP_USER,AGGroup,ActPortalRuntimeApiUsers_act360

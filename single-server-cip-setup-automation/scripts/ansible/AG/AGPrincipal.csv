@@ -1,3 +1,0 @@
-SubType,AGPrincipal,Name,Username,ClearPassword,IsEnabled,Title,EmailAddress,Description
-AGUser,WEB_APP_USER,WEB_APP_USER,WEB_APP_USER,WEB_APP_USER,Y,WEB_APP_USER,,
-AGGroup,cipgroup,cipgroup,,,,,,This is group for administrators of all products
