@@ -61,6 +61,14 @@ resource "aws_security_group" "cip" {
     cidr_blocks = ["0.0.0.0/0"]  # Restrict this to your IP range for better security
   }
   # Add more ingress blocks for additional ports if needed
+
+ingress {
+    from_port   = 15000  # Your desired port
+    to_port     = 35000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # Restrict this to your IP range for better security
+  }
+
 }
 
 
@@ -83,6 +91,12 @@ resource "aws_security_group" "act360" {
     cidr_blocks = ["0.0.0.0/0"]  # Restrict this to your IP range for better security
   }
 
+ingress {
+    from_port   = 15000  # Your desired port
+    to_port     = 35000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # Restrict this to your IP range for better security
+  }
 
   # Add more ingress blocks for additional ports if needed
 }
@@ -103,6 +117,3 @@ resource "aws_security_group" "act360" {
   cidr_blocks = ["0.0.0.0/0"]
   security_group_id = aws_security_group.act360.id
 } 
-
-
-
