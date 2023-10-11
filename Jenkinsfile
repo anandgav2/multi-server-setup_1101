@@ -20,7 +20,7 @@ pipeline {
     stages {
 
 
-/*
+
 	    stage('Update inventory file if want to use existing servers')
 	    {
 		    when {
@@ -114,7 +114,7 @@ pipeline {
                 } 
             }
         }
-*/
+
         stage('Configure Server') 
         { 
             steps  
@@ -132,7 +132,7 @@ pipeline {
                 }
             }
         }
-/*
+
         stage('Install Co>Operating System') 
         { 
             steps 
@@ -236,7 +236,7 @@ pipeline {
             }
         }
 
-        stage('Start CIP') 
+        stage('Start CIP Subsystems') 
         { 
             steps 
             { 
@@ -245,8 +245,8 @@ pipeline {
 
             }
         } 
-       */ 
-        stage('Install CIPUI') 
+        
+        stage('Start CIPUI') 
         { 
             steps 
             { 
