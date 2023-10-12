@@ -1,7 +1,7 @@
 
 
-resource "aws_security_group" "cip" {
-   name        = "cip"
+resource "aws_security_group" "cip-multi" {
+   name        = "cip-multi"
    description = "Allow TCP inbound traffic"
 
   ingress {
@@ -68,7 +68,7 @@ resource "aws_security_group_rule" "cip_allow_all_egress" {
   to_port     = 0
   protocol    = "-1"
   cidr_blocks = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.cip.id
+  security_group_id = aws_security_group.cip-multi.id
 } 
 
 
