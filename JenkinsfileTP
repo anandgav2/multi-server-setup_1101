@@ -348,7 +348,8 @@ pipeline {
                 }
 
                 // Do something with the captured logs, e.g., print or manipulate them
-                sh "echo Error Logs of --> ${targetStageName}:\n${capturedLogs.join('\n')} >> ${env.LOG_FILE}"
+                sh "echo 'Error Logs of --> ${targetStageName}:' >> ${env.LOG_FILE}"
+                sh "echo '${capturedLogs.join('\n')}' >> ${env.LOG_FILE}"
 
             }
         }
