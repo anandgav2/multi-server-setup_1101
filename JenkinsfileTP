@@ -336,10 +336,9 @@ pipeline {
                 def capturedLogs = []
 
                 for (def line : logs) {
-                    echo "line - ${line}"
-                   // if (line =~ /^.*${targetStageName}*.$/) {
-                   //     break
-                  //  }
+                    if (startCapture && line =~ /^.*[Pipeline] // stage*.$/) {
+                       break
+                    }
                     if (startCapture) {
                         capturedLogs.add(line)
                         echo "Logs of each - ${line}"
