@@ -324,7 +324,7 @@ pipeline {
     }
 
     post {
-        unstable {
+        failure {
             script {
 
                 def errorText = ${e.message}
