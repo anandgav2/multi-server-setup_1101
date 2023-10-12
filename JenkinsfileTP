@@ -33,10 +33,10 @@ pipeline {
                     sh "touch ${env.LOG_FILE}"
                     sh "rm -f ${env.CONFIG_FILE}"
                     sh "touch ${env.CONFIG_FILE}"
-                    
+
                     sh "echo Extracting details for inventory file >> ${env.LOG_FILE}"
-                    cip_instance_public_ip = sh(script: "grep 'cip_host:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", returnStdout:true);
-                    a360_instance_public_ip = sh(script: "grep 'a360_host:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", returnStdout:true);
+                    cip_instance_public_ip = sh(script: "grep 'cip_host:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'");
+                    a360_instance_public_ip = sh(script: "grep 'a360_host:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'");
                     cip_key_file = sh(script: "grep 'cip_host_key_file:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", returnStdout:true);
                     a360_key_file = sh(script: "grep 'a360_host_key_file:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", returnStdout:true);
 	                functional_user = sh(script: "grep 'functional_user:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", returnStdout:true);
