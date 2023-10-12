@@ -16,7 +16,7 @@ resource "aws_instance" "cip" {
   ami           = var.ami  # Replace with your desired AMI ID
   instance_type = var.instance_type    # Replace with your desired instance type
   key_name      = aws_key_pair.aws-cip-key-multi.key_name  # Replace with your SSH key pair name
-  count         = 1
+  count         = var.server_cnt
 
   user_data = <<-EOF
     #!/bin/bash
