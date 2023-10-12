@@ -4,9 +4,9 @@ pipeline {
         label "${AGENT_NODE}"
 	}
     
-    /*tools {
+    tools {
         terraform 'Terraform'
-	}*/
+	}
     
     environment {
 		LOG_FILE="${HOME}/demo_setup.log"
@@ -26,28 +26,31 @@ pipeline {
             
             steps
 		    {
-			    script
+                script
 			    {
-                    cip_instance_public_ip = sh(script: "grep 'cip_host:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", returnStdout:true);
-                    a360_instance_public_ip = sh(script: "grep 'a360_host:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", returnStdout:true);
-                    cip_key_file = sh(script: "grep 'cip_host_key_file:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", returnStdout:true);
-                    a360_key_file = sh(script: "grep 'a360_host_key_file:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", returnStdout:true);
-	                functional_user = sh(script: "grep 'functional_user:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", returnStdout:true);
-             		sh "echo 'cip:\n  hosts:\n    cip-instance:\n      ansible_host: ${cip_instance_public_ip}      ansible_ssh_private_key_file: ${cip_key_file}      ansible_user: ${functional_user}\n    a360-instance:\n      ansible_host: ${a360_instance_public_ip}      ansible_ssh_private_key_file: ${a360_key_file}      ansible_user: ${functional_user}' > ./scripts/terraform/inventory.yml"
-                    
+
                     echo "##### SUMMARY LOG FILE : ${env.LOG_FILE} #########"
                     sh "rm -f ${env.LOG_FILE}"
                     sh "touch ${env.LOG_FILE}"
                     sh "rm -f ${env.CONFIG_FILE}"
                     sh "touch ${env.CONFIG_FILE}"
 
+                    sh "echo Extracting details for inventory file >> ${env.LOG_FILE}"
+                    sh "cat ${env.INSTALLER_PATH}/cip_setup_automation.yml"
+                    cip_instance_public_ip = sh(script: "grep 'cip_host:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'",returnStdout:true);
+                    a360_instance_public_ip = sh(script: "grep 'a360_host:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'",returnStdout:true);
+                    cip_key_file = sh(script: "grep 'cip_host_key_file:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", returnStdout:true);
+                    a360_key_file = sh(script: "grep 'a360_host_key_file:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", returnStdout:true);
+	                functional_user = sh(script: "grep 'functional_user:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", rreturnStdout:true);
+             		sh "echo 'cip:\n  hosts:\n    cip-instance:\n      ansible_host: ${cip_instance_public_ip}      ansible_ssh_private_key_file: ${cip_key_file}      ansible_user: ${functional_user}\n    a360-instance:\n      ansible_host: ${a360_instance_public_ip}      ansible_ssh_private_key_file: ${a360_key_file}      ansible_user: ${functional_user}' > ./scripts/terraform/inventory.yml"
+                    
                     sh "echo SERVER PUBLIC IPs >> ${env.LOG_FILE}" 
                     sh "echo 'cip_instance_public_ip: ${cip_instance_public_ip}' >> ${env.LOG_FILE}"
                     sh "echo 'a360_instance_public_ip: ${a360_instance_public_ip}' >> ${env.LOG_FILE}"
-
 				    sh "echo 'cip_instance_public_ip: ${cip_instance_public_ip}' >> ${env.CONFIG_FILE}"
                     sh "echo 'a360_instance_public_ip: ${a360_instance_public_ip}' >> ${env.CONFIG_FILE}"
 			    }
+                
 		    }
 	    
         }
@@ -300,7 +303,7 @@ pipeline {
             }
         }
         
-        stage('Install A360') 
+         stage('Install A360') 
         { 
             steps 
             { 
@@ -319,5 +322,36 @@ pipeline {
             }
         } 
     
+    }
+
+    post {
+        failure {
+            script {
+
+                def targetStageName = 'Update inventory file if want to use existing servers'
+
+                def logFile = "${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_NUMBER}/log"
+                def logs = readFile(logFile).split('\n')
+                def startCapture = false
+                def capturedLogs = []
+
+                for (def line : logs) {
+                    if (startCapture && line =~ /^.*\[Pipeline\] \/\/ stage*.$/) {
+                       break
+                    }
+                    if (startCapture) {
+                        capturedLogs.add(line)
+                    }
+                    if (line =~ /^.*${targetStageName}*.$/) {
+                        startCapture = true
+                    }
+                }
+
+                // Do something with the captured logs, e.g., print or manipulate them
+                sh "echo 'Error Logs of --> ${targetStageName}:' >> ${env.LOG_FILE}"
+                sh "echo '${capturedLogs.join('\n')}' >> ${env.LOG_FILE}"
+
+            }
+        }
     }
 }

@@ -112,7 +112,7 @@ pipeline {
             }
         }
 
-        /* stage('Configure Server') 
+        stage('Configure Server') 
         { 
             steps  
             { 
@@ -320,7 +320,7 @@ pipeline {
                 }
 
             }
-        } */ 
+        } 
     
     }
 
