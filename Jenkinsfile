@@ -1,27 +1,22 @@
 pipeline {
-
-	agent {
-
-            label "${AGENT_NODE}"
+    
+    agent {
+        label "${AGENT_NODE}"
 	}
-	/*
-        tools {
-                terraform 'Terraform'
-	        }
-
-*/
+    
+    /*tools {
+        terraform 'Terraform'
+	}*/
+    
     environment {
-		LOG_FILE="/home/abinitio/demo_setup.log"
-        CONFIG_FILE="${WORKSPACE}/scripts/ansible/cip_common_setup.yml"
-        TIME_FORMAT = "yyyy-MM-dd HH:mm:ss"
-        cip_instance_public_ip = ""
+		LOG_FILE="${HOME}/demo_setup.log"
+       	CONFIG_FILE="${WORKSPACE}/scripts/ansible/cip_common_setup.yml"
+       	TIME_FORMAT = "yyyy-MM-dd HH:mm:ss"
 	}
 
     stages {
-
-
-
-	    stage('Update inventory file if want to use existing servers')
+	
+        stage('Update inventory file if want to use existing servers')
 	    {
 		    when {
              	expression {
@@ -37,9 +32,8 @@ pipeline {
                     a360_instance_public_ip = sh(script: "grep 'a360_host:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", returnStdout:true);
                     cip_key_file = sh(script: "grep 'cip_host_key_file:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", returnStdout:true);
                     a360_key_file = sh(script: "grep 'a360_host_key_file:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", returnStdout:true);
-                    functional_user = sh(script: "grep 'functional_user:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", returnStdout:true);
-  
-	            sh "echo 'cip:\n  hosts:\n    cip-instance:\n      ansible_host: ${cip_instance_public_ip}      ansible_ssh_private_key_file: ${cip_key_file}      ansible_user: ${functional_user}\n    a360-instance:\n      ansible_host: ${a360_instance_public_ip}      ansible_ssh_private_key_file: ${a360_key_file}      ansible_user: ${functional_user}' > ./scripts/terraform/inventory.yml"
+	                functional_user = sh(script: "grep 'functional_user:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", returnStdout:true);
+             		sh "echo 'cip:\n  hosts:\n    cip-instance:\n      ansible_host: ${cip_instance_public_ip}      ansible_ssh_private_key_file: ${cip_key_file}      ansible_user: ${functional_user}\n    a360-instance:\n      ansible_host: ${a360_instance_public_ip}      ansible_ssh_private_key_file: ${a360_key_file}      ansible_user: ${functional_user}' > ./scripts/terraform/inventory.yml"
                     
                     echo "##### SUMMARY LOG FILE : ${env.LOG_FILE} #########"
                     sh "rm -f ${env.LOG_FILE}"
@@ -124,7 +118,7 @@ pipeline {
                     def startTime = sT.format(TIME_FORMAT)
                     sh "echo ----------- SERVER CONFIGURATION STARTED -----------  >> ${env.LOG_FILE}"
                     sh "echo Start Time ::  ${startTime} >> ${env.LOG_FILE}" 
-                    sh 'cd "${WORKSPACE}/scripts/ansible/ServerConfig"  ; ansible-playbook -i ./../../terraform/inventory.yml --vault-password-file=../vault_key configure-server.yaml' 
+                    sh 'cd "${WORKSPACE}/scripts/ansible/ServerConfig"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key configure-server.yaml' 
                     def eT = new Date()
                     def endTime = eT.format(TIME_FORMAT)
                     sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
@@ -142,7 +136,7 @@ pipeline {
                     def sT = new Date()
                     def startTime = sT.format(TIME_FORMAT)
                     sh "echo ----------- COOP INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"
-                    sh 'cd "${WORKSPACE}/scripts/ansible/Coop"  ; ansible-playbook -i ./../../terraform/inventory.yml --vault-password-file=../vault_key install-coop.yaml' 
+                    sh 'cd "${WORKSPACE}/scripts/ansible/Coop"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-coop.yaml' 
                     def eT = new Date()
                     def endTime = eT.format(TIME_FORMAT)
                     sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
@@ -150,7 +144,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Install AG') 
         { 
             steps 
@@ -160,10 +154,7 @@ pipeline {
                     def sT = new Date()
                     def startTime = sT.format(TIME_FORMAT)
                     sh "echo ----------- AG INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"
-                    cip_instance_public_ip= "10.226.102.14"
-                    a360_instance_public_ip= "10.226.102.13"
-                    sh "echo 'ag_host: ${cip_instance_public_ip}' >> ${env.CONFIG_FILE}"
-                    sh 'cd "${WORKSPACE}/scripts/ansible/AG"  ; ansible-playbook -i ./../../terraform/inventory.yml --vault-password-file=../vault_key install-AG.yaml' 
+                    sh 'cd "${WORKSPACE}/scripts/ansible/AG"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-AG.yaml' 
                     def eT = new Date()
                     def endTime = eT.format(TIME_FORMAT)
                     sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
@@ -172,7 +163,7 @@ pipeline {
                 
             }
         }
-        
+
         stage('Install Cafe') 
         { 
             steps 
@@ -181,11 +172,8 @@ pipeline {
                     echo""
                     def sT = new Date()
                     def startTime = sT.format(TIME_FORMAT)
-                    sh "echo ----------- CAFE INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"
-                    cip_instance_public_ip= "10.226.102.14"
-                    a360_instance_public_ip= "10.226.102.13"                    
-                    sh "echo 'cafe_host: ${cip_instance_public_ip}' >> ${env.CONFIG_FILE}"
-                    sh 'cd "${WORKSPACE}/scripts/ansible/Cafe"  ; ansible-playbook -i ./../../terraform/inventory.yml --vault-password-file=../vault_key install-cafe.yaml' 
+                    sh "echo ----------- CAFE INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"                 
+                    sh 'cd "${WORKSPACE}/scripts/ansible/Cafe"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-cafe.yaml' 
                     def eT = new Date()
                     def endTime = eT.format(TIME_FORMAT)
                     sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
@@ -198,62 +186,138 @@ pipeline {
         stage('Install CC') 
         { 
             steps 
-            { 
-                echo""
-                sh 'cd "${WORKSPACE}/scripts/ansible/CC"  ; ansible-playbook -i ./../../terraform/inventory.yml --vault-password-file=../vault_key install-CC.yaml' 
+            {
+                script{
+
+                    echo""
+                    def sT = new Date()
+                    def startTime = sT.format(TIME_FORMAT)
+                    sh "echo ----------- Control Center INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"                 
+                    sh 'cd "${WORKSPACE}/scripts/ansible/CC"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-CC.yaml' 
+                    def eT = new Date()
+                    def endTime = eT.format(TIME_FORMAT)
+                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
+                    sh "echo ------- Control Center INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
+                }
 
             }
         }
-        
-        
+
         stage('Install CIP') 
         { 
             steps 
             { 
-                echo""
-                sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ./../../terraform/inventory.yml --vault-password-file=../vault_key install-cip.yaml' 
+                script{
+                    echo""
+                    def sT = new Date()
+                    def startTime = sT.format(TIME_FORMAT)
+                    sh "echo ----------- CIP INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"    
+                    sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-cip.yaml' 
+                    def eT = new Date()
+                    def endTime = eT.format(TIME_FORMAT)
+                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
+                    sh "echo ------- CIP INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
+                }
 
             }
-        } 
-        
-	    stage('Seed Data') 
+        }
+
+        stage('Seed Data') 
         { 
             steps 
             { 
-                echo""
-                sh 'cd "${WORKSPACE}/scripts/ansible/seed-data"  ; ansible-playbook -i ./../../terraform/inventory.yml --vault-password-file=../vault_key seed-data.yaml' 
+                script{
+                    echo""
+                    def sT = new Date()
+                    def startTime = sT.format(TIME_FORMAT)
+                    sh "echo ----------- Setup Seed Data STARTED -----------  >> ${env.LOG_FILE}" 
+                    sh 'cd "${WORKSPACE}/scripts/ansible/seed-data"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key seed-data.yaml' 
+                    def eT = new Date()
+                    def endTime = eT.format(TIME_FORMAT)
+                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
+                    sh "echo ------- Setup Seed Data SUCCESSFUL ---------- >> ${env.LOG_FILE}"
+                }
 
             }
-        } 
-        
+        }
+
         stage('Install QueryIT') 
         { 
             steps 
             { 
-                echo""
-                sh 'cd "${WORKSPACE}/scripts/ansible/QueryIT"  ; ansible-playbook -i ./../../terraform/inventory.yml --vault-password-file=../vault_key install-queryit.yaml' 
+                script{
+                    
+                    echo""
+                    def sT = new Date()
+                    def startTime = sT.format(TIME_FORMAT)
+                    sh "echo -----------Install Query>IT STARTED -----------  >> ${env.LOG_FILE}"
+                    sh 'cd "${WORKSPACE}/scripts/ansible/QueryIT"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-queryit.yaml' 
+                    def eT = new Date()
+                    def endTime = eT.format(TIME_FORMAT)
+                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
+                    sh "echo ------- Install Query>IT SUCCESSFUL ---------- >> ${env.LOG_FILE}"
+                }
+            }
+        }
+
+        stage('Start CIP Subsystem') 
+        { 
+            steps 
+            {
+                script{
+                    
+                    echo""
+                    def sT = new Date()
+                    def startTime = sT.format(TIME_FORMAT)
+                    sh "echo ----------- Bringing UP CIP Subsystems -----------  >> ${env.LOG_FILE}"
+                    sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key start-cip.yaml' 
+                    def eT = new Date()
+                    def endTime = eT.format(TIME_FORMAT)
+                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
+                    sh "echo ------- CIP Subsystems STARTED SUCCESSFUL ---------- >> ${env.LOG_FILE}"
+                }
 
             }
         }
 
-        stage('Start CIP Subsystems') 
-        { 
-            steps 
-            { 
-                echo""
-                sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ./../../terraform/inventory.yml --vault-password-file=../vault_key start-cip.yaml' 
-
-            }
-        } 
-        
         stage('Start CIPUI') 
         { 
             steps 
-            { 
-                echo""
-                sh 'cd "${WORKSPACE}/scripts/ansible/CIPUI"  ; ansible-playbook -i ./../../terraform/inventory.yml --vault-password-file=../vault_key start-cipui.yaml' 
+            {
+                script{
+                    
+                    echo""
+                    def sT = new Date()
+                    def startTime = sT.format(TIME_FORMAT)
+                    sh "echo ----------- Installing CIP UI -----------  >> ${env.LOG_FILE}" 
+                    sh 'cd "${WORKSPACE}/scripts/ansible/CIPUI"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key start-cipui.yaml'
+                    def eT = new Date()
+                    def endTime = eT.format(TIME_FORMAT)
+                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
+                    sh "echo ------- CIP UI Installation SUCCESSFUL ---------- >> ${env.LOG_FILE}"
+                }
 
             }
         }
+        
+        stage('Install A360') 
+        { 
+            steps 
+            { 
+                script{
+                    echo""
+                    def sT = new Date()
+                    def startTime = sT.format(TIME_FORMAT)
+                    sh "echo ----------- A360 INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"        
+                    sh 'cd "${WORKSPACE}/scripts/ansible/act360"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-act360.yaml' 
+                    def eT = new Date()
+                    def endTime = eT.format(TIME_FORMAT)
+                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
+                    sh "echo ------- A360 INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
+                }
+
+            }
+        } 
+    
     }
 }

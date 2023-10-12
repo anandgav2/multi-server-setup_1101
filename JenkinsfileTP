@@ -143,9 +143,9 @@ pipeline {
                     sh "echo ------- COOP INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                 }
             }
-        }
+        }*/
 
-        stage('Install AG') 
+       /* stage('Install AG') 
         { 
             steps 
             { 
@@ -260,7 +260,7 @@ pipeline {
             }
         }
 
-        stage('Start CIP') 
+        stage('Start CIP Subsystem') 
         { 
             steps 
             {
@@ -280,7 +280,7 @@ pipeline {
             }
         }
 
-        stage('Install CIPUI') 
+        stage('Start CIPUI') 
         { 
             steps 
             {
@@ -298,9 +298,9 @@ pipeline {
                 }
 
             }
-        } 
+        }
         
-       /*  stage('Install A360') 
+         stage('Install A360') 
         { 
             steps 
             { 
@@ -317,7 +317,7 @@ pipeline {
                 }
 
             }
-        } */
+        } 
     
     }
 }
