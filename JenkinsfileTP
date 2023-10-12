@@ -12,6 +12,7 @@ pipeline {
 		LOG_FILE="${HOME}/demo_setup.log"
        	CONFIG_FILE="${WORKSPACE}/scripts/ansible/cip_common_setup.yml"
        	TIME_FORMAT = "yyyy-MM-dd HH:mm:ss"
+        CURRENT_STAGE = ""
 	}
 
     stages {
@@ -28,6 +29,8 @@ pipeline {
 		    {
                 script
 			    {
+                    CURRENT_STAGE = env.STAGE_NAME
+
                     echo "##### SUMMARY LOG FILE : ${env.LOG_FILE} #########"
                     sh "rm -f ${env.LOG_FILE}"
                     sh "touch ${env.LOG_FILE}"
@@ -327,7 +330,7 @@ pipeline {
         failure {
             script {
 
-                def errorText = "${e.message}"
+                def errorText = steps.getLog(CURRENT_STAGE).readAll()
                 sh "echo ${errorText} >> ${env.LOG_FILE}"
 
             }
