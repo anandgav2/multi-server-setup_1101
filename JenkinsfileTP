@@ -12,7 +12,6 @@ pipeline {
 		LOG_FILE="${HOME}/demo_setup.log"
        	CONFIG_FILE="${WORKSPACE}/scripts/ansible/cip_common_setup.yml"
        	TIME_FORMAT = "yyyy-MM-dd HH:mm:ss"
-        CURRENT_STAGE = ""
 	}
 
     stages {
@@ -29,7 +28,6 @@ pipeline {
 		    {
                 script
 			    {
-                    CURRENT_STAGE = env.STAGE_NAME
 
                     echo "##### SUMMARY LOG FILE : ${env.LOG_FILE} #########"
                     sh "rm -f ${env.LOG_FILE}"
@@ -330,8 +328,27 @@ pipeline {
         failure {
             script {
 
-                def errorText = steps.getLog(CURRENT_STAGE).readAll()
-                sh "echo ${errorText} >> ${env.LOG_FILE}"
+                def targetStageName = 'Update inventory file if want to use existing servers'
+
+                def logFile = "${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_NUMBER}/log"
+                def logs = readFile(logFile).split('\n')
+                def startCapture = false
+                def capturedLogs = []
+
+                for (def line : logs) {
+                    if (line =~ /^Finished: ${targetStageName}$/) {
+                        break
+                    }
+                    if (startCapture) {
+                        capturedLogs.add(line)
+                    }
+                    if (line =~ /^Started: ${targetStageName}$/) {
+                        startCapture = true
+                    }
+                }
+
+                // Do something with the captured logs, e.g., print or manipulate them
+                echo "Logs of '${targetStageName}':\n${capturedLogs.join('\n')}"
 
             }
         }
