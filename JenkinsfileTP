@@ -337,13 +337,14 @@ pipeline {
 
                 for (def line : logs) {
                     echo "line - ${line}"
-                    if (line =~ /^Finished: ${targetStageName}$/) {
-                        break
-                    }
+                   // if (line =~ /^.*${targetStageName}*.$/) {
+                   //     break
+                  //  }
                     if (startCapture) {
                         capturedLogs.add(line)
+                        echo "Logs of each - ${line}"
                     }
-                    if (line =~ /^Started: ${targetStageName}$/) {
+                    if (line =~ /^.*${targetStageName}*.$/) {
                         startCapture = true
                     }
                 }
