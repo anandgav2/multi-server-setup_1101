@@ -159,8 +159,8 @@
     - name: Getting URL and Admin Details
       ansible.builtin.set_fact:
         matched_lines: "{{ command_output.stdout_lines | select('regex', 'Application deployed to:|admin user:') | list }}"
-
-    - name: Getting URL and Admin Details
+    
+    - name: Extract details
       ansible.builtin.set_fact:
         url: "{{ matched_lines[1] | regex_search('(http://[^ ]+)') | regex_replace(cip_hostname,cip_instance_public_ip) }}"
         port_number: "{{ matched_lines[1].split(':')[-1] | regex_replace('[^0-9]', '') }}"

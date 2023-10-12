@@ -229,7 +229,7 @@
       ansible.builtin.command:
         cmd: sh -c "source {{ installer_path }}/source_and_run_act360.ksh && ./active_install.ksh -c ./active.yml >> ./a360_install.log"
       register: command_output
-      failed_when: "'FAILED - RETRYING: wait for deployment to finish (60 retries left)' not in command_result.stderr"
+      failed_when: "'FAILED - RETRYING: wait for deployment to finish (60 retries left)' not in command_output.stderr"
       become_user: "{{ functional_user }}"
       args:
         chdir: "{{ folder_path }}"
