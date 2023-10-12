@@ -331,7 +331,9 @@ pipeline {
                 def targetStageName = 'Update inventory file if want to use existing servers'
 
                 def logFile = "${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_NUMBER}/log"
+                echo "Logs of ${logFile}"
                 def logs = readFile(logFile).split('\n')
+                echo "Logs of ${logs}"
                 def startCapture = false
                 def capturedLogs = []
 
