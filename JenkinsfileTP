@@ -336,7 +336,7 @@ pipeline {
                 def capturedLogs = []
 
                 for (def line : logs) {
-                    echo "${line}"
+                    echo "line - ${line}"
                     if (line =~ /^Finished: ${targetStageName}$/) {
                         break
                     }
