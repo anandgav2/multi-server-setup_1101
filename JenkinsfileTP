@@ -341,7 +341,6 @@ pipeline {
                     }
                     if (startCapture) {
                         capturedLogs.add(line)
-                        echo "Logs of each - ${line}"
                     }
                     if (line =~ /^.*${targetStageName}*.$/) {
                         startCapture = true
@@ -349,7 +348,7 @@ pipeline {
                 }
 
                 // Do something with the captured logs, e.g., print or manipulate them
-                echo "Logs of '${targetStageName}':\n${capturedLogs.join('\n')}"
+                sh "echo Error Logs of --> ${targetStageName}:\n${capturedLogs.join('\n')} >> ${env.LOG_FILE}"
 
             }
         }
