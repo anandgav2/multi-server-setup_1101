@@ -39,7 +39,7 @@ resource "aws_instance" "cip" {
 }
 
 output "cip_instance_public_ip" {
-  value = aws_instance.cip.public_ip
+  value = aws_instance.cip[count.index].public_ip
 }
 
 
@@ -55,11 +55,11 @@ resource "time_sleep" "wait_60_seconds" {
 # Call local-exec provisioner after the instance is created
 resource "null_resource" "update_inventory" {
   triggers = {
-    cip_instance_public_ip = aws_instance.cip.public_ip
+    cip_instance_public_ip = aws_instance.cip[count.index].public_ip
   }
 
   provisioner "local-exec" {
-    command = "/usr/bin/ssh-keyscan -v -t rsa ${aws_instance.cip.public_ip} >> ~/.ssh/known_hosts"
+    command = "/usr/bin/ssh-keyscan -v -t rsa ${aws_instance.cip[count.index].public_ip} >> ~/.ssh/known_hosts"
   }
 
   depends_on = [ time_sleep.wait_60_seconds ]
