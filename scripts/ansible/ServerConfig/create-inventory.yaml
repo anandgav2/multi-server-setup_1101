@@ -1,0 +1,54 @@
+- name: Configure EC2 Instance
+  hosts: localhost
+  become: false
+  vars:
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+    use_existing_servers: "{{ lookup('env', 'USE_EXISTING_SERVERS').split(',') | first}}"
+
+  tasks:
+
+    - name: Load Global parameters
+      include_vars:
+        file: "{{ item }}"
+      with_items:
+        - "{{ installer_path }}/cip_setup_automation.yml"    
+
+    - name: Read configuration and host alias files
+      set_fact:
+        functional_user: "ec2-user"
+      when: use_existing_servers == False
+
+    - name: Delete Inventory (if it exists)
+      file:
+        path: ../../terraform/inventory.yml
+        state: absent
+      ignore_errors: yes
+
+    - name: Touch Inventory
+      file:
+        path: ../../terraform/inventory.yml
+        state: touch
+
+    - name: Write Initial Lines
+      lineinfile:
+        path: ../../terraform/inventory.yml
+        line: |
+          aws-cip:
+            hosts:
+
+    - name: Read configuration and host alias files
+      set_fact:  
+        server_config: "{{ (lookup('file', '{{ installer_path }}/cip_setup_server_config.yml')).split('\n') }}"
+        host_alias: "{{ (lookup('file', '{{ installer_path }}/host_alias.txt')).split('\n') }}"
+
+    - name: Execute Python Code
+      command: python3 read-configs.py "{{ host_alias }}" "{{ server_config }}" "{{ functional_user }}"
+      register: output
+
+    - name: Write Web Apps and Subsystems
+      lineinfile:
+        path: ../../terraform/inventory.yml
+        line: |
+          {{ output.stdout }}
+
+    
