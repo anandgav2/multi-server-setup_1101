@@ -134,6 +134,10 @@
       shell: dirname $(dirname $(readlink -f $(which java)))
       register: java_home 
 
+    - name: "Fetch Short Host name"
+      shell: hostname --short
+      register: short_host_name
+      
     - name: Get Python Path
       shell: "which python3"
       register: python_path
@@ -437,7 +441,7 @@
         - air sandbox parameter -path .sandbox.pset JAVA_HOME@act_api {{ java_home.stdout }}
         - air sandbox parameter -path .sandbox.pset CIP_COMMON_CUSTOMER_EVENT_OVERRIDE_TYPE_LIST@cip_common 'ET_EVENT1,ET_EVENT2,ET_EVENT3'
         - air sandbox parameter -path .sandbox.pset CIP_COMMON_INTERNAL_EVENT_OVERRIDE_TYPE_LIST@ 'ET_TIMER, ET_CAMPAIGN_EVENT, ET_CAMPAIGN_EVENT_CAMPAIGN_ENDED, ET_NBOS_FULFILLMENT_REQUEST, ET_OUTBOUND_CHANNEL_FULFILLMENT_REQUEST, ET_NBOS_OUTBOUND_EVENT'
-        - air sandbox parameter -path ./.sandbox.pset CIP_COMMON_LOCAL_ENRICHMENT_QUEUE@ '$CIP_COMMON_LOCAL_MFS_QUEUE/cipsk-dev1.enrichment_q'
+        - air sandbox parameter -path ./.sandbox.pset CIP_COMMON_LOCAL_ENRICHMENT_QUEUE@ '$CIP_COMMON_LOCAL_MFS_QUEUE/{{ short_host_name.stdout }}.enrichment_q'
       register: command_output
       become_user: "{{ functional_user }}"
       args:
