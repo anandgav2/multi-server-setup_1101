@@ -413,6 +413,15 @@
       args:
         chdir: "{{ sandbox_root }}/abinitio/cip/cip_common"
 
+    - name: Configure CIP Public Sandbox
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        - air sandbox parameter -path .sandbox.pset PUBLIC_PROTOTYPE_REL_LOC /abinitio/cip/public_internal
+      register: command_output
+      become_user: "{{ functional_user }}"
+      args:
+        chdir: "{{ sandbox_root }}/abinitio/cip/public_internal"
+    
     - name: Configure CIP Private Sandbox
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
