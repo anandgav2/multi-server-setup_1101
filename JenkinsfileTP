@@ -46,7 +46,7 @@ pipeline {
                     sh "echo Start Time ::  ${startTime} >> ${env.LOG_FILE}"
                     cnt = sh(script: "grep 'aws_server_count:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'",returnStdout:true);
                     sh "echo ${cnt}"
-                    sh 'cd "${WORKSPACE}/scripts/terraform" ;pwd;terraform init --lock=false;terraform plan --lock=false -var "server_cnt=${cnt}";terraform plan --lock=false -var "server_cnt=${cnt}"'   
+                    sh 'cd "${WORKSPACE}/scripts/terraform"; terraform init --lock=false; terraform plan --lock=false -var "server_cnt=\$\{cnt\}";terraform plan --lock=false -var "server_cnt=\$\{cnt\}"'   
                 }
 
             }
