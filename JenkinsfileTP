@@ -294,11 +294,11 @@ pipeline {
                 }
 
             }
-        } 
+        } */
 
     }
 
-    post {
+   /*  post {
         failure {
             script {
 
@@ -327,5 +327,5 @@ pipeline {
 
             }
         }
-    } */
+    }  */
 }
