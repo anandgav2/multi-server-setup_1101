@@ -12,6 +12,7 @@ pipeline {
 		LOG_FILE="${HOME}/demo_setup.log"
        	CONFIG_FILE="${WORKSPACE}/scripts/ansible/cip_common_setup.yml"
        	TIME_FORMAT = "yyyy-MM-dd HH:mm:ss"
+        COUNT=2
 	}
 
     stages {
@@ -44,10 +45,8 @@ pipeline {
                     def startTime = sT.format(TIME_FORMAT)
                     sh "echo ----------- SERVER CREATION STARTED -----------  >> ${env.LOG_FILE}"
                     sh "echo Start Time ::  ${startTime} >> ${env.LOG_FILE}"
-                    cnt = sh(script: "grep 'aws_server_count:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'",returnStdout:true);
-                    withEnv(["TERRAFORM_SERVER_CNT=${cnt}"]) {
-                        sh """cd "\${WORKSPACE}/scripts/terraform"; pwd; terraform init --lock=false; terraform plan --lock=false -var "server_cnt=\${TERRAFORM_SERVER_CNT}";"""
-                    }
+                    COUNT = sh(script: "grep 'aws_server_count:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'",returnStdout:true);
+                    sh """cd "\${WORKSPACE}/scripts/terraform"; pwd; terraform init --lock=false; terraform plan --lock=false -var "server_cnt=\${COUNT}"; terraform plan -var "server_cnt=\${COUNT}";"""
                 }
 
             }
