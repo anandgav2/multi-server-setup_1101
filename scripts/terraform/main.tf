@@ -59,7 +59,7 @@ resource "null_resource" "update_inventory" {
   }
 
   provisioner "local-exec" {
-    command = "/usr/bin/ssh-keyscan -v -t rsa ${[for instance in aws_instance.cip : instance.public_ip]} >> ~/.ssh/known_hosts"
+    command = "/usr/bin/ssh-keyscan -v -t rsa ${join(" ", aws_instance.cip[*].public_ip)} >> ~/.ssh/known_hosts"
   }
 
   depends_on = [ time_sleep.wait_60_seconds ]
