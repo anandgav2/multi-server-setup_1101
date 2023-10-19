@@ -47,20 +47,19 @@ pipeline {
                     sh "echo Start Time ::  ${startTime} >> ${env.LOG_FILE}"
                     cnt = sh(script: "grep 'aws_server_count:' ${env.INSTALLER_PATH}/cip_setup_automation.yml | awk '{print \$2}' | sed 's/\"//g'",returnStdout:true);
                     COUNT = cnt
-                    echo "COUNT set to: ${COUNT}"
-                    /* sh """
+                    sh """
                         cd "\${WORKSPACE}/scripts/terraform"; 
                         pwd; 
                         terraform init --lock=false; 
                         terraform plan --lock=false -var "server_cnt=\${COUNT}"; 
                         terraform plan -var "server_cnt=\${COUNT}" -out=myplan.tfplan;
-                    """ */
+                    """
                 }
 
             }
         }
 
-       /*  stage('Terraform Apply -> Create EC2 Instance') 
+        stage('Terraform Apply -> Create EC2 Instance') 
         { 
             when {
              	expression {
@@ -85,7 +84,7 @@ pipeline {
                     }
                 } 
             }
-        } */
+        }
 
  /*        stage('Create Inventory File') {
             steps {
