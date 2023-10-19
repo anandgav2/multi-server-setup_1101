@@ -18,13 +18,17 @@ resource "aws_instance" "cip" {
   key_name      = aws_key_pair.aws-cip-key-multi.key_name  # Replace with your SSH key pair name
   count         = var.server_cnt
 
+  cpu_options {
+    core_count       = 2   # Number of vCPUs
+    threads_per_core = 2   # Number of threads per vCPU core
+  }
+
   user_data = <<-EOF
     #!/bin/bash
     setenforce 0
     sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
     systemctl restart sshd
   EOF
-
 
   vpc_security_group_ids = [aws_security_group.cip-multi.id]  # Attach the security group here
   
