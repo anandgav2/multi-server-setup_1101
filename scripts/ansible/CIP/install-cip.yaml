@@ -134,6 +134,10 @@
       shell: dirname $(dirname $(readlink -f $(which java)))
       register: java_home 
 
+    - name: "Fetch Short Host name"
+      shell: hostname --short
+      register: short_host_name
+
     - name: Get Python Path
       shell: "which python3"
       register: python_path
@@ -418,7 +422,7 @@
         - air sandbox parameter -path .sandbox.pset AI_TEST_FLAG@ABENV {{ functional_user }}
         - air sandbox parameter -path .sandbox.pset Environment {{ sandbox_root }}/abinitio/stdenv
         - air sandbox parameter -path .sandbox.pset CIP_COMMON_LOCAL_ENRICHMENT_LAYOUT@ '$CIP_COMMON_LOCAL_MFS_QUEUE'
-        - air sandbox parameter -path .sandbox.pset CIP_COMMON_SEGMENTATION_MUTABLE_AB_HOME@ {{ destination }}/abinitio-V{{ coop_version }}
+        - air sandbox parameter -path .sandbox.pset CIP_COMMON_SEGMENTATION_MUTABLE_AB_HOME@ '$AB_HOME'
         - air sandbox parameter -path .sandbox.pset CIP_COMMON_LOCAL_SEGMENTATION_LAYOUT@ {{ data_root_path }}/cip/mfs/mfs_2way
         - air sandbox parameter -path .sandbox.pset CIP_COMMON_ADC_CONFIG_FILE@ {{ sandbox_root }}/abinitio/cip/private_internal/config/config.dev.props
         - project-directories -create abinitio -proj {{ sandbox_root }}/abinitio/cip/private_internal -ignore-owner -all-commons
@@ -437,7 +441,8 @@
         - air sandbox parameter -path .sandbox.pset JAVA_HOME@act_api {{ java_home.stdout }}
         - air sandbox parameter -path .sandbox.pset CIP_COMMON_CUSTOMER_EVENT_OVERRIDE_TYPE_LIST@cip_common 'ET_EVENT1,ET_EVENT2,ET_EVENT3'
         - air sandbox parameter -path .sandbox.pset CIP_COMMON_INTERNAL_EVENT_OVERRIDE_TYPE_LIST@ 'ET_TIMER, ET_CAMPAIGN_EVENT, ET_CAMPAIGN_EVENT_CAMPAIGN_ENDED, ET_NBOS_FULFILLMENT_REQUEST, ET_OUTBOUND_CHANNEL_FULFILLMENT_REQUEST, ET_NBOS_OUTBOUND_EVENT'
-        - air sandbox parameter -path ./.sandbox.pset CIP_COMMON_LOCAL_ENRICHMENT_QUEUE@ '$CIP_COMMON_LOCAL_MFS_QUEUE/cipsk-dev1.enrichment_q'
+        - air sandbox parameter -path .sandbox.pset CIP_COMMON_LOCAL_ENRICHMENT_QUEUE@ '$CIP_COMMON_LOCAL_MFS_QUEUE/{{ short_host_name.stdout }}.enrichment_q'
+        - air sandbox parameter -path .sandbox.pset CIP_COMMON_NOTIFICATION_EVENT_TYPE_LIST@cip_common ''
       register: command_output
       become_user: "{{ functional_user }}"
       args:
@@ -509,7 +514,7 @@
           cip-control,fulfillment_subsystem,$AI_PSET/fulfillment/fulfillment_subsystem.pset,Plan
           cip-control,communication_subsystem,$AI_PSET/communication/communication_subsystem.pset,Plan
           cip-control,control_subsystem,$AI_PSET/control/control_plan.pset,Plan
-          cip-control,enrichment_subsystem,$AI_PSET/enrichment/enrich_events.pset,Graph
+          cip-control,enrichment_subsystem,$AI_PSET/enrichment/a360_integrated_enrichment_subsystem.pset,Plan
           #cip-control,enrichment_subsystem,$AI_PSET/enrichment/a360_enrich_events.pset,Graph
           #cip-control,aggregation_subsystem,$AI_PSET/enrichment/aggregation_subsystem.pset,Plan
           cip-control,nbos,$AI_PSET/inbound_channel/nbos_start_services.pset,Plan
@@ -524,9 +529,9 @@
           ../bin/cip-control.ksh start control_subsystem
           ../bin/cip-control.ksh start contact_policy_subsystem
           ../bin/cip-control.ksh start detect_subsystem
+          ../bin/cip-control.ksh start enrichment_subsystem
           ../bin/cip-control.ksh start fulfillment_subsystem
           ../bin/cip-control.ksh start communication_subsystem
-          ../bin/cip-control.ksh start enrichment_subsystem
           ../bin/cip-control.ksh start collect_event_subsystem
         state: present  
       
