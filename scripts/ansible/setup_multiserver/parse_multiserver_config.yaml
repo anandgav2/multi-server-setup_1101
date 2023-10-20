@@ -1,0 +1,117 @@
+
+- name: print variables
+  debug:
+    var: "{{ input }}"
+  with_items:
+    - host
+    - config
+  loop_control:
+        loop_var: input
+
+- name: Load Global config parameters
+  include_vars:
+    file: executables.yml
+
+- name: write executable for each host
+  lineinfile: 
+    path: "{{ host | split(' ') | first + '.executable.csv' }}"
+    line: "{{ lookup('vars',subsystem,default='') }}"
+    state: present
+    create: true
+  loop: "{{ config | split(',') }}"
+  loop_control:
+        loop_var: subsystem
+  no_log: false
+  become_user: abinitio
+
+  #- name: remove quotes from executable file
+  #replace:
+  #  path: "{{ host | split(' ') | first + '.executable.csv' }}"
+  #  regexp: '"'
+  # replace: ''
+
+  #- name: remove empty lines from executable file
+  #shell: |
+  # sed -i '/^$/d' "{{ host | split(' ') | first + '.executable.csv' }}"
+    #sed '/^$/d' "{{ host | split(' ') | first + '.executable.csv' }}" > "{{ host | split(' ') | first + '.executable.csv.tmp' }}"
+    #mv "{{ host | split(' ') | first + '.executable.csv.tmp' }}" "{{ host | split(' ') | first + '.executable.csv' }}"
+    #become_user: abinitio
+  
+- name: set to cip_common_all_target_servers  
+  set_fact: 
+    cip_common_all_target_servers: "{{ cip_common_all_target_servers| default('') + ',' + host }}"
+  when: '"Utility" in config'
+
+- name: set to cip_common_control_server
+  set_fact:
+    cip_common_control_server: "{{ cip_common_control_server| default('') + ',' + host }}"
+  when: '"Control" in config'
+
+- name: set to cip_common_act_server
+  set_fact:
+    cip_common_act_server: "{{ cip_common_act_server| default('') + ',' + host }}"
+  when: '"Control" in config'
+
+- name: set to cip_common_audit_server
+  set_fact:
+    cip_common_audit_server: "{{ cip_common_audit_server| default('') + ',' + host }}"
+  when: '"Audit" in config'
+  
+- name: set to cip_common_collect_server
+  set_fact:
+    cip_common_collect_server: "{{ cip_common_collect_server| default('') + ',' + host }}"
+  when: '"Collect_Event" in config'
+  
+- name: set to cip_common_contact_policy_server
+  set_fact:
+    cip_common_contact_policy_server: "{{ cip_common_contact_policy_server| default('') + ',' + host }}"
+  when: '"Contact_Policy" in config'  
+
+- name: set to cip_common_detect_servers
+  set_fact:
+    cip_common_detect_servers: "{{ cip_common_detect_servers| default('') + ',' + host }}"
+  when: '"Detect" in config' 
+  
+- name: set to cip_common_eligibility_servers
+  set_fact:
+    cip_common_eligibility_servers: "{{ cip_common_eligibility_servers| default('') + ',' + host }}"
+  when: '"Detect" in config' 
+  
+- name: set to cip_common_eligible_queue_servers
+  set_fact:
+    cip_common_eligible_queue_servers: "{{ cip_common_eligible_queue_servers| default('') + ',' + host }}"
+  when: '"Detect" in config' 
+  
+- name: set to cip_common_enrichment_queue_servers
+  set_fact:
+    cip_common_enrichment_queue_servers: "{{ cip_common_enrichment_queue_servers| default('') + ',' + host }}"
+  when: '"Enrichment" in config' 
+
+- name: set to cip_common_enrichment_servers
+  set_fact:
+    cip_common_enrichment_servers: "{{ cip_common_enrichment_servers| default('') + ',' + host }}"
+  when: '"Enrichment" in config'
+  
+- name: set to cip_common_inbound_channel_queue_servers
+  set_fact:
+    cip_common_inbound_channel_queue_servers: "{{ cip_common_inbound_channel_queue_servers| default('') + ',' + host }}"
+  when: '"Control" in config'
+  
+- name: set to cip_common_segmentation_server
+  set_fact:
+    cip_common_segmentation_server: "{{ cip_common_segmentation_server| default('') + ',' + host }}"
+  when: '"Segmentation" in config'
+
+  #- name: print var
+  #debug:
+  #      msg: "{{ cip_common_all_target_servers | split(',') | reject('match', '^$') | join(',') }}" 
+  #      #  set_fact: cip_common_all_target_servers= cip_common_all_target_servers+ "a"
+
+  #- name: update subsystem mapping yml
+  #lineinfile:
+  # path: subsystem_mapping.yml
+  # line: |
+  #   "{{ 'cip_common_all_target_servers: ' + cip_common_all_target_servers | split(',') | reject('match', '^$') | join(',') }}"
+  # state: present
+  # create: true
+

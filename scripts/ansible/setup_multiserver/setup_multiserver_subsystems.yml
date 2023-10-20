@@ -1,0 +1,59 @@
+- name: Generate executables.csv dynamically
+  hosts: localhost
+  become: yes # Run tasks with root privileges
+
+  vars:
+    installer_path: "/disk1/installer"
+    host_alias_content: "{{ lookup('file', '/disk1/installer/host_alias.txt').splitlines() }}"
+
+  tasks:
+    - name: Load CIP Config parameters
+      include_vars:
+        file: ./executables.yml
+
+    - name: Load Global config parameters
+      include_vars:
+        file: "{{ installer_path }}/cip_setup_automation.yml"
+        file: "{{ installer_path }}/cip_setup_server_config.yml"
+
+    - name: Print logs
+      debug:
+         msg: "{{ item | split(' ') | first}}"
+      loop: "{{ host_alias_content }}"
+
+
+    - name: get server configuration
+      ansible.builtin.debug:
+              #msg: "{{ {{ item | split(' ') | first }}_config }}"
+        msg: "{{ lookup('vars',item | split(' ') | first + '_config') }}"
+      loop: "{{ host_alias_content }}"
+
+    - name: call another yaml
+      include_tasks: parse_multiserver_config.yaml
+      vars:
+        host: "{{ item | split(' ') | first }}"
+        config: "{{ lookup('vars',item | split(' ') | first + '_config') }}"
+      loop: "{{ host_alias_content }}"
+
+    - name: Print subsystem mapping
+      lineinfile:
+        path: subsystem_mapping.yml
+        line: "{{ subsystem_mapping }}"
+        state: present
+        create: true
+      with_items:
+        - "{{ 'cip_common_all_target_servers: ' + cip_common_all_target_servers | split(',') | reject('match', '^$') | unique | join(',') }}"
+        - "{{ 'cip_common_act_server: ' + cip_common_act_server | split(',') | reject('match', '^$') | unique | join(',') }}"
+        - "{{ 'cip_common_audit_server: ' + cip_common_audit_server | split(',') | reject('match', '^$') | unique | join(',') }}"
+        - "{{ 'cip_common_collect_server: ' + cip_common_collect_server | split(',') | reject('match', '^$') | unique | join(',') }}"
+        - "{{ 'cip_common_contact_policy_server: ' + cip_common_contact_policy_server | split(',') | reject('match', '^$') | unique | join(',') }}"
+        - "{{ 'cip_common_detect_servers: ' + cip_common_detect_servers | split(',') | reject('match', '^$') | unique | join(',') }}"
+        - "{{ 'cip_common_eligibility_servers: ' + cip_common_eligibility_servers | split(',') | reject('match', '^$') | unique | join(',') }}"
+        - "{{ 'cip_common_eligible_queue_servers: ' + cip_common_eligible_queue_servers | split(',') | reject('match', '^$') | unique | join(',') }}"
+        - "{{ 'cip_common_enrichment_queue_servers: ' + cip_common_enrichment_queue_servers | split(',') | reject('match', '^$') | unique | join(',') }}"
+        - "{{ 'cip_common_enrichment_servers: ' + cip_common_enrichment_servers | split(',') | reject('match', '^$') | unique | join(',') }}"
+        - "{{ 'cip_common_inbound_channel_queue_servers: ' + cip_common_inbound_channel_queue_servers | split(',') | reject('match', '^$') | unique | join(',') }}"
+        - "{{ 'cip_common_segmentation_server: ' + cip_common_segmentation_server | split(',') | reject('match', '^$') | unique | join(',') }}"
+      loop_control:
+        loop_var: subsystem_mapping
+      become_user: abinitio
