@@ -19,8 +19,8 @@ resource "aws_instance" "cip" {
   count         = var.server_cnt
 
   cpu_options {
-    core_count       = 2   # Number of vCPUs
-    threads_per_core = 2   # Number of threads per vCPU core
+    core_count       = 1   # Number of vCPUs
+    threads_per_core = 1   # Number of threads per vCPU core
   }
 
   user_data = <<-EOF
