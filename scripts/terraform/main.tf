@@ -19,7 +19,7 @@ resource "aws_instance" "cip" {
   count         = var.server_cnt
 
   cpu_options {
-    core_count       = 1   # Number of vCPUs
+    core_count       = 2   # Number of vCPUs
     threads_per_core = 1   # Number of threads per vCPU core
   }
 
