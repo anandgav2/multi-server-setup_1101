@@ -59,7 +59,7 @@
       become_user: abinitio
 
     - name: call another yaml for base pset configuration
-      include_tasks: parse_multiserver_config.yaml
+      include_tasks: create_base_config.yaml
       vars:
         host: "{{ item | split(' ') | first }}"
         config: "{{ lookup('vars',item | split(' ') | first + '_config') }}"
