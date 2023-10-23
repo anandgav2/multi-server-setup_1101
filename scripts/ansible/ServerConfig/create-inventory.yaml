@@ -20,19 +20,14 @@
     - name: Read configuration and host alias files
       set_fact:
         functional_user: "ec2-user"
-        pem_file: "{{ ansible_env.PWD | regex_replace('.*/.*/', '') }}/terraform/aws-cip-key-multi.pem"
+        pem_file: "{{ ansible_env.PWD }}"
       when: use_existing_servers == False
 
     - name: Delete Inventory (if it exists)
-      file:
-        path: ../../terraform/inventory.yml
-        state: absent
+      shell: |
+        rm -f ../../terraform/inventory.yml
+        touch ../../terraform/inventory.yml
       ignore_errors: yes
-
-    - name: Touch Inventory
-      file:
-        path: ../../terraform/inventory.yml
-        state: touch
 
     - name: Write Initial Lines
       lineinfile:
