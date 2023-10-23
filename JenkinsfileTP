@@ -40,20 +40,20 @@ pipeline {
             steps 
             { 
                 script {
-                    def sT = new Date()
-                    //def timeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-                    def startTime = sT.format(TIME_FORMAT)
-                    sh "echo ----------- SERVER CREATION STARTED -----------  >> ${env.LOG_FILE}"
-                    sh "echo Start Time ::  ${startTime} >> ${env.LOG_FILE}"
-                    cnt = sh(script: "grep 'aws_server_count:' ${env.INSTALLER_PATH}/cip_setup_automation.yml | awk '{print \$2}' | sed 's/\"//g'",returnStdout:true);
-                    COUNT = cnt.trim()
-                    sh """
-                        cd "\${WORKSPACE}/scripts/terraform"; 
-                        pwd; 
-                        terraform init --lock=false; 
-                        terraform plan --lock=false -var 'server_cnt=${COUNT}'; 
-                        terraform plan -var 'server_cnt=${COUNT}' -out=myplan.tfplan;
-                    """
+                    dir("${WORKSPACE}/scripts/terraform") {
+                        def sT = new Date()
+                        def startTime = sT.format(TIME_FORMAT)
+                        sh "echo ----------- SERVER CREATION STARTED -----------  >> ${env.LOG_FILE}"
+                        sh "echo Start Time ::  ${startTime} >> ${env.LOG_FILE}"
+                        cnt = sh(script: "grep 'aws_server_count:' ${env.INSTALLER_PATH}/cip_setup_automation.yml | awk '{print \$2}' | sed 's/\"//g'",returnStdout:true);
+                        COUNT = cnt.trim()
+                        sh """
+                            pwd; 
+                            terraform init --lock=false; 
+                            terraform plan --lock=false -var 'server_cnt=${COUNT}'; 
+                            terraform plan -var 'server_cnt=${COUNT}' -out=myplan.tfplan;
+                        """
+                    }
                 }
 
             }
@@ -80,21 +80,24 @@ pipeline {
                         sh "echo SERVER PUBLIC IPs >> ${env.LOG_FILE}" 
                         sh "terraform output >> ${env.LOG_FILE}"
                         sh "echo ------- SERVER CREATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
-                        cip_instance_public_ip= sh(script: "terraform output cip_instance_public_ip", returnStdout:true);
+                        sh "echo ------- Place Host Alis File at ${env.INSTALLER_PATH} ---------- >> ${env.LOG_FILE}"
+                        sh "cp host_alias.txt ${env.INSTALLER_PATH}"
                     }
                 } 
             }
         }
 
- /*        stage('Create Inventory File') {
+        stage('Create Inventory File') {
             steps {
                 script {
-                   sh 'cd "${WORKSPACE}/scripts/ansible/ServerConfig"  ; ansible-playbook create-inventory.yaml'  
+                    sh "echo ------- Generate inventory file ---------- >> ${env.LOG_FILE}"
+                    sh 'cd "${WORKSPACE}/scripts/ansible/ServerConfig"  ; ansible-playbook create-inventory.yaml'  
+                    sh "echo ------- Generated inventory file ---------- >> ${env.LOG_FILE}"
                 }
             }
         }
 
-        stage('Configure Server') 
+       /* stage('Configure Server') 
         { 
             steps  
             { 
