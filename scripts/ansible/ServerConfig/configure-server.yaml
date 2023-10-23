@@ -1,7 +1,8 @@
 - name: Configure EC2 Instance
   hosts: 
-    - cip-instance
-    - a360-instance
+    - server*
+    #- cip-instance
+    #- a360-instance
   become: true
   vars:
     log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
@@ -16,16 +17,29 @@
       with_items:
         - "{{ installer_path }}/cip_setup_automation.yml"
         - "{{ installer_path }}/installer-versions.yml"
-
+    
+    - name: Copy Config File
+      copy:
+        src: "{{ installer_path }}/host_alias.txt"
+        dest: "{{ installer_path }}"
+        remote_src: false
+        group: abinitio
+      become_user: "{{ functional_user }}"
+      
+    - name: find host alias in host_alias.txt
+      set_fact:
+         host_alias: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',ansible_host) |first| split(' ') | first }}"
+         
     - name: Set hostname
       hostname:
-        name: "{{ cip_hostname }}"
-      when: inventory_hostname != 'a360-instance'
+        name: "{{ host_alias }}"
+        #name: "{{ cip_hostname }}"
+      #when: inventory_hostname != 'a360-instance'
 
-    - name: Set A360 hostname
-      hostname:
-        name: "{{ a360_hostname }}"
-      when: inventory_hostname == 'a360-instance'
+    #- name: Set A360 hostname
+    #  hostname:
+    #    name: "{{ a360_hostname }}"
+    #  when: inventory_hostname == 'a360-instance'
 
     - name: Create abinitio Group (if it doesn't exist)
       group:
