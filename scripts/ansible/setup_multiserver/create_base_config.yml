@@ -15,7 +15,7 @@
       with_items:
         - "{{ installer_path }}/cip_setup_automation.yml"
         - ../CIP/config-params.yml
-		    - ../QueryIT/config-params.yml
+        - ../QueryIT/config-params.yml
         - ./subsystem_mapping.yml
         - "{{ comm_config_file }}"
 
@@ -37,8 +37,8 @@
               CIP_COMMON_QUERY_IT_DB_PASSWORD@||||{{ query_it_en_passwd }}
               CIP_COMMON_QUERY_IT_DB_USERNAME@||||{{ functional_user }}
               CIP_COMMON_ALL_TARGET_SERVERS@||||{{ cip_common_all_target_servers }}
-              CIP_COMMON_CONTROL_SERVER@||||{{ cip_common_control_server }}		
-              CIP_COMMON_ACT_SERVER@||||{{ cip_common_control_server }}		
+              CIP_COMMON_CONTROL_SERVER@||||{{ cip_common_act_server }}		
+              CIP_COMMON_ACT_SERVER@||||{{ cip_common_act_server }}		
               CIP_COMMON_AUDIT_SERVER@||||{{ cip_common_audit_server }}		
               CIP_COMMON_COLLECT_SERVER@||||{{ cip_common_collect_server }}		
               CIP_COMMON_CONTACT_POLICY_SERVER@||||{{ cip_common_contact_policy_server }}		
