@@ -20,7 +20,7 @@
     - name: Read configuration and host alias files
       set_fact:
         functional_user: "ec2-user"
-        pem_file: "{{ ansible_env.PWD | dirname | dirname }}"
+        pem_file: "{{ ansible_env.PWD | dirname | dirname }}/terraform/aws-cip-key-multi.pem"
       when: use_existing_servers == False
 
     - name: Delete Inventory (if it exists)
