@@ -1,8 +1,7 @@
 - name: Configure EC2 Instance
   hosts: 
     - server*
-    #- cip-instance
-    #- a360-instance
+    - a360
   become: true
   vars:
     log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
@@ -17,14 +16,6 @@
       with_items:
         - "{{ installer_path }}/cip_setup_automation.yml"
         - "{{ installer_path }}/installer-versions.yml"
-    
-    - name: Copy Config File
-      copy:
-        src: "{{ installer_path }}/host_alias.txt"
-        dest: "{{ installer_path }}"
-        remote_src: false
-        group: abinitio
-      become_user: "{{ functional_user }}"
       
     - name: find host alias in host_alias.txt
       set_fact:
@@ -33,13 +24,6 @@
     - name: Set hostname
       hostname:
         name: "{{ host_alias }}"
-        #name: "{{ cip_hostname }}"
-      #when: inventory_hostname != 'a360-instance'
-
-    #- name: Set A360 hostname
-    #  hostname:
-    #    name: "{{ a360_hostname }}"
-    #  when: inventory_hostname == 'a360-instance'
 
     - name: Create abinitio Group (if it doesn't exist)
       group:
@@ -50,9 +34,9 @@
       set_fact:
         user_password: "{{ functional_user_password }}"
         
-    - name: Display Functional user password
-      ansible.builtin.debug:
-        var: user_password
+#    - name: Display Functional user password
+#      ansible.builtin.debug:
+#        var: user_password
         
     - name: Create Users
       user:
@@ -115,13 +99,13 @@
         - "{{ functional_user }}"
 
     - name: Install OpenJDK 8 on CentOS/RHEL
-      when: ansible_distribution in ['CentOS', 'RedHat'] and inventory_hostname != 'a360-instance'
+      when: ansible_distribution in ['CentOS', 'RedHat']
       yum:
         name: java-1.8.0-openjdk
         state: present
     
     - name: Log step
-      when: ansible_distribution in ['CentOS', 'RedHat'] and inventory_hostname != 'a360-instance'
+      when: ansible_distribution in ['CentOS', 'RedHat']
       lineinfile:
         path: "{{ log_file }}"
         line: |
@@ -132,14 +116,14 @@
       become: false
 
     - name: Install OpenJDK 11 on CentOS/RHEL
-      when: ansible_distribution in ['CentOS', 'RedHat'] and inventory_hostname == 'a360-instance'
+      when: ansible_distribution in ['CentOS', 'RedHat'] and inventory_hostname == 'a360'
       ansible.builtin.package:
         name: java-11-openjdk
         state: present
 
 
     - name: Log step
-      when: ansible_distribution in ['CentOS', 'RedHat'] and inventory_hostname == 'a360-instance'
+      when: ansible_distribution in ['CentOS', 'RedHat'] and inventory_hostname == 'a360'
       lineinfile:
         path: "{{ log_file }}"
         line: |
