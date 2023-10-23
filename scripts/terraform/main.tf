@@ -18,10 +18,10 @@ resource "aws_instance" "cip" {
   key_name      = aws_key_pair.aws-cip-key-multi.key_name  # Replace with your SSH key pair name
   count         = var.server_cnt
 
-  cpu_options {
-    core_count       = 2   # Number of vCPUs
-    threads_per_core = 1   # Number of threads per vCPU core
-  }
+  #cpu_options {
+  #  core_count       = 2   # Number of vCPUs
+  #  threads_per_core = 1   # Number of threads per vCPU core
+  #}
 
   user_data = <<-EOF
     #!/bin/bash
@@ -33,8 +33,8 @@ resource "aws_instance" "cip" {
   vpc_security_group_ids = [aws_security_group.cip-multi.id]  # Attach the security group here
   
   tags = {
-    Name = "cip-instance"
-    hostname = "skuad-abinitio-aws"
+    Name = "cip-instance-${count.index + 1}"
+    hostname = "${var.base_hostname}${format("%02d", count.index + 3)}"
   }
 
   root_block_device {
@@ -57,18 +57,27 @@ resource "time_sleep" "wait_60_seconds" {
 }
 
 # Call local-exec provisioner after the instance is created
-resource "null_resource" "update_inventory" {
+resource "null_resource" "generate_host_alias" {
   triggers = {
     cip_instance_public_ip = join(",",[for instance in aws_instance.cip : instance.public_ip])
   }
 
   provisioner "local-exec" {
-    command = "/usr/bin/ssh-keyscan -v -t rsa ${join(" ", aws_instance.cip[*].public_ip)} >> ~/.ssh/known_hosts"
+    command = "/usr/bin/ssh-keyscan -v -t rsa ${join(" ", aws_instance.cip[*].public_ip)} >> ~/.ssh/known_hosts ; echo \"\" > host_aliases.txt"
   }
 
   depends_on = [ time_sleep.wait_60_seconds ]
   
 }
+
+data "local_file" "host_aliases" {
+  depends_on = [null_resource.generate_host_alias]
+  content = join("\n", [
+    for instance in aws_instance.cip :
+    "${instance.tags.hostname} ${instance.public_ip}"
+  ])
+}
+
 
 
 resource "local_file" "aws-cip-key-multi" {
