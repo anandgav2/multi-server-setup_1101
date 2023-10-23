@@ -81,15 +81,13 @@
           127.0.0.1 {{ host_alias }}
           ::1 {{ host_alias }}
         state: present
-        create: true
       
       
     - name: Add remote host entries to /etc/hosts
       lineinfile:
         path: /etc/hosts
         line: "{{ item | split(' ') | last + ' ' + item | split(' ') | first }}"
-        state: present
-        create: true      
+        state: present     
       loop: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() }}"
 
     
