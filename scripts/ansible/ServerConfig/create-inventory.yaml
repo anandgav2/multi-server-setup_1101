@@ -20,7 +20,7 @@
     - name: Read configuration and host alias files
       set_fact:
         functional_user: "ec2-user"
-        pem_file: "{{ ansible_env.PWD | regex_replace('\/*.\/*.$', '') }}"
+        pem_file: "{{ ansible_env.PWD | dirname | dirname }}"
       when: use_existing_servers == False
 
     - name: Delete Inventory (if it exists)
