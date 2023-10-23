@@ -67,7 +67,6 @@ resource "null_resource" "generate_host_alias" {
     command = <<-EOT
       /usr/bin/ssh-keyscan -v -t rsa ${join(" ", aws_instance.cip[*].public_ip)} >> ~/.ssh/known_hosts
       echo '${join("\n", [for instance in aws_instance.cip : "${instance.tags.hostname} ${instance.public_ip}" ])}' > host_alias.txt
-      echo '${join("\n", [for instance in aws_instance.cip : "${instance.tags.hostname}_private_key: $(pwd)/aws-cip-key-multi.pem" ])}' > pem_path.txt
       chmod 666 host_alias.txt
     EOT
   }

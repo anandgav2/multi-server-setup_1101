@@ -11,11 +11,16 @@
       include_vars:
         file: "{{ item }}"
       with_items:
-        - "{{ installer_path }}/cip_setup_automation.yml"    
+        - "{{ installer_path }}/cip_setup_automation.yml"   
+
+    - name: SET pem path blank
+      set_fact:
+        pem_file: ""
 
     - name: Read configuration and host alias files
       set_fact:
         functional_user: "ec2-user"
+        pem_file: "{{ ansible_env.PWD | regex_replace('.*/.*/', '') }}/terraform/aws-cip-key-multi.pem"
       when: use_existing_servers == False
 
     - name: Delete Inventory (if it exists)
@@ -42,7 +47,7 @@
         host_alias: "{{ (lookup('file', '{{ installer_path }}/host_alias.txt')).split('\n') }}"
 
     - name: Execute Python Code
-      command: python3 read-configs.py "{{ host_alias }}" "{{ server_config }}" "{{ functional_user }}"
+      command: python3 read-configs.py "{{ host_alias }}" "{{ server_config }}" "{{ functional_user }}" "{{ pem_file }}"
       register: output
 
     - name: Write Web Apps and Subsystems

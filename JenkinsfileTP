@@ -82,7 +82,6 @@ pipeline {
                         sh "echo ------- SERVER CREATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                         sh "echo ------- Place Host Alis File at ${env.INSTALLER_PATH} ---------- >> ${env.LOG_FILE}"
                         sh "cp host_alias.txt ${env.INSTALLER_PATH}"
-                        sh "echo pem_path.txt >> ${env.INSTALLER_PATH}/cip_setup_server_config.yml"
                     }
                 } 
             }

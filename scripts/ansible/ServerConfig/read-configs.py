@@ -10,6 +10,7 @@ if len(sys.argv) < 2:
 arg1=sys.argv[1]
 arg2=sys.argv[2]
 f_user=sys.argv[3]
+pf=sys.argv[4]
 
 host_alias=ast.literal_eval(arg1)
 server_config=ast.literal_eval(arg2)
@@ -20,7 +21,7 @@ for line in host_alias:
     columns = line.split(' ')
     server = columns[0]
     ip = columns[1]
-    pem_file = list(filter(lambda l: l.startswith(server + '_private_key:'), server_config))[0].split(': ')[1] 
+    pem_file = list(filter(lambda l: l.startswith(server + '_private_key:'), server_config))[0].split(': ')[1] if not pf else pf
     sub_systems = list(filter(lambda l: l.startswith(server + '_config:'), server_config))[0].split(': ')[1].split(',')
 
     print("    server" + str(cnt) + ":" )
