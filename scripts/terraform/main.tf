@@ -64,23 +64,14 @@ resource "null_resource" "generate_host_alias" {
   }
 
   provisioner "local-exec" {
-    command = "/usr/bin/ssh-keyscan -v -t rsa ${join(" ", aws_instance.cip[*].public_ip)} >> ~/.ssh/known_hosts"
+    command = <<-EOT
+      /usr/bin/ssh-keyscan -v -t rsa ${join(" ", aws_instance.cip[*].public_ip)} >> ~/.ssh/known_hosts
+      ${join("\n", [for instance in aws_instance.cip : "${instance.tags.hostname} ${instance.public_ip}" ])} >> host_alias.txt
+    EOT
   }
 
   depends_on = [ time_sleep.wait_60_seconds ]
   
-}
-
-data "local_file" "host_aliases" {
-  
-  content = join("\n", [
-    for instance in aws_instance.cip :
-    "${instance.tags.hostname} ${instance.public_ip}"
-  ])
-
-  filename = "host_alias.txt"
-
-  file_permission = "0660"
 }
 
 
