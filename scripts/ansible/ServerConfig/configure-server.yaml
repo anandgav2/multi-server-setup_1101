@@ -73,6 +73,28 @@
     - name: Set hostname
       hostname:
         name: "{{ host_alias }}"
+
+    - name: Add localhost entry to /etc/hosts
+      lineinfile:
+        path: host_entries.txt
+        line: |
+          127.0.0.1 {{ host_alias }}
+          ::1 {{ host_alias }}
+        state: present
+        create: true
+      become_user: "{{ functional_user }}"
+      
+    - name: Add remote host entries to /etc/hosts
+      lineinfile:
+        path: host_entries.txt
+        line: "{{ item | split(' ') | last + ' ' + item | split(' ') | first }}"
+        state: present
+        create: true
+      become_user: "{{ functional_user }}"
+      loop: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() }}"
+
+    
+      
     - name: Log step
       lineinfile:
         path: "{{ log_file }}"
