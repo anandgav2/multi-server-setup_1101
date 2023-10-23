@@ -66,7 +66,7 @@ resource "null_resource" "generate_host_alias" {
   provisioner "local-exec" {
     command = <<-EOT
       /usr/bin/ssh-keyscan -v -t rsa ${join(" ", aws_instance.cip[*].public_ip)} >> ~/.ssh/known_hosts
-      ${join("\n", [for instance in aws_instance.cip : "${instance.tags.hostname} ${instance.public_ip}" ])} >> host_alias.txt
+      echo ${join("\n", [for instance in aws_instance.cip : "${instance.tags.hostname} ${instance.public_ip}" ])} >> host_alias.txt
     EOT
   }
 
