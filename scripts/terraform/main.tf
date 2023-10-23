@@ -73,14 +73,14 @@ resource "null_resource" "generate_host_alias" {
 
 data "local_file" "host_aliases" {
   
-  depends_on = [null_resource.generate_host_alias]
-  
   content = join("\n", [
     for instance in aws_instance.cip :
     "${instance.tags.hostname} ${instance.public_ip}"
   ])
 
   filename = "host_alias.txt"
+
+  file_permission = "0660"
 }
 
 
