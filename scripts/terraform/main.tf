@@ -58,12 +58,13 @@ resource "time_sleep" "wait_60_seconds" {
 
 # Call local-exec provisioner after the instance is created
 resource "null_resource" "generate_host_alias" {
+  
   triggers = {
     cip_instance_public_ip = join(",",[for instance in aws_instance.cip : instance.public_ip])
   }
 
   provisioner "local-exec" {
-    command = "/usr/bin/ssh-keyscan -v -t rsa ${join(" ", aws_instance.cip[*].public_ip)} >> ~/.ssh/known_hosts ; echo \"\" > host_aliases.txt"
+    command = "/usr/bin/ssh-keyscan -v -t rsa ${join(" ", aws_instance.cip[*].public_ip)} >> ~/.ssh/known_hosts"
   }
 
   depends_on = [ time_sleep.wait_60_seconds ]
@@ -71,11 +72,15 @@ resource "null_resource" "generate_host_alias" {
 }
 
 data "local_file" "host_aliases" {
+  
   depends_on = [null_resource.generate_host_alias]
+  
   content = join("\n", [
     for instance in aws_instance.cip :
     "${instance.tags.hostname} ${instance.public_ip}"
   ])
+
+  filename = "host_alias.txt"
 }
 
 
