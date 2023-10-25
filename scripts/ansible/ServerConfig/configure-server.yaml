@@ -15,8 +15,7 @@
       with_items:
         - "{{ installer_path }}/cip_setup_automation.yml"
         - "{{ installer_path }}/installer-versions.yml"
-      
-    
+         
     - name: Create abinitio Group (if it doesn't exist)
       group:
         name: abinitio
@@ -37,8 +36,7 @@
         groups: abinitio
        # update_password: "on_create"
       register: command_output
-
-            
+          
     - name: Display user creation status
       ansible.builtin.debug:
         var: command_output
@@ -80,17 +78,14 @@
           127.0.0.1 {{ host_alias }}
           ::1 {{ host_alias }}
         state: present
-      
-      
+           
     - name: Add remote host entries to /etc/hosts
       lineinfile:
         path: /etc/hosts
         line: "{{ item | split(' ') | last + ' ' + item | split(' ') | first }}"
         state: present     
       loop: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() }}"
-
-    
-      
+     
     - name: Log step
       lineinfile:
         path: "{{ log_file }}"
