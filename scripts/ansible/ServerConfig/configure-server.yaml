@@ -1,7 +1,6 @@
 - name: Configure EC2 Instance
   hosts: 
     - server*
-    - a360
   become: true
   vars:
     log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
@@ -126,36 +125,36 @@
       loop:
         - "{{ functional_user }}"
 
-    - name: Install OpenJDK 8 on CentOS/RHEL
-      when: ansible_distribution in ['CentOS', 'RedHat']
-      yum:
-        name: java-1.8.0-openjdk
-        state: present
-    
-    - name: Log step
-      when: ansible_distribution in ['CentOS', 'RedHat']
-      lineinfile:
-        path: "{{ log_file }}"
-        line: |
-          =>JDK 8 installed on CIP Instance
-        state: present
-      delegate_to: localhost
-      no_log: true
-      become: false
+#    - name: Install OpenJDK 8 on CentOS/RHEL
+#      when: ansible_distribution in ['CentOS', 'RedHat']
+#      yum:
+#        name: java-1.8.0-openjdk
+#        state: present
+#    
+#    - name: Log step
+#      when: ansible_distribution in ['CentOS', 'RedHat']
+#      lineinfile:
+#        path: "{{ log_file }}"
+#        line: |
+#          =>JDK 8 installed on CIP Instance
+#        state: present
+#      delegate_to: localhost
+#      no_log: true
+#      become: false
 
     - name: Install OpenJDK 11 on CentOS/RHEL
-      when: ansible_distribution in ['CentOS', 'RedHat'] and inventory_hostname == 'a360'
+      when: ansible_distribution in ['CentOS', 'RedHat'] #and inventory_hostname == 'a360'
       ansible.builtin.package:
         name: java-11-openjdk
         state: present
 
 
     - name: Log step
-      when: ansible_distribution in ['CentOS', 'RedHat'] and inventory_hostname == 'a360'
+      when: ansible_distribution in ['CentOS', 'RedHat'] # and inventory_hostname == 'a360'
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          =>JDK 11 installed on A360 Instance
+          =>JDK 11 installed on All the Servers
         state: present
       delegate_to: localhost
       no_log: true
