@@ -13,7 +13,7 @@
         file: "{{ item }}"
       with_items:
         - "{{ installer_path }}/cip_setup_automation.yml"
-		- "{{ installer_path }}/installer-versions.yml"
+	- "{{ installer_path }}/installer-versions.yml"
         - ./password.yml
 
     - name: Read Co>Op Configuration File
@@ -21,12 +21,12 @@
         src: "{{ installer_path }}/coop-config.ini"
       register: config_file_content
 	  
-	- name: Parse Co>Op Configuration Values
+    - name: Parse Co>Op Configuration Values
       set_fact:
         config_values: "{{ (config_file_content['content'] | b64decode).split('\n') | map('trim') }}"
       register: parsed_config
 	  
-	- name: Read Co>Op Installation Directory value from config
+    - name: Read Co>Op Installation Directory value from config
       set_fact:
         destination: "{{ config_values | select('match', '^destination=(.*)') | map('regex_replace', '^destination=(.*)', '\\1') | first }}"
         app_hub_dest: "{{ config_values | select('match', '^app_hub_dest=(.*)') | map('regex_replace', '^app_hub_dest=(.*)', '\\1') | first }}"
