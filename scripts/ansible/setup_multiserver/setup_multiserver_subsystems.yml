@@ -63,21 +63,4 @@
       vars:
         host: "{{ item | split(' ') | first }}"
         config: "{{ lookup('vars',item | split(' ') | first + '_config') }}"
-      loop: "{{ host_alias_content }}"     
-
-    - name: Find the base pset config pset
-      find:
-        paths: "."
-        patterns: "dev.pset"
-      register: found_files
-      delegate_to: localhost      
-      become: false
-
-    - name: Copy base pset file to remote host
-      copy:
-        src: "{{ item.path }}"
-        dest: "{{ sandbox_root }}/abinitio/cip/private_internal"
-        remote_src: false
-        group: abinitio
-      loop: "{{ found_files.files }}"
-      become_user: "{{ functional_user }}"
+      loop: "{{ host_alias_content }}"
