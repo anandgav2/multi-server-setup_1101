@@ -1,0 +1,110 @@
+- name: EME Installation
+  hosts:
+    - eme
+  become: yes # Run tasks with root privileges
+  vars:
+    log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+
+  tasks:
+
+    - name: Load Global parameters
+      include_vars:
+        file: "{{ item }}"
+      with_items:
+        - "{{ installer_path }}/cip_setup_automation.yml"
+		- "{{ installer_path }}/installer-versions.yml"
+        - ./password.yml
+
+    - name: Read Co>Op Configuration File
+      slurp:
+        src: "{{ installer_path }}/coop-config.ini"
+      register: config_file_content
+	  
+	- name: Parse Co>Op Configuration Values
+      set_fact:
+        config_values: "{{ (config_file_content['content'] | b64decode).split('\n') | map('trim') }}"
+      register: parsed_config
+	  
+	- name: Read Co>Op Installation Directory value from config
+      set_fact:
+        destination: "{{ config_values | select('match', '^destination=(.*)') | map('regex_replace', '^destination=(.*)', '\\1') | first }}"
+        app_hub_dest: "{{ config_values | select('match', '^app_hub_dest=(.*)') | map('regex_replace', '^app_hub_dest=(.*)', '\\1') | first }}"
+		
+    - name: Add environment parameters to /etc/profile
+      lineinfile:
+        path: /etc/profile
+        line: |
+          export AB_AIR_ROOT=//{{ ansible_host }}/{{ data_root_path }}/eme/cipeme/repo
+        state: present  # Add the line if not present
+      notify: Reload Profile
+
+    - name: Set params in global abinitiorc
+      lineinfile:
+        path: "{{ destination }}/abinitio-V{{ coop_version }}/config/abinitiorc"
+        line: |
+          AB_AIR_ROOT : //{{ ansible_host }}/{{ data_root_path }}/eme/cipeme/repo
+        state: present
+		
+    - name: Create EME
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh air repository create"
+      register: command_output
+      become_user: "{{ functional_user }}"
+
+    - name: Display EME Status
+      ansible.builtin.debug:
+        var: command_output.stdout_lines
+
+    - name: Change EME Charset
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        - air repository shutdown
+        - air repository charset -change utf-8 -force
+        - air repository start
+        - air repository charset -show
+      register: command_output
+      become_user: "{{ functional_user }}"
+
+    - name: Check EME Status
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        - air repository show-server
+      register: command_output
+      become_user: "{{ functional_user }}"
+
+    - name: Display EME Status
+      ansible.builtin.debug:
+        var: command_output
+
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          =>EME started on {{ inventory_hostname }}. EME Status
+             {{ command_output.results[0].stdout }}
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+
+    - name: Create EME Root User
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        - air system user create {{ eme_user }} -group eme-root -clear-password {{ eme_en_passwd }}
+      register: command_output
+      become_user: "{{ functional_user }}"
+      no_log: true
+
+    - name: Publish Repository in apphubrc
+      lineinfile:
+        path: "{{ app_hub_dest }}/config/apphubrc"
+        line: |
+          AB_EME_REPOSITORIES : cipeme
+          AB_AIR_ROOT @ cipeme : //{{ ansible_host }}/{{ data_root_path }}/eme/cipeme/repo
+          AB_DISPLAY_NAME @ cipeme : cipeme
+          AB_DESCRIPTION @ cipeme : CIP Technical Repository
+    
+
+  handlers:
+    - name: Reload Profile
+      shell: source /etc/profile  # Command to reload the profile
