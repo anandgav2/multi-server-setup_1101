@@ -55,6 +55,29 @@
       loop:
         - "{{ functional_user }}"
 
+    - name: Create directory hierarchy and set ownership
+      shell: |
+        #sudo mkdir -p {{ apps_root_path }}/abinitio/release
+        sudo mkdir -p {{ installer_path }}
+        sudo mkdir -p {{ apps_root_path }}/abinitio/ag_user_feeds
+        sudo mkdir -p {{ data_root_path }}/eme/cipeme
+        sudo mkdir -p {{ data_root_path }}/a360
+        sudo mkdir -p {{ data_root_path }}/sand/appconfdir
+        sudo mkdir -p {{ apps_root_path }}/abinitio/abinitio-install
+        sudo mkdir -p {{ apps_root_path }}/abinitio/abinitio-deployment/ag
+        sudo mkdir -p {{ apps_root_path }}/abinitio/abinitio-deployment/cc
+        sudo chown -R {{ item }}:abinitio {{ installer_path }}
+        sudo chown -R {{ item }}:abinitio {{ apps_root_path }}/abinitio/ag_user_feeds
+        sudo chown -R {{ item }}:abinitio {{ data_root_path }}/eme/cipeme
+        sudo chown -R {{ item }}:abinitio {{ data_root_path }}/a360
+        sudo chown -R {{ item }}:abinitio {{ data_root_path }}
+        sudo chown -R {{ item }}:abinitio {{ apps_root_path }}/abinitio/abinitio-install
+        sudo chown -R {{ item }}:abinitio {{ apps_root_path }}/abinitio/abinitio-deployment
+        sudo chown -R {{ item }}:abinitio {{ apps_root_path }}/abinitio/abinitio-deployment/ag
+        sudo chown -R {{ item }}:abinitio {{ apps_root_path }}/abinitio/abinitio-deployment/cc
+      loop:
+        - "{{ functional_user }}"
+
     - name: Copy host alias File
       copy:        
         src: "{{ installer_path }}/host_alias.txt"
@@ -96,29 +119,6 @@
       delegate_to: localhost
       no_log: true
       become: false
-
-    - name: Create directory hierarchy and set ownership
-      shell: |
-        #sudo mkdir -p {{ apps_root_path }}/abinitio/release
-        sudo mkdir -p {{ installer_path }}
-        sudo mkdir -p {{ apps_root_path }}/abinitio/ag_user_feeds
-        sudo mkdir -p {{ data_root_path }}/eme/cipeme
-        sudo mkdir -p {{ data_root_path }}/a360
-        sudo mkdir -p {{ data_root_path }}/sand/appconfdir
-        sudo mkdir -p {{ apps_root_path }}/abinitio/abinitio-install
-        sudo mkdir -p {{ apps_root_path }}/abinitio/abinitio-deployment/ag
-        sudo mkdir -p {{ apps_root_path }}/abinitio/abinitio-deployment/cc
-        sudo chown -R {{ item }}:abinitio {{ installer_path }}
-        sudo chown -R {{ item }}:abinitio {{ apps_root_path }}/abinitio/ag_user_feeds
-        sudo chown -R {{ item }}:abinitio {{ data_root_path }}/eme/cipeme
-        sudo chown -R {{ item }}:abinitio {{ data_root_path }}/a360
-        sudo chown -R {{ item }}:abinitio {{ data_root_path }}
-        sudo chown -R {{ item }}:abinitio {{ apps_root_path }}/abinitio/abinitio-install
-        sudo chown -R {{ item }}:abinitio {{ apps_root_path }}/abinitio/abinitio-deployment
-        sudo chown -R {{ item }}:abinitio {{ apps_root_path }}/abinitio/abinitio-deployment/ag
-        sudo chown -R {{ item }}:abinitio {{ apps_root_path }}/abinitio/abinitio-deployment/cc
-      loop:
-        - "{{ functional_user }}"
 
 #    - name: Install OpenJDK 8 on CentOS/RHEL
 #      when: ansible_distribution in ['CentOS', 'RedHat']
