@@ -223,6 +223,19 @@
       no_log: true
       become: false
 
+    - name: Install Python 3
+      ansible.builtin.package:
+        name: python3
+        state: present
+
+    - name: Get Python Path
+      ansible.builtin.command: "which python3"
+      register: python_path
+
+    - name: Display Python Path
+      ansible.builtin.debug:
+        var: python_path.stdout
+
     - name: Install pip3
       yum:
         name: python3-pip

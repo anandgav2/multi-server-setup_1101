@@ -1,7 +1,6 @@
 - name: Run Installer Script with Configuration File
   hosts:
-    - a360-instance
-    - cip-instance
+    - server*
   become: yes # Run tasks with root privileges
   vars:
     log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
@@ -15,7 +14,7 @@
       with_items:
         - "{{ installer_path }}/cip_setup_automation.yml"
         - "{{ installer_path }}/installer-versions.yml"
-        - ./password.yml
+      #  - ./password.yml    ---> part of EME to be removed once eme ansible is ready
 
     - name: Copy Config File
       copy:
@@ -48,12 +47,7 @@
 
     - name: Parse Configuration Values
       set_fact:
-        config_values: "{{ (config_file_content['content'] | b64decode).split('\n') | map('trim') }}"
-      register: parsed_config
-
-    - name: Skip Header Line
-      set_fact:
-        config_values_no_header: "{{ config_values | reject('match', '^\\[Coop\\]$') | list }}"
+        config_values_no_header: "{{ (config_file_content['content'] | b64decode).split('\n') | map('trim') | reject('match', '^\\[Coop\\]$') | list}}"
 
     - name: Display Arguments
       debug:
@@ -77,6 +71,7 @@
       register: found_files
       delegate_to: localhost
       become: false
+
     - name: Display  File List
       ansible.builtin.debug:
         var: found_files
@@ -116,7 +111,7 @@
       register: command_output
       poll: 5
       args:
-        chdir: "{{folder_path }}"
+        chdir: "{{ folder_path }}"
 
     - name: Read Installation Directory value from config
       set_fact:
@@ -129,27 +124,24 @@
           destination: {{ destination }}
           app_hub_dest: {{ app_hub_dest }}
 
+    #values set according to skuad-e2e-abinitio01
     - name: Add environment parameters to /etc/profile
       lineinfile:
         path: /etc/profile
         line: |
           export AB_HOME={{ destination }}/abinitio-V{{ coop_version }}
           export AB_APPLICATION_HUB={{ app_hub_dest }}
-          export PATH=$AB_HOME/bin:$PATH
-          export AB_AIR_ROOT=//{{ cip_hostname }}/{{ data_root_path }}/eme/cipeme/repo
+          export PATH=$AB_HOME/bin:$PATH  
         state: present  # Add the line if not present
       notify: Reload Profile
 
     - name: Setup ab-cinfod daemon
-      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh ab-cinfo-util create -cloud"
-      become_user: "{{ functional_user }}"
-
-    - name: Start ab-cinfod daemon
-      shell: "{{ installer_path }}/source_and_run.sh ab-cinfod &"
-      become_user: "{{ functional_user }}"
-
-    - name: Print ab-cinfod daemon
-      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh ab-cinfo-util status"
+      shell: |
+        source /etc/profile
+        ab-cinfo-util create -cloud
+        ab-cinfod &
+        sleep 10
+        ab-cinfo-util status
       register: command_output
       become_user: "{{ functional_user }}"
 
@@ -167,14 +159,16 @@
       no_log: true
       become: false
 
+    #values set according to skuad-e2e-abinitio01
     - name: Set params in global abinitiorc
       lineinfile:
         path: "{{ destination }}/abinitio-V{{ coop_version }}/config/abinitiorc"
         line: |
-          AB_HOSTNAME_KEYSERVER_URLS : {{ ab_key_client_host_urls }}
-          AB_AIR_ROOT : //{{ cip_hostname }}/{{ data_root_path }}/eme/cipeme/repo
-          AB_CHARSET : utf-8
+          AB_HOSTNAME_KEYSERVER_URLS : {{ ab_key_client_host_urls }} 
+          AB_CHARSET : utf-8 
         state: present
+
+    #values set according to skuad-e2e-abinitio01
     - name: Add Keyserver information in global apphubrc
       lineinfile:
         path: "{{ app_hub_dest }}/config/apphubrc"
@@ -182,7 +176,6 @@
           AB_KEYSERVER_GROUPS : {{ ab_key_group }}
           AB_KEYSERVER_URLS @ {{ ab_key_group }} : {{ ab_key_client_users_urls }}
           AB_DESCRIPTION @ {{ ab_key_group }} : Rype Development and training server
-
     - name: Configure Key Client
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh abkcconf -b /var/abinitio/data -u {{ functional_user }} -s"
 
@@ -231,7 +224,6 @@
       ansible.builtin.debug:
         var: command_output.stdout_lines
 
-
     - name: Log step
       when: inventory_hostname != 'a360-instance'
       lineinfile:
@@ -244,83 +236,100 @@
       no_log: true
       become: false
 
-    - name: Create EME
-      when: inventory_hostname != 'a360-instance'
-      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh air repository create"
+    - name: Generate ENC Password
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh m_password -password {{ functional_user_password }} -unrestricted"
       register: command_output
       become_user: "{{ functional_user }}"
 
-    - name: Display EME Status
-      when: inventory_hostname != 'a360-instance'
-      ansible.builtin.debug:
-        var: command_output.stdout_lines
+    - name: Get hostnames and IPs
+      set_fact:
+        server_info_list: "{{ server_info_list | default([]) + [{'IP': hostvars[item].ansible_host,'HOSTNAME': hostvars[item].ansible_hostname}] }}"
+      loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
 
-    - name: Change EME Charset
-      when: inventory_hostname != 'a360-instance'
-      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
-      with_items:
-        - air repository shutdown
-        - air repository charset -change utf-8 -force
-        - air repository start
-        - air repository charset -show
-      register: command_output
-      become_user: "{{ functional_user }}"
-
-    - name: Check EME Status
-      when: inventory_hostname != 'a360-instance'
-      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
-      with_items:
-        - air repository show-server
-      register: command_output
-      become_user: "{{ functional_user }}"
-
-    - name: Display EME Status
-      when: inventory_hostname != 'a360-instance'
-      ansible.builtin.debug:
-        var: command_output
-
-    - name: Log step
-      when: inventory_hostname != 'a360-instance'
+    - name: Create Hetro connection File
       lineinfile:
-        path: "{{ log_file }}"
+        path: "/home/{{ functional_user }}/.abinitiorc"
         line: |
-          =>EME started on {{ inventory_hostname }}. EME Status
-             {{ command_output.results[0].stdout }}
-        state: present
-      delegate_to: localhost
-      no_log: true
-      become: false
+          
+          AB_NODES @ {{ item.HOSTNAME }} : {{ item.IP }}
+          AB_USERNAME @ {{ item.HOSTNAME }} : {{ functional_user }}
+          AB_CONNECTION @ {{ item.HOSTNAME }} : ssh
+          AB_SSH_NEEDS_PASSWORD @ {{ item.HOSTNAME }} : ture
+          AB_ENCRYPTED_PASSWORD @ {{ item.HOSTNAME }} : {{ command_output.stdout }}
+          AB_HOME @ {{ item.HOSTNAME }} : {{ destination }}/abinitio-V{{ coop_version }}
 
-    - name: Create EME Root User
-      when: inventory_hostname != 'a360-instance'
-      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
-      with_items:
-        - air system user create {{ eme_user }} -group eme-root -clear-password {{ eme_en_passwd }}
-      register: command_output
+        state: present
+        create: yes
       become_user: "{{ functional_user }}"
-      no_log: true
+      loop: "{{ server_info_list }}"
 
-    - name: Publish Repository in apphubrc
-      lineinfile:
-        path: "{{ app_hub_dest }}/config/apphubrc"
-        line: |
-          AB_EME_REPOSITORIES : cipeme
-          AB_AIR_ROOT @ cipeme : //{{ cip_hostname }}/{{ data_root_path }}/eme/cipeme/repo
-          AB_DISPLAY_NAME @ cipeme : cipeme
-          AB_DESCRIPTION @ cipeme : CIP Technical Repository
 
-    - name: Install Python 3
-      ansible.builtin.package:
-        name: python3
-        state: present
-
-    - name: Get Python Path
-      ansible.builtin.command: "which python3"
-      register: python_path
-
-    - name: Display Python Path
-      ansible.builtin.debug:
-        var: python_path.stdout
+#EME code to moved to EME ansible
+#    - name: Create EME
+#      when: inventory_hostname != 'a360-instance'
+#      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh air repository create"
+#      register: command_output
+#      become_user: "{{ functional_user }}"
+#
+#    - name: Display EME Status
+#      when: inventory_hostname != 'a360-instance'
+#      ansible.builtin.debug:
+#        var: command_output.stdout_lines
+#
+#    - name: Change EME Charset
+#      when: inventory_hostname != 'a360-instance'
+#      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+#      with_items:
+#        - air repository shutdown
+#        - air repository charset -change utf-8 -force
+#        - air repository start
+#        - air repository charset -show
+#      register: command_output
+#      become_user: "{{ functional_user }}"
+#
+#    - name: Check EME Status
+#      when: inventory_hostname != 'a360-instance'
+#      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+#      with_items:
+#        - air repository show-server
+#      register: command_output
+#      become_user: "{{ functional_user }}"
+#
+#    - name: Display EME Status
+#      when: inventory_hostname != 'a360-instance'
+#      ansible.builtin.debug:
+#        var: command_output
+#
+#    - name: Log step
+#      when: inventory_hostname != 'a360-instance'
+#      lineinfile:
+#        path: "{{ log_file }}"
+#        line: |
+#          =>EME started on {{ inventory_hostname }}. EME Status
+#             {{ command_output.results[0].stdout }}
+#        state: present
+#      delegate_to: localhost
+#      no_log: true
+#      become: false
+#
+#    - name: Create EME Root User
+#      when: inventory_hostname != 'a360-instance'
+#      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+#      with_items:
+#        - air system user create {{ eme_user }} -group eme-root -clear-password {{ eme_en_passwd }}
+#      register: command_output
+#      become_user: "{{ functional_user }}"
+#      no_log: true
+#
+#    - name: Publish Repository in apphubrc
+#      lineinfile:
+#        path: "{{ app_hub_dest }}/config/apphubrc"
+#        line: |
+#          AB_EME_REPOSITORIES : cipeme
+#          AB_AIR_ROOT @ cipeme : //{{ cip_hostname }}/{{ data_root_path }}/eme/cipeme/repo
+#          AB_DISPLAY_NAME @ cipeme : cipeme
+#          AB_DESCRIPTION @ cipeme : CIP Technical Repository
+#
 
   handlers:
     - name: Reload Profile
