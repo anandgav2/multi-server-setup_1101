@@ -124,7 +124,8 @@
 
     - name: find host alias in host_alias.txt
       set_fact:
-         host_alias: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',ansible_host) |first| split(' ') | first }}"
+         host_alias: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',hostvars[item].ansible_host) | first | split(' ') | first }}"
+      loop: "{{ hostvars.keys() | select('match', 'eme') | list }}"
          
     #values set according to skuad-e2e-abinitio01
     - name: Add environment parameters to /etc/profile
@@ -133,8 +134,7 @@
         line: |
           export AB_HOME={{ destination }}/abinitio-V{{ coop_version }}
           export AB_APPLICATION_HUB={{ app_hub_dest }}
-          export PATH=$AB_HOME/bin:$PATH  
-          export AB_AIR_ROOT=//{{ host_alias }}{{ data_root_path }}/eme/cipeme/repo
+          export PATH=$AB_HOME/bin:$PATH
         state: present  # Add the line if not present
       notify: Reload Profile
 
@@ -181,10 +181,12 @@
           AB_KEYSERVER_GROUPS : {{ ab_key_group }}
           AB_KEYSERVER_URLS @ {{ ab_key_group }} : {{ ab_key_client_users_urls }}
           AB_DESCRIPTION @ {{ ab_key_group }} : Rype Development and training server
+
           AB_EME_REPOSITORIES : cipeme
           AB_AIR_ROOT @ cipeme : //{{ host_alias }}{{ data_root_path }}/eme/cipeme/repo
           AB_DISPLAY_NAME @ cipeme : cipeme
           AB_DESCRIPTION @ cipeme : CIP Technical Repository
+
     - name: Configure Key Client
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh abkcconf -b /var/abinitio/data -u {{ functional_user }} -s"
 
@@ -280,6 +282,16 @@
       delegate_to: localhost
       no_log: true
       become: false
+
+    - name: SSH into the server and accept key fingerprint
+      expect:
+        command: ssh {{ item.HOSTNAME }}
+        responses:
+          'Are you sure you want to continue connecting (yes/no/[fingerprint])?': "yes"
+        timeout: 10
+      become_user: "{{ functional_user }}"
+      loop: "{{ server_info_list }}"
+      ignore_errors: yes
 
 
 #EME code to moved to EME ansible
