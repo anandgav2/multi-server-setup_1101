@@ -122,6 +122,10 @@
           destination: {{ destination }}
           app_hub_dest: {{ app_hub_dest }}
 
+    - name: find host alias in host_alias.txt
+      set_fact:
+         host_alias: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',ansible_host) |first| split(' ') | first }}"
+         
     #values set according to skuad-e2e-abinitio01
     - name: Add environment parameters to /etc/profile
       lineinfile:
@@ -130,6 +134,7 @@
           export AB_HOME={{ destination }}/abinitio-V{{ coop_version }}
           export AB_APPLICATION_HUB={{ app_hub_dest }}
           export PATH=$AB_HOME/bin:$PATH  
+          export AB_AIR_ROOT=//{{ host_alias }}{{ data_root_path }}/eme/cipeme/repo
         state: present  # Add the line if not present
       notify: Reload Profile
 
@@ -165,6 +170,7 @@
           AB_HOSTNAME_KEYSERVER_URLS : {{ ab_key_client_host_urls }} 
           AB_CHARSET : utf-8 
           AB_HOST_INTERFACE : {{ ansible_hostname }}
+          AB_AIR_ROOT : //{{ host_alias }}{{ data_root_path }}/eme/cipeme/repo
         state: present
 
     #values set according to skuad-e2e-abinitio01
@@ -175,6 +181,10 @@
           AB_KEYSERVER_GROUPS : {{ ab_key_group }}
           AB_KEYSERVER_URLS @ {{ ab_key_group }} : {{ ab_key_client_users_urls }}
           AB_DESCRIPTION @ {{ ab_key_group }} : Rype Development and training server
+          AB_EME_REPOSITORIES : cipeme
+          AB_AIR_ROOT @ cipeme : //{{ host_alias }}{{ data_root_path }}/eme/cipeme/repo
+          AB_DISPLAY_NAME @ cipeme : cipeme
+          AB_DESCRIPTION @ cipeme : CIP Technical Repository
     - name: Configure Key Client
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh abkcconf -b /var/abinitio/data -u {{ functional_user }} -s"
 
