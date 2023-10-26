@@ -14,7 +14,6 @@
       with_items:
         - "{{ installer_path }}/cip_setup_automation.yml"
         - "{{ installer_path }}/installer-versions.yml"
-      #  - ./password.yml    ---> part of EME to be removed once eme ansible is ready
 
     - name: Copy Config File
       copy:
@@ -171,6 +170,8 @@
           AB_CHARSET : utf-8 
           AB_HOST_INTERFACE : {{ ansible_hostname }}
           AB_AIR_ROOT : //{{ host_alias }}{{ data_root_path }}/eme/cipeme/repo
+          AB_TCP_PORT_LEAST : 15000
+          AB_TCP_PORT_MOST : 35000
         state: present
 
     #values set according to skuad-e2e-abinitio01
@@ -186,6 +187,7 @@
           AB_AIR_ROOT @ cipeme : //{{ host_alias }}{{ data_root_path }}/eme/cipeme/repo
           AB_DISPLAY_NAME @ cipeme : cipeme
           AB_DESCRIPTION @ cipeme : CIP Technical Repository
+        state: present  
 
     - name: Configure Key Client
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh abkcconf -b /var/abinitio/data -u {{ functional_user }} -s"
@@ -283,9 +285,19 @@
       no_log: true
       become: false
 
-    - name: SSH into the server and accept key fingerprint
+    - name: SSH into the server and accept key fingerprint HOSTNAME
       expect:
         command: ssh {{ item.HOSTNAME }}
+        responses:
+          'Are you sure you want to continue connecting (yes/no/[fingerprint])?': "yes"
+        timeout: 10
+      become_user: "{{ functional_user }}"
+      loop: "{{ server_info_list }}"
+      ignore_errors: yes
+
+    - name: SSH into the server and accept key fingerprint IP
+      expect:
+        command: ssh {{ item.IP }}
         responses:
           'Are you sure you want to continue connecting (yes/no/[fingerprint])?': "yes"
         timeout: 10
