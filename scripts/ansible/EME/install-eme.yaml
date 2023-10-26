@@ -13,13 +13,9 @@
         file: "{{ item }}"
       with_items:
         - "{{ installer_path }}/cip_setup_automation.yml"
-	- "{{ installer_path }}/installer-versions.yml"
+        - "{{ installer_path }}/installer-versions.yml"
         - ./password.yml
 
-    - name: find host alias in host_alias.txt
-      set_fact:
-         host_alias: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',ansible_host) |first| split(' ') | first }}"
-	 
     - name: Read Co>Op Configuration File
       slurp:
         src: "{{ installer_path }}/coop-config.ini"
@@ -34,21 +30,6 @@
       set_fact:
         destination: "{{ config_values | select('match', '^destination=(.*)') | map('regex_replace', '^destination=(.*)', '\\1') | first }}"
         app_hub_dest: "{{ config_values | select('match', '^app_hub_dest=(.*)') | map('regex_replace', '^app_hub_dest=(.*)', '\\1') | first }}"
-		
-    - name: Add environment parameters to /etc/profile
-      lineinfile:
-        path: /etc/profile
-        line: |
-          export AB_AIR_ROOT=//{{ host_alias }}{{ data_root_path }}/eme/cipeme/repo
-        state: present  # Add the line if not present
-      notify: Reload Profile
-
-    - name: Set params in global abinitiorc
-      lineinfile:
-        path: "{{ destination }}/abinitio-V{{ coop_version }}/config/abinitiorc"
-        line: |
-          AB_AIR_ROOT : //{{ host_alias }}{{ data_root_path }}/eme/cipeme/repo
-        state: present
 		
     - name: Create EME
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh air repository create"
@@ -98,15 +79,6 @@
       register: command_output
       become_user: "{{ functional_user }}"
       no_log: true
-
-    - name: Publish Repository in apphubrc
-      lineinfile:
-        path: "{{ app_hub_dest }}/config/apphubrc"
-        line: |
-          AB_EME_REPOSITORIES : cipeme
-          AB_AIR_ROOT @ cipeme : //{{ host_alias }}{{ data_root_path }}/eme/cipeme/repo
-          AB_DISPLAY_NAME @ cipeme : cipeme
-          AB_DESCRIPTION @ cipeme : CIP Technical Repository
     
 
   handlers:
