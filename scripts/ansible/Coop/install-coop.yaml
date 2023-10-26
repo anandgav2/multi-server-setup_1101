@@ -113,8 +113,8 @@
 
     - name: Read Installation Directory value from config
       set_fact:
-        destination: "{{ config_values | select('match', '^destination=(.*)') | map('regex_replace', '^destination=(.*)', '\\1') | first }}"
-        app_hub_dest: "{{ config_values | select('match', '^app_hub_dest=(.*)') | map('regex_replace', '^app_hub_dest=(.*)', '\\1') | first }}"
+        destination: "{{ config_values_no_header | select('match', '^destination=(.*)') | map('regex_replace', '^destination=(.*)', '\\1') | first }}"
+        app_hub_dest: "{{ config_values_no_header | select('match', '^app_hub_dest=(.*)') | map('regex_replace', '^app_hub_dest=(.*)', '\\1') | first }}"
 
     - name: Print extracted parameter values
       debug:
