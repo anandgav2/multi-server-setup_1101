@@ -263,6 +263,17 @@
       become_user: "{{ functional_user }}"
       loop: "{{ server_info_list }}"
 
+    - name: Log step
+      when: inventory_hostname != 'a360-instance'
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          => User Abinitio RC created
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+
 
 #EME code to moved to EME ansible
 #    - name: Create EME
