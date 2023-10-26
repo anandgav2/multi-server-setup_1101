@@ -97,7 +97,7 @@ pipeline {
             }
         }
 
-       /* stage('Configure Server') 
+        stage('Configure Server') 
         { 
             steps  
             { 
@@ -129,6 +129,24 @@ pipeline {
                     def endTime = eT.format(TIME_FORMAT)
                     sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
                     sh "echo ------- COOP INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
+                }
+            }
+        }
+
+        stage('Create EME') 
+        { 
+            steps 
+            { 
+                script{
+                    echo""
+                    def sT = new Date()
+                    def startTime = sT.format(TIME_FORMAT)
+                    sh "echo ----------- Create EME STARTED -----------  >> ${env.LOG_FILE}"
+                    sh 'cd "${WORKSPACE}/scripts/ansible/EME"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-eme.yaml' 
+                    def eT = new Date()
+                    def endTime = eT.format(TIME_FORMAT)
+                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
+                    sh "echo ------- Create EME SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                 }
             }
         }
