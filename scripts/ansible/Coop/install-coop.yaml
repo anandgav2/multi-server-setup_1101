@@ -164,7 +164,7 @@
         line: |
           AB_HOSTNAME_KEYSERVER_URLS : {{ ab_key_client_host_urls }} 
           AB_CHARSET : utf-8 
-          AB_HOST_INTERFACE : {{ ansible_host }}
+          AB_HOST_INTERFACE : {{ ansible_hostname }}
         state: present
 
     #values set according to skuad-e2e-abinitio01
