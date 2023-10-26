@@ -16,6 +16,10 @@
 	- "{{ installer_path }}/installer-versions.yml"
         - ./password.yml
 
+    - name: find host alias in host_alias.txt
+      set_fact:
+         host_alias: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',ansible_host) |first| split(' ') | first }}"
+	 
     - name: Read Co>Op Configuration File
       slurp:
         src: "{{ installer_path }}/coop-config.ini"
@@ -35,7 +39,7 @@
       lineinfile:
         path: /etc/profile
         line: |
-          export AB_AIR_ROOT=//{{ ansible_host }}/{{ data_root_path }}/eme/cipeme/repo
+          export AB_AIR_ROOT=//{{ host_alias }}/{{ data_root_path }}/eme/cipeme/repo
         state: present  # Add the line if not present
       notify: Reload Profile
 
@@ -43,7 +47,7 @@
       lineinfile:
         path: "{{ destination }}/abinitio-V{{ coop_version }}/config/abinitiorc"
         line: |
-          AB_AIR_ROOT : //{{ ansible_host }}/{{ data_root_path }}/eme/cipeme/repo
+          AB_AIR_ROOT : //{{ host_alias }}/{{ data_root_path }}/eme/cipeme/repo
         state: present
 		
     - name: Create EME
@@ -100,7 +104,7 @@
         path: "{{ app_hub_dest }}/config/apphubrc"
         line: |
           AB_EME_REPOSITORIES : cipeme
-          AB_AIR_ROOT @ cipeme : //{{ ansible_host }}/{{ data_root_path }}/eme/cipeme/repo
+          AB_AIR_ROOT @ cipeme : //{{ host_alias }}/{{ data_root_path }}/eme/cipeme/repo
           AB_DISPLAY_NAME @ cipeme : cipeme
           AB_DESCRIPTION @ cipeme : CIP Technical Repository
     
