@@ -54,7 +54,6 @@
         var: config_values_no_header
 
     - name: Log step
-      when: inventory_hostname != 'a360-instance'
       lineinfile:
         path: "{{ log_file }}"
         line: |
@@ -77,7 +76,6 @@
         var: found_files
 
     - name: Log step
-      when: inventory_hostname != 'a360-instance'
       lineinfile:
         path: "{{ log_file }}"
         line: |
@@ -166,6 +164,7 @@
         line: |
           AB_HOSTNAME_KEYSERVER_URLS : {{ ab_key_client_host_urls }} 
           AB_CHARSET : utf-8 
+          AB_HOST_INTERFACE : {{ ansible_host }}
         state: present
 
     #values set according to skuad-e2e-abinitio01
@@ -225,7 +224,6 @@
         var: command_output.stdout_lines
 
     - name: Log step
-      when: inventory_hostname != 'a360-instance'
       lineinfile:
         path: "{{ log_file }}"
         line: |
@@ -264,11 +262,10 @@
       loop: "{{ server_info_list }}"
 
     - name: Log step
-      when: inventory_hostname != 'a360-instance'
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => User Abinitio RC created
+          => User Abinitio RC created on {{ inventory_hostname }}
         state: present
       delegate_to: localhost
       no_log: true
