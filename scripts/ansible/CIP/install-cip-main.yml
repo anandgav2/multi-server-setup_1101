@@ -320,6 +320,13 @@
       no_log: true
       become: false 
 
+    - name: Set params in global abinitiorc
+      lineinfile:
+        path: "{{ destination }}/abinitio-V{{ coop_version }}/config/abinitiorc"
+        line: |
+         AB_ENV_ROOT : {{ sandbox_root }}/abinitio/stdenv
+        state: present
+
     - name: Load CIP sav files
       ansible.builtin.command: "{{ item }}"
       with_items:
