@@ -308,7 +308,7 @@
     - name: Display Status
       ansible.builtin.debug:
         var: command_output
-		
+
     - name: Log step
       lineinfile:
         path: "{{ log_file }}"
@@ -383,4 +383,4 @@
       with_items:
         air project import /Projects/abinitio/cip/private_internal -basedir {{ sandbox_root }}/abinitio/cip/private_internal -files dev.pset
       register: command_output
-      become_user: "{{ functional_user }}"              
+      become_user: "{{ functional_user }}"
