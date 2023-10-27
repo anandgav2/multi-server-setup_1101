@@ -50,7 +50,7 @@
         owner: "{{ functional_user }}"
         group: abinitio
       when: ansible_host != a360_ip
-		
+
     - name: Add Postgres DB Info to pgpass
       lineinfile:
         path: "/home/{{ functional_user }}/.pgpass"
@@ -58,7 +58,7 @@
           *:*:*:{{ cip_db_user }}:{{ cip_db_password }}
         state: present
       when: ansible_host != a360_ip
-		
+
     - name: Write Common Config
       lineinfile:
         path: "{{ comm_config_file }}"
