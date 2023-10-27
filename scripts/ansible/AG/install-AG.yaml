@@ -1,6 +1,7 @@
 - name: AG Installation
-  hosts: cip-instance
-  become: yes # Run tasks with root privileges
+  hosts: 
+    - ag
+  become: yes 
   vars:
     log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
     comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
@@ -24,13 +25,27 @@
         group: abinitio
       become_user: "{{ functional_user }}"
 
-    - name: update ag-config.ini
-      lineinfile:
-        path: "{{ installer_path }}/ag-config.ini"
-        line: |
-          install_root: "{{ apps_root_path }}/abinitio/abinitio-install"
-          deployment.root: "{{ apps_root_path }}/abinitio/abinitio-deployment/ag"
-        state: present
+   - name: Read Installation Directory value from config
+      set_fact:
+        install_root: "{{ apps_root_path }}/abinitio/abinitio-install"
+        deployment_root: "{{ apps_root_path }}/abinitio/abinitio-deployment/ag"
+
+    - name: Create AG Installation and Deployment directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        recurse: yes
+        group: abinitio
+      become_user: "{{ functional_user }}"
+      loop:
+        - "{{ install_root }}"
+        - "{{ deployment_root }}"
+
+    - name: Update the CSV file with web_app_user
+      shell: |
+        cd {{ installer_path }}
+        sed -i 's#INSTALL_ROOT#{{ install_root }}#g' ag-config.ini
+        sed -i 's#DEPLOYMENT_ROOT#{{ deployment_root }}#g' ag-config.ini
       become_user: "{{ functional_user }}"
       
     - name: Read Coop Configuration File
@@ -94,39 +109,43 @@
       loop:
         - "{{ functional_user }}"
 
-    - name: Parse Coop Configuration Values
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          =>Copied Installer {{ found_files.files[0].path }} to remote and extracted the tar
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+
+    - name: Read Configuration Values
       set_fact:
         coop_config_values: "{{ (coop_config_file_content['content'] | b64decode).split('\n') | map('trim') }}"
-      register: parsed_config
-
-    - name: Parse Configuration Values
-      set_fact:
         config_values: "{{ (config_file_content['content'] | b64decode).split('\n') | map('trim') }}"
-      register: parsed_config
 
-    - name: Read Installation Directory value from config
+    - name: Read Required values from config
       set_fact:
         app_hub_dest: "{{ coop_config_values | select('match', '^app_hub_dest=(.*)') | map('regex_replace', '^app_hub_dest=(.*)', '\\1') | first }}"
-
-    - name: Skip Header Line
-      set_fact:
-        config_values_no_header: "{{ config_values | reject('match', '^\\[Cafe\\]$') | list }}"
-
-    - name: Display Arguments
-      debug:
-        var: config_values_no_header  
-
-    - name: Read Installation Directory value from config
-      set_fact:
-        install_root: "{{ config_values | select('match', '^install_root: (.*)') | map('regex_replace', '^install_root: (.*)', '\\1') | first }}"
-        deployment_name: "{{ config_values | select('match', '^deployment\\.name: ''(.*)''$') | map('regex_replace', '^deployment\\.name: ''(.*)''$', '\\1') | first }}"
         master_encrypted_password: "{{ config_values | select('match', '^mh\\.master\\.password_mhub_encrypted: ''(.*)''$') | map('regex_replace', '^^mh\\.master\\.password_mhub_encrypted: ''(.*)''$', '\\1') | first }}"
-    
+        deployment_name: "{{ config_values | select('match', '^deployment\\.name: ''(.*)''$') | map('regex_replace', '^^deployment\\.name: ''(.*)''$', '\\1') | first }}"
+        port_number: "{{ config_values | select('match', '^appserver\\.port: ''(.*)''$') | map('regex_replace', '^^appserver\\.port: ''(.*)''$', '\\1') | first }}"
+      
     - name: Add AG_LOCAL_ROOT in global apphubrc
       lineinfile:
         path: "{{ app_hub_dest }}/config/apphubrc"
         line: |
           AB_AG_LOCAL_ROOT : {{ apps_root_path }}/abinitio/abinitio-deployment/ag
+
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          => Running AG installation Script
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
 
     - name: Run Install Script
       ansible.builtin.command: 
@@ -148,9 +167,19 @@
         state: present  # Add the line if not present  
       notify: Reload Profile  
 
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          => Running AG Deployment
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+
     - name: Run Deployment
       ansible.builtin.command: 
-        cmd: sh -c "source /etc/profile && ag-deploy -run -d {{ apps_root_path }}/abinitio/abinitio-deployment/ag/{{ deployment_name }} -i {{ installer_path }}/ag-config.ini"
+        cmd: sh -c "source /etc/profile && ag-deploy -run -d {{ deployment_root }}/{{ deployment_name }} -i {{ installer_path }}/ag-config.ini"
       register: command_output
       become_user: "{{ functional_user }}"
       args:
@@ -158,14 +187,12 @@
 
     - name: Getting URL and Admin Details
       ansible.builtin.set_fact:
-        matched_lines: "{{ command_output.stdout_lines | select('regex', 'Application deployed to:|admin user:') | list }}"
+        matched_lines: "{{ command_output.stdout_lines | select('regex', 'admin user:') | list }}"
     
     - name: Extract details
       ansible.builtin.set_fact:
-        url: "{{ matched_lines[1] | regex_search('(http://[^ ]+)') | regex_replace(cip_hostname,cip_instance_public_ip) }}"
-        port_number: "{{ matched_lines[1].split(':')[-1] | regex_replace('[^0-9]', '') }}"
+        url: "http://{{ ansible_hostname }}:{{ port_number }}/{{ deployment_name }}"
         password: "{{ matched_lines[0] | regex_replace('.*user:\\s+(\\S+)', '\\1') }}"
-        root_path: "{{ matched_lines[1].split('/')[-1] }}"
 
     - name: Create Encypted AG Password
       ansible.builtin.command: 
@@ -194,13 +221,13 @@
       lineinfile:
         path: "{{ comm_config_file }}"
         line: |
-          ag_host: "{{ cip_instance_public_ip }}"
+          ag_host: "{{ ansible_hostname }}"
           ag_url: "{{ url }}"
           ag_port: "{{ port_number }}"
           ag_user: "admin"
           ag_password: {{ enc_password.stdout }}
           ag_encrypted_password: "{{ encrypted_password.stdout }}"
-          ag_root_path: "{{ root_path }}"
+          ag_root_path: "{{ deployment_name }}"
         state: present
       delegate_to: localhost
       no_log: true
@@ -255,6 +282,7 @@
       ansible.builtin.file:
         path: "{{ apps_root_path }}/abinitio/ag_user_feeds/ag"
         state: directory
+        recurse: yes
         group: abinitio
       become_user: "{{ functional_user }}"
 
@@ -290,7 +318,7 @@
       shell: |
         source /etc/profile
         source {{ apps_root_path }}/abinitio/abinitio-deployment/ag/authgateway/config/import.profile
-        export AB_AG_CONN_PARAMS="-a {{ url }} -u admin -p {{ password }}"
+        export AB_AG_CONN_PARAMS="$AB_AG_CONN_PARAMS -u admin -p {{ password }}"
         ag-import feed save {{ apps_root_path }}/abinitio/ag_user_feeds/ag/AGCreateUserGroup.feed
         ag-import run -feed "AGCreateUserGroup" -progress -approve
       become_user: "{{ functional_user }}"
