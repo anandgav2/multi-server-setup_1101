@@ -19,13 +19,6 @@ resource "aws_security_group" "cip-multi" {
   }
 
   ingress {
-    from_port   = 6461  # Your desired port
-    to_port     = 6461
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Restrict this to your IP range for better security
-  }
-
-  ingress {
     from_port   = 6761  # Your desired port # AG
     to_port     = 6761
     protocol    = "tcp"
@@ -40,7 +33,7 @@ resource "aws_security_group" "cip-multi" {
   }
 
   ingress {
-    from_port   = 32400  # Your desired port # Cafe
+    from_port   = 32400  # Your desired port 
     to_port     = 32400
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]  # Restrict this to your IP range for better security

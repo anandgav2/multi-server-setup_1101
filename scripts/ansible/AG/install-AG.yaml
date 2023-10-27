@@ -127,9 +127,9 @@
     - name: Read Required values from config
       set_fact:
         app_hub_dest: "{{ coop_config_values | select('match', '^app_hub_dest=(.*)') | map('regex_replace', '^app_hub_dest=(.*)', '\\1') | first }}"
-        master_encrypted_password: "{{ config_values | select('match', '^mh\\.master\\.password_mhub_encrypted: ''(.*)''$') | map('regex_replace', '^^mh\\.master\\.password_mhub_encrypted: ''(.*)''$', '\\1') | first }}"
-        deployment_name: "{{ config_values | select('match', '^deployment\\.name: ''(.*)''$') | map('regex_replace', '^^deployment\\.name: ''(.*)''$', '\\1') | first }}"
-        port_number: "{{ config_values | select('match', '^appserver\\.port: ''(.*)''$') | map('regex_replace', '^^appserver\\.port: ''(.*)''$', '\\1') | first }}"
+        master_encrypted_password: "{{ config_values | select('match', '^mh\\.master\\.password_mhub_encrypted: ') | map('regex_replace', '^.*: ''(.*)''$', '\\1') | first | replace('\'', '') }}"
+        deployment_name: "{{ config_values | select('match', '^deployment\\.name: ') | map('regex_replace', '^.*: ''(.*)''$', '\\1') | first | replace('\'', '') }}"
+        port_number: "{{ config_values | select('match', '^appserver\\.port: ') | map('regex_replace', '^.*: ''(.*)''$', '\\1') | first | replace('\'', '')}}"
       
     - name: Add AG_LOCAL_ROOT in global apphubrc
       lineinfile:
@@ -191,7 +191,7 @@
     
     - name: Extract details
       ansible.builtin.set_fact:
-        url: "http://{{ ansible_hostname }}:{{ port_number }}/{{ deployment_name }}"
+        url: "http://{{ ansible_host }}:{{ port_number }}/{{ deployment_name }}"
         password: "{{ matched_lines[0] | regex_replace('.*user:\\s+(\\S+)', '\\1') }}"
 
     - name: Create Encypted AG Password
