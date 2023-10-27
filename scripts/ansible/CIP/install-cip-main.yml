@@ -339,7 +339,7 @@
 
     - name: Write configuration pset dev for cip_private sandbox
       copy:
-        dest: {{ sandbox_root }}/abinitio/cip/private_internal/dev.pset
+        dest: "{{ sandbox_root }}/abinitio/cip/private_internal/dev.pset"
         content: |
               !base||||.project.pset
               AI_REL_LOC:sandbox@ABENV||||/abinitio/cip/private_internal
@@ -371,7 +371,7 @@
 
     - name: Write configuration pset dev for stdenv sandbox
       copy:
-        dest: {{ sandbox_root }}/abinitio/stdenv/dev.pset
+        dest: "{{ sandbox_root }}/abinitio/stdenv/dev.pset"
         content: |
               !base||||.project.pset
               AI_ADMIN_PRIVATE_ROOT@ABENV||||{{ sandbox_root }}
