@@ -328,7 +328,7 @@
         state: present
 
     - name: Load CIP sav files
-      ansible.builtin.command: "{{ item }}"
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
         - create-project -rel-loc abinitio/cip/private_internal -type private -env {{ sandbox_root }}/abinitio/stdenv -checkin Y
         - create-project -rel-loc abinitio/cip/public_internal -type public -env {{ sandbox_root }}/abinitio/stdenv -checkin Y
