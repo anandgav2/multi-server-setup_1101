@@ -25,7 +25,7 @@
         group: abinitio
       become_user: "{{ functional_user }}"
 
-   - name: Read Installation Directory value from config
+    - name: Read Installation Directory value from config
       set_fact:
         install_root: "{{ apps_root_path }}/abinitio/abinitio-install"
         deployment_root: "{{ apps_root_path }}/abinitio/abinitio-deployment/ag"
