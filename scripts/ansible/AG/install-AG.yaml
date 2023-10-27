@@ -127,9 +127,9 @@
     - name: Read Required values from config
       set_fact:
         app_hub_dest: "{{ coop_config_values | select('match', '^app_hub_dest=(.*)') | map('regex_replace', '^app_hub_dest=(.*)', '\\1') | first }}"
-        master_encrypted_password: "{{ config_values | select('match', '^mh\\.master\\.password_mhub_encrypted: ''(.*)''$') | map('regex_replace', '^^mh\\.master\\.password_mhub_encrypted: ''(.*)''$', '\\1') | first | replace('\'', '') }}"
-        deployment_name: "{{ config_values | select('match', '^deployment\\.name: ''(.*)''$') | map('regex_replace', '^^deployment\\.name: ''(.*)''$', '\\1') | first | replace('\'', '') }}"
-        port_number: "{{ config_values | select('match', '^appserver\\.port: ''(.*)''$') | map('regex_replace', '^^appserver\\.port: ''(.*)''$', '\\1') | first }}"
+        master_encrypted_password: "{{ config_values | select('match', '^mh\\.master\\.password_mhub_encrypted: ''(.*)''$') | map('regex_replace', '^^mh\\.master\\.password_mhub_encrypted: ''(.*)''$', '\\1') | first | replace('\\'', '') }}"
+        deployment_name: "{{ config_values | select('match', '^deployment\\.name: ''(.*)''$') | map('regex_replace', '^^deployment\\.name: ''(.*)''$', '\\1') | first | replace('\\'', '') }}"
+        port_number: "{{ config_values | select('match', '^appserver\\.port: ''(.*)''$') | map('regex_replace', '^^appserver\\.port: ''(.*)''$', '\\1') | first | replace('\\'', '') }}"
       
     - name: Add AG_LOCAL_ROOT in global apphubrc
       lineinfile:
