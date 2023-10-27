@@ -1,0 +1,386 @@
+- name: CIP subsystem directories creation
+  hosts: server*
+  become: yes # Run tasks with root privileges
+  vars:
+    log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
+    comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+  
+  tasks:
+  
+    - name: Load Global parameters
+      include_vars:
+        file: "{{ item }}"
+      with_items:
+        - "{{ installer_path }}/cip_setup_automation.yml"
+        - "{{ installer_path }}/installer-versions.yml"
+        - ./config-params.yml
+        - "{{ comm_config_file }}"
+     
+    - name: Get a360 host IP
+      set_fact:
+         a360_ip: "{{ hostvars[item].ansible_host }}"
+      loop: "{{ hostvars.keys() | select('match', 'a360') | list }}"
+     
+    - name: Create sandbox and data hierarchy and set ownership
+      shell: |
+        sudo mkdir -p {{ sandbox_root }}/abinitio/CIP_V{{ cip_version }}
+        sudo mkdir -p {{ data_root_path }}/cip
+        sudo mkdir -p {{ data_root_path }}/cip/data-areas
+        sudo chown -R {{ item }}:abinitio {{ data_root_path }}
+      loop:
+        - "{{ functional_user }}"
+      when: ansible_host != a360_ip
+      
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          => Creating PG PASS File
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+
+    - name: Create .pgpass file
+      file:
+        path: "/home/{{ functional_user }}/.pgpass"
+        state: touch
+        mode: 0600
+        owner: "{{ functional_user }}"
+        group: abinitio
+      when: ansible_host != a360_ip
+		
+    - name: Add Postgres DB Info to pgpass
+      lineinfile:
+        path: "/home/{{ functional_user }}/.pgpass"
+        line: |
+          *:*:*:{{ cip_db_user }}:{{ cip_db_password }}
+        state: present
+      when: ansible_host != a360_ip
+		
+    - name: Write Common Config
+      lineinfile:
+        path: "{{ comm_config_file }}"
+        line: |
+          cip_db_name: "cip"
+          cip_db_port: "{{ cip_db_port }}"
+        state: present
+      delegate_to: localhost
+      become: false
+
+
+- name: CIP Installation
+  hosts: cipui
+  become: yes # Run tasks with root privileges
+  vars:
+    log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
+    comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+  
+  tasks:
+
+    - name: Load Global parameters
+      include_vars:
+        file: "{{ item }}"
+      with_items:
+        - "{{ installer_path }}/cip_setup_automation.yml"
+        - "{{ installer_path }}/installer-versions.yml"
+        - ./config-params.yml
+        - "{{ comm_config_file }}"
+
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          => Reading Co-op Config File
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false  
+
+    - name: Copy Config File
+      copy:
+        src: "../Coop/coop-config.ini"
+        dest: "{{ installer_path }}"
+        remote_src: false
+        group: abinitio
+      become_user: "{{ functional_user }}"
+  
+    - name: Display Version
+      ansible.builtin.debug:
+        var: cip_version
+
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          => CIP Version - {{ cip_version }}
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false  
+
+    - name: Read Coop Configuration File
+      slurp:
+        src: "{{ installer_path }}/coop-config.ini"
+      register: coop_config_file_content
+
+    - name: Find the Installer Tar
+      find:
+        paths: "{{ installer_path }}"
+        patterns: "CIP*{{ cip_version }}*.*"
+      register: found_files
+      delegate_to: localhost
+      become: false
+      
+    - name: Display  File List
+      ansible.builtin.debug:
+        var: found_files
+
+    - name: Copy files to remote host
+      copy:
+        src: "{{ item.path }}"
+        dest: "{{ installer_path }}"
+        remote_src: false
+        group: abinitio
+      loop: "{{ found_files.files }}"
+      become_user: "{{ functional_user }}"
+
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          => CIP Version Tar File - {{ found_files.files[0].path }}
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false 
+
+    - name: Extract Folder Path
+      set_fact:
+        folder_path: "{{ found_files.files[0].path |  regex_replace('\\.(tgz|tar\\.gz|tar)$','')}}"
+        #folder_path: "{{ found_files.files[0].path |  regex_replace('\\.tgz$', '')  }}"
+
+    - name: Display  Folder Path
+      ansible.builtin.debug:
+        var: folder_path
+
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          => Untar CIP Version Tar File
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false 
+
+    - name: Untar Files
+      shell: |
+        su - {{ item }} -c "tar xvf {{ installer_path }}/CIP*{{ cip_version }}*.* -C {{ installer_path }}"
+      loop:
+        - "{{ functional_user }}"
+
+    - name: Parse Coop Configuration Values
+      set_fact:
+        coop_config_values: "{{ (coop_config_file_content['content'] | b64decode).split('\n') | map('trim') }}"
+      register: parsed_config
+
+    - name: Read Installation Directory value from config
+      set_fact:
+        destination: "{{ coop_config_values | select('match', '^destination=(.*)') | map('regex_replace', '^destination=(.*)', '\\1') | first }}"
+        app_hub_dest: "{{ coop_config_values | select('match', '^app_hub_dest=(.*)') | map('regex_replace', '^app_hub_dest=(.*)', '\\1') | first }}"
+ 
+    - name: Add environment parameters to /etc/profile
+      lineinfile:
+        path: /etc/profile
+        line: |
+          export PG_HOME=$AB_HOME/lib/postgresql
+          export PYTHONPATH={{ sandbox_root }}/abinitio/cip/ui/ab_python_lib/modules
+          export LD_LIBRARY_PATH=$AB_HOME/lib/postgresql/lib:$LD_LIBRARY_PATH
+        state: present  # Add the line if not present
+        #notify: Reload Profile
+
+    - name: "Fetch JAVA_HOME"
+      shell: dirname $(dirname $(readlink -f $(which java)))
+      register: java_home 
+
+    - name: "Fetch Short Host name"
+      shell: hostname --short
+      register: short_host_name
+
+    - name: Get Python Path
+      shell: "which python3"
+      register: python_path
+
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          => Setting Abinitio Environment
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false 
+      
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          => Copying ab_python_lib and ui tar files to remote location and extracting them
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false 
+      
+    - name: Create sandbox and UI directory
+      shell: |
+          sudo mkdir -p {{ sandbox_root }}/abinitio/cip/ui
+      loop:
+        - "{{ functional_user }}"
+
+    - name: Copy files to remote host
+      copy:
+        src: "{{ folder_path }}/ab_python_lib.tgz"
+        dest: "{{ sandbox_root }}/abinitio/cip/ui/ab_python_lib.V{{ cip_version }}.tgz"
+        remote_src: true
+        group: abinitio
+      loop: "{{ found_files.files }}"
+      become_user: "{{ functional_user }}"
+    
+    - name: Copy UI files to remote host
+      copy:
+        src: "{{ folder_path }}/ui.tgz"
+        dest: "{{ sandbox_root }}/abinitio/cip/ui/ui.V{{ cip_version }}.tgz"
+        remote_src: true
+        group: abinitio
+      loop: "{{ found_files.files }}"
+      become_user: "{{ functional_user }}"
+
+    - name: Untar Python modules
+      shell: |
+        su - {{ item }} -c "tar -zxvf {{ sandbox_root }}/abinitio/cip/ui/ab_python_lib.V{{ cip_version }}.tgz -C {{ sandbox_root }}/abinitio/cip/ui"
+        mv {{ sandbox_root }}/abinitio/cip/ui/ab_python_lib {{ sandbox_root }}/abinitio/cip/ui/ab_python_lib.V{{ cip_version }}
+      loop:
+        -  "{{ functional_user }}"
+    
+    - name: Untar UI module
+      shell: |
+        su - {{ item }} -c "tar -zxvf {{ sandbox_root }}/abinitio/cip/ui/ui.V{{ cip_version }}.tgz -C {{ sandbox_root }}/abinitio/cip/ui"
+        mv {{ sandbox_root }}/abinitio/cip/ui/web {{ sandbox_root }}/abinitio/cip/ui/web.V{{ cip_version }}
+      loop:
+        -  "{{ functional_user }}"
+
+    - name: Create Sym Link for Python modules
+      file:
+        src: "{{ sandbox_root }}/abinitio/cip/ui/ab_python_lib.V{{ cip_version }}"
+        dest: "{{ sandbox_root }}/abinitio/cip/ui/ab_python_lib"
+        state: link
+        group: abinitio
+      become_user: "{{ functional_user }}"
+
+    - name: Create Sym Link for web
+      file:
+        src: "{{ sandbox_root }}/abinitio/cip/ui/web.V{{ cip_version }}"
+        dest: "{{ sandbox_root }}/abinitio/cip/ui/web"
+        state: link
+        group: abinitio
+      become_user: "{{ functional_user }}"
+
+    - name: Set params in global abinitiorc
+      lineinfile:
+        path: "{{ destination }}/abinitio-V{{ coop_version }}/config/abinitiorc"
+        line: |
+          AB_SQL_MUTABLE_SEARCH_PATH : {{ sandbox_root }}/abinitio/cip/cip_common/components:~ab_home/lib/absql
+          AB_EASY_RESOLVE_NAMES_VERSION : 1
+        state: present      
+
+    - name: Create Abinitio environment
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items: 
+        - install-environment -root {{ sandbox_root }}/abinitio -data-mount {{ data_root_path }}/cip
+        - mv {{ sandbox_root }}/abinitio/sand/stdenv {{ sandbox_root }}/abinitio/stdenv
+        - air project import /Projects/abinitio/stdenv -basedir  {{ sandbox_root }}/abinitio/stdenv -auto-add -create
+      register: command_output
+      become_user: "{{ functional_user }}"
+ 
+    - name: Display Status
+      ansible.builtin.debug:
+        var: command_output
+		
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          => Loading CIP save file in EME
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false 
+
+    - name: Load CIP sav files
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        - create-project -rel-loc abinitio/cip/private_internal -type private -env {{ sandbox_root }}/abinitio/stdenv -checkin Y
+        - create-project -rel-loc abinitio/cip/public_internal -type public -env {{ sandbox_root }}/abinitio/stdenv -checkin Y
+        - air project modify /Projects/abinitio/cip/private_internal -common /Projects/abinitio/cip/public_internal
+        - air promote load adc.sav -history-file adc.hist -comment '{{ cip_version }}' -no-analyze
+        - air promote load engine.sav -history-file engine.hist -comment 'CIP Install {{ cip_version }}' -relocate /Projects/abinitio/cip/stdenv /Projects/abinitio/stdenv -no-analyze
+        - air promote load new_customer_sandboxes_utf8.sav -history-file new_customer_sandboxes_utf8.hist -comment 'CIP Install {{ cip_version }}' -relocate /Projects/abinitio/cip/stdenv /Projects/abinitio/stdenv -relocate /Projects/abinitio/cip/private_prototype/ /Projects/abinitio/cip/private_internal -relocate /Projects/abinitio/cip/public_prototype/ /Projects/abinitio/cip/public_internal -no-analyze
+      register: command_output
+      become_user: "{{ functional_user }}"
+      args:
+        chdir: "{{ folder_path }}"
+
+    - name: Display Status
+      ansible.builtin.debug:
+        var: command_output
+
+    - name: Write configuration pset dev for cip_private sandbox
+      copy:
+        dest: {{ sandbox_root }}/abinitio/cip/private_internal/dev.pset
+        content: |
+              !base||||.project.pset
+              AI_REL_LOC:sandbox@ABENV||||/abinitio/cip/private_internal
+              AI_TEST_FLAG@ABENV||||{{ functional_user }}
+              Environment||||{{ sandbox_root }}/abinitio/stdenv
+              CIP_COMMON_LOCAL_ENRICHMENT_LAYOUT@||||'$CIP_COMMON_LOCAL_MFS_QUEUE'
+              CIP_COMMON_SEGMENTATION_MUTABLE_AB_HOME@||||'$AB_HOME'
+              CIP_COMMON_LOCAL_SEGMENTATION_LAYOUT@||||{{ data_root_path }}/cip/mfs/mfs_{{ data_mfs_depth }}_way
+              CIP_COMMON_ADC_CONFIG_FILE@||||{{ sandbox_root }}/abinitio/cip/private_internal/config/config.dev.props
+              CIP_COMMON_CIPDB_PORT@||||{{ cip_db_port }}
+              CIP_COMMON_CIPDB_DB_NAME@||||cip
+              CIP_COMMON_QUERY_IT_SANDBOX@||||{{ sandbox_root }}/queryit   
+              CIP_COMMON_QUERY_IT_DB_PASSWORD@||||{{ query_it_en_passwd }}
+              CIP_COMMON_QUERY_IT_DB_USERNAME@||||{{ functional_user }}
+              CIP_COMMON_ALL_TARGET_SERVERS@||||{{ cip_common_all_target_servers }}
+              CIP_COMMON_CONTROL_SERVER@||||{{ cip_common_act_server }}		
+              CIP_COMMON_ACT_SERVER@||||{{ cip_common_act_server }}		
+              CIP_COMMON_AUDIT_SERVER@||||{{ cip_common_audit_server }}		
+              CIP_COMMON_COLLECT_SERVER@||||{{ cip_common_collect_server }}		
+              CIP_COMMON_CONTACT_POLICY_SERVER@||||{{ cip_common_contact_policy_server }}		
+              CIP_COMMON_DETECT_SERVERS@||||{{ cip_common_detect_servers }}		
+              CIP_COMMON_ELIGIBILITY_SERVERS@||||{{ cip_common_eligibility_servers }}		
+              CIP_COMMON_ELIGIBLE_QUEUE_SERVERS@||||{{ cip_common_eligible_queue_servers }}		
+              CIP_COMMON_ENRICHMENT_QUEUE_SERVERS@||||{{ cip_common_enrichment_queue_servers }}		
+              CIP_COMMON_ENRICHMENT_SERVERS@||||{{ cip_common_enrichment_servers }}		
+              CIP_COMMON_INBOUND_CHANNEL_QUEUE_SERVERS@||||{{ cip_common_inbound_channel_queue_servers }}		
+              CIP_COMMON_REPORT_SERVER@||||{{ cip_common_audit_server }}		
+              CIP_COMMON_CIPDB_HOST@||||{{ cip_common_audit_server }}
+
+    - name: Write configuration pset dev for stdenv sandbox
+      copy:
+        dest: {{ sandbox_root }}/abinitio/stdenv/dev.pset
+        content: |
+              !base||||.project.pset
+              AI_ADMIN_PRIVATE_ROOT@ABENV||||{{ sandbox_root }}
+              AI_ADMIN_PUBLIC_ROOT@ABENV||||{{ sandbox_root }}
+              AI_DATA_MOUNT@ABENV||||{{ data_root_path }}/cip
+
+    - name: checkin configuration pset dev for cip_private sandbox
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        air project import /Projects/abinitio/cip/private_internal -basedir {{ sandbox_root }}/abinitio/cip/private_internal -files dev.pset
+      register: command_output
+      become_user: "{{ functional_user }}"              
