@@ -317,7 +317,7 @@
     - name: Setup Web App User
       shell: |
         source /etc/profile
-        source {{ apps_root_path }}/abinitio/abinitio-deployment/ag/authgateway/config/import.profile
+        source {{ deployment_root }}/{{ deployment_name }}/config/import.profile
         export AB_AG_CONN_PARAMS="$AB_AG_CONN_PARAMS -u admin -p {{ password }}"
         ag-import feed save {{ apps_root_path }}/abinitio/ag_user_feeds/ag/AGCreateUserGroup.feed
         ag-import run -feed "AGCreateUserGroup" -progress -approve
