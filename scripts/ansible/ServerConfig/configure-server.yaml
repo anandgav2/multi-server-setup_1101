@@ -69,6 +69,11 @@
         sudo chown -R {{ item }}:abinitio {{ data_root_path }}/a360
         sudo chown -R {{ item }}:abinitio {{ data_root_path }}/sand/appconfdir
         sudo chown -R {{ item }}:abinitio {{ apps_root_path }}/abinitio/abinitio-deployment/cc
+        sudo mkdir -p {{ sandbox_root }}/abinitio/CIP_V{{ cip_version }}
+        sudo mkdir -p {{ sandbox_root }}/abinitio/cip/ui
+        sudo mkdir -p {{ data_root_path }}/cip
+        sudo mkdir -p {{ data_root_path }}/cip/data-areas
+        sudo chown -R {{ item }}:abinitio {{ data_root_path }}
       loop:
         - "{{ functional_user }}"
 
