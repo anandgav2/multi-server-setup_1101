@@ -332,9 +332,16 @@
          AB_ENV_ROOT : {{ sandbox_root }}/abinitio/stdenv
         state: present
 
+    - name: Set params in /etc/profile
+      lineinfile:
+        path: /etc/profile
+        line: |
+         AB_AIR_ROOT=//{{ host_alias }}{{ data_root_path }}/eme/cipeme/repo
+        state: present        
+
     - name: Load CIP sav files
       shell: |
-        export AB_AIR_ROOT=//{{ host_alias }}{{ data_root_path }}/eme/cipeme/repo
+        source /etc/profile
         create-project -rel-loc abinitio/cip/private_internal -type private -env {{ sandbox_root }}/abinitio/stdenv -checkin Y
         create-project -rel-loc abinitio/cip/public_internal -type public -env {{ sandbox_root }}/abinitio/stdenv -checkin Y
         air project modify /Projects/abinitio/cip/private_internal -common /Projects/abinitio/cip/public_internal
