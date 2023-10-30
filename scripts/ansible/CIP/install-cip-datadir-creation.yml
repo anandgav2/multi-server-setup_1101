@@ -60,7 +60,7 @@
     - name: Display Status
       ansible.builtin.debug:
         var: command_output
-		
+
     - name: Configure CIP Public Sandbox
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
