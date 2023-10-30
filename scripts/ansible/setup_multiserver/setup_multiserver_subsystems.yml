@@ -28,6 +28,10 @@
         msg: "{{ lookup('vars',item | split(' ') | first + '_config') }}"
       loop: "{{ host_alias_content }}"
 
+    - name: write to inventory
+      shell: echo -e "cip:\n  hosts:" > ./inventory.yml
+      become_user: abinitio
+
     - name: call another yaml
       include_tasks: parse_multiserver_config.yaml
       vars:
@@ -37,6 +41,8 @@
         config: "{{ lookup('vars',item | split(' ') | first + '_config') }}"
         counter: "{{ iteration+1 }}"
       loop: "{{ host_alias_content }}"
+      loop_control:
+        index_var: iteration
 
     - name: Print subsystem mapping
       lineinfile:
