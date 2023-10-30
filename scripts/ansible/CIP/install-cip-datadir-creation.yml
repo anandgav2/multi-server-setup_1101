@@ -81,3 +81,4 @@
       become_user: "{{ functional_user }}"
       args:
         chdir: "{{ sandbox_root }}/abinitio/cip/private_internal"
+      ignore_errors: True
