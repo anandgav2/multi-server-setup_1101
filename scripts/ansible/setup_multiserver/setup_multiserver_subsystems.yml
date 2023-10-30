@@ -32,7 +32,10 @@
       include_tasks: parse_multiserver_config.yaml
       vars:
         host: "{{ item | split(' ') | first }}"
+        host_ip: "{{ item | split(' ') | last }}"
+        pem_file: "{{ lookup('vars',item | split(' ') | first + '_private_key') }}"
         config: "{{ lookup('vars',item | split(' ') | first + '_config') }}"
+        counter: "{{ iteration+1 }}"
       loop: "{{ host_alias_content }}"
 
     - name: Print subsystem mapping
