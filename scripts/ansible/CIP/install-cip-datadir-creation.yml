@@ -21,7 +21,7 @@
 
     - name: Create Parent Directories for Project
       shell: |
-	    air sandbox pset .sandbox.pset -base dev.pset
+        air sandbox pset .sandbox.pset -base dev.pset
         define-directories -basedir {{ sandbox_root }}/abinitio/stdenv -type both -mfs-depth {{ data_mfs_depth }} -subdir default
         build-mfs -basedir {{ sandbox_root }}/abinitio/stdenv -mfs-depth {{ data_mfs_depth }} -data-areas {{ data_root_path }}/cip/data-areas
       register: command_output
