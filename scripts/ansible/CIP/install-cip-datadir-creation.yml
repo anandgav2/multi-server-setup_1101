@@ -27,7 +27,8 @@
       become_user: "{{ functional_user }}"
 
     - name: Create Parent Directories for Project
-      shell: |
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
         air sandbox pset .sandbox.pset -base dev.pset
         define-directories -basedir {{ sandbox_root }}/abinitio/stdenv -type both -mfs-depth {{ data_mfs_depth }} -subdir default
         build-mfs -basedir {{ sandbox_root }}/abinitio/stdenv -mfs-depth {{ data_mfs_depth }} -data-areas {{ data_root_path }}/cip/data-areas
