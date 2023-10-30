@@ -15,14 +15,6 @@
         - "{{ installer_path }}/cip_setup_automation.yml"
         - "{{ installer_path }}/installer-versions.yml"
         - "{{ comm_config_file }}"
-        
-    - name: Transfer installer-versions.yml
-      copy:
-        src: ../installer-versions.yml
-        dest: /tmp/installer-versions.yml
-        remote_src: false
-        group: abinitio
-      become_user: "{{ functional_user }}"
 
     - name: Log step
       lineinfile:
