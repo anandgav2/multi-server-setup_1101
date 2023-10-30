@@ -244,7 +244,7 @@
     - name: Create sandbox and UI directory
       shell: |
           sudo mkdir -p {{ sandbox_root }}/abinitio/cip/ui
-          sudo chown -R {{ item }}:abinitio {{ sandbox_root }}/abinitio/cip/ui
+          sudo chown -R {{ item }}:abinitio {{ sandbox_root }}/abinitio/cip
       loop:
         - "{{ functional_user }}"
 
