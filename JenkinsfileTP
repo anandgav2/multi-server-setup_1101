@@ -28,7 +28,7 @@ pipeline {
                 }
             }
         }
-
+/*
         stage('Terraform Init & Plan --> Initialize EC2 instance')
         { 
             when {
@@ -149,7 +149,7 @@ pipeline {
                     sh "echo ------- Create EME SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                 }
             }
-        }
+        }*/
 /*
         stage('Install AG') 
         { 
