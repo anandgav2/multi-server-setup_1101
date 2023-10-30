@@ -1,5 +1,5 @@
 - name: CC Installation
-  hosts: cip-instance
+  hosts: cc
   become: yes # Run tasks with root privileges
   vars:
     log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
@@ -287,7 +287,7 @@
         path: "{{ log_file }}"
         line: |
           => CC is Up and running
-             CC URL -> http://{{ cip_instance_public_ip }}:{{ http_port }}/{{ deployment_name }}
+             CC URL -> http://{{ ansible_host }}:{{ http_port }}/{{ deployment_name }}
              CC User -> admin
              CC Password -> abIniti0
         state: present
