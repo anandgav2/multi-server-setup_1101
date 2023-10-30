@@ -1,5 +1,5 @@
 - name: CC Installation
-  hosts: cip-instance
+  hosts: cc
   become: yes # Run tasks with root privileges
   vars:
     log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
@@ -15,14 +15,6 @@
         - "{{ installer_path }}/cip_setup_automation.yml"
         - "{{ installer_path }}/installer-versions.yml"
         - "{{ comm_config_file }}"
-        
-    - name: Transfer installer-versions.yml
-      copy:
-        src: ../installer-versions.yml
-        dest: /tmp/installer-versions.yml
-        remote_src: false
-        group: abinitio
-      become_user: "{{ functional_user }}"
 
     - name: Log step
       lineinfile:
@@ -287,7 +279,7 @@
         path: "{{ log_file }}"
         line: |
           => CC is Up and running
-             CC URL -> http://{{ cip_instance_public_ip }}:{{ http_port }}/{{ deployment_name }}
+             CC URL -> http://{{ ansible_host }}:{{ http_port }}/{{ deployment_name }}
              CC User -> admin
              CC Password -> abIniti0
         state: present
