@@ -19,6 +19,13 @@
         - ./config-params.yml
         - "{{ comm_config_file }}"
 
+    - name: Checkout stdenv 
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        - air project export /Projects/abinitio/stdenv -basedir {{ sandbox_root }}/abinitio/stdenv
+      register: command_output
+      become_user: "{{ functional_user }}"
+
     - name: Create Parent Directories for Project
       shell: |
         air sandbox pset .sandbox.pset -base dev.pset
