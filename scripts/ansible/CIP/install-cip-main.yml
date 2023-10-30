@@ -405,6 +405,7 @@
               CIP_COMMON_INBOUND_CHANNEL_QUEUE_SERVERS@||||{{ cip_common_inbound_channel_queue_servers }}		
               CIP_COMMON_REPORT_SERVER@||||{{ cip_common_audit_server }}		
               CIP_COMMON_CIPDB_HOST@||||{{ cip_common_audit_server }}
+      become_user: "{{ functional_user }}"              
 
     - name: Write configuration pset dev for stdenv sandbox
       copy:
@@ -414,10 +415,12 @@
               AI_ADMIN_PRIVATE_ROOT@ABENV||||{{ sandbox_root }}
               AI_ADMIN_PUBLIC_ROOT@ABENV||||{{ sandbox_root }}
               AI_DATA_MOUNT@ABENV||||{{ data_root_path }}/cip
+      become_user: "{{ functional_user }}"
 
     - name: checkin configuration pset dev for cip_private sandbox
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
         air project import /Projects/abinitio/cip/private_internal -basedir {{ sandbox_root }}/abinitio/cip/private_internal -files dev.pset
+        air project import //Projects/abinitio/stdenv -basedir {{ sandbox_root }}/abinitio/stdenv -files dev.pset
       register: command_output
       become_user: "{{ functional_user }}"
