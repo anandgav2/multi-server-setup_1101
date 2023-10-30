@@ -41,13 +41,6 @@
       ansible.builtin.debug:
         var: command_output
 
-    - name: Set params in global abinitiorc
-      lineinfile:
-        path: "{{ destination }}/abinitio-V{{ coop_version }}/config/abinitiorc"
-        line: |
-         AB_ENV_ROOT : {{ sandbox_root }}/abinitio/stdenv
-        state: present
-
     - name: Log step
       lineinfile:
         path: "{{ log_file }}"
