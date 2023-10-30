@@ -189,7 +189,7 @@ pipeline {
 
         } 
 
-        /*stage('Install CC') 
+        stage('Install CC') 
         { 
             steps 
             {
@@ -209,7 +209,7 @@ pipeline {
             }
         }
 
-        stage('Install CIP') 
+        /*stage('Install CIP') 
         { 
             steps 
             { 
