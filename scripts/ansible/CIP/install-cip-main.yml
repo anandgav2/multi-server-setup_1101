@@ -89,6 +89,11 @@
         - ./config-params.yml
         - "{{ comm_config_file }}"
 
+    - name: find host alias in host_alias.txt
+      set_fact:
+         host_alias: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',hostvars[item].ansible_host) | first | split(' ') | first }}"
+      loop: "{{ hostvars.keys() | select('match', 'eme') | list }}"
+
     - name: Log step
       lineinfile:
         path: "{{ log_file }}"
@@ -328,14 +333,14 @@
         state: present
 
     - name: Load CIP sav files
-      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
-      with_items:
-        - create-project -rel-loc abinitio/cip/private_internal -type private -env {{ sandbox_root }}/abinitio/stdenv -checkin Y
-        - create-project -rel-loc abinitio/cip/public_internal -type public -env {{ sandbox_root }}/abinitio/stdenv -checkin Y
-        - air project modify /Projects/abinitio/cip/private_internal -common /Projects/abinitio/cip/public_internal
-        - air promote load adc.sav -history-file adc.hist -comment '{{ cip_version }}' -no-analyze
-        - air promote load engine.sav -history-file engine.hist -comment 'CIP Install {{ cip_version }}' -relocate /Projects/abinitio/cip/stdenv /Projects/abinitio/stdenv -no-analyze
-        - air promote load new_customer_sandboxes_utf8.sav -history-file new_customer_sandboxes_utf8.hist -comment 'CIP Install {{ cip_version }}' -relocate /Projects/abinitio/cip/stdenv /Projects/abinitio/stdenv -relocate /Projects/abinitio/cip/private_prototype/ /Projects/abinitio/cip/private_internal -relocate /Projects/abinitio/cip/public_prototype/ /Projects/abinitio/cip/public_internal -no-analyze
+      shell: |
+        export AB_AIR_ROOT=//{{ host_alias }}{{ data_root_path }}/eme/cipeme/repo
+        create-project -rel-loc abinitio/cip/private_internal -type private -env {{ sandbox_root }}/abinitio/stdenv -checkin Y
+        create-project -rel-loc abinitio/cip/public_internal -type public -env {{ sandbox_root }}/abinitio/stdenv -checkin Y
+        air project modify /Projects/abinitio/cip/private_internal -common /Projects/abinitio/cip/public_internal
+        air promote load adc.sav -history-file adc.hist -comment '{{ cip_version }}' -no-analyze
+        air promote load engine.sav -history-file engine.hist -comment 'CIP Install {{ cip_version }}' -relocate /Projects/abinitio/cip/stdenv /Projects/abinitio/stdenv -no-analyze
+        air promote load new_customer_sandboxes_utf8.sav -history-file new_customer_sandboxes_utf8.hist -comment 'CIP Install {{ cip_version }}' -relocate /Projects/abinitio/cip/stdenv /Projects/abinitio/stdenv -relocate /Projects/abinitio/cip/private_prototype/ /Projects/abinitio/cip/private_internal -relocate /Projects/abinitio/cip/public_prototype/ /Projects/abinitio/cip/public_internal -no-analyze
       register: command_output
       become_user: "{{ functional_user }}"
       args:
