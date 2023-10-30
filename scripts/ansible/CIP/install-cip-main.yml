@@ -88,6 +88,7 @@
         - "{{ installer_path }}/installer-versions.yml"
         - ./config-params.yml
         - "{{ comm_config_file }}"
+        - "../setup_multiserver/subsystem_mapping.yml"
 
     - name: find host alias in host_alias.txt
       set_fact:
@@ -204,6 +205,7 @@
           export PG_HOME=$AB_HOME/lib/postgresql
           export PYTHONPATH={{ sandbox_root }}/abinitio/cip/ui/ab_python_lib/modules
           export LD_LIBRARY_PATH=$AB_HOME/lib/postgresql/lib:$LD_LIBRARY_PATH
+          AB_AIR_ROOT=//{{ host_alias }}{{ data_root_path }}/eme/cipeme/repo
         state: present  # Add the line if not present
         #notify: Reload Profile
 
@@ -330,14 +332,7 @@
         path: "{{ destination }}/abinitio-V{{ coop_version }}/config/abinitiorc"
         line: |
          AB_ENV_ROOT : {{ sandbox_root }}/abinitio/stdenv
-        state: present
-
-    - name: Set params in /etc/profile
-      lineinfile:
-        path: /etc/profile
-        line: |
-         AB_AIR_ROOT=//{{ host_alias }}{{ data_root_path }}/eme/cipeme/repo
-        state: present        
+        state: present       
 
     - name: Load CIP sav files
       shell: |
