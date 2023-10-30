@@ -188,9 +188,8 @@
       ansible.builtin.set_fact:
         matched_lines: "{{ command_output.stdout_lines | select('regex', 'admin user:') | list }}"
     
-    - name: Extract details
-      ansible.builtin.set_fact:
-        url: "http://{{ ansible_host }}:{{ port_number }}/{{ deployment_name }}"
+    - name: Extract Password details
+      set_fact:
         password: "{{ matched_lines[0] | regex_replace('.*user:\\s+(\\S+)', '\\1') }}"
 
     - name: Create Encypted AG Password
@@ -203,7 +202,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => AG URL - {{ url }}
+          => AG URL - "http://{{ ansible_host }}:{{ port_number }}/{{ deployment_name }}"
         state: present
       delegate_to: localhost
       no_log: true
@@ -221,7 +220,7 @@
         path: "{{ comm_config_file }}"
         line: |
           ag_host: "{{ ansible_hostname }}"
-          ag_url: "{{ url }}"
+          ag_url: "http://{{ ansible_hostname }}:{{ port_number }}/{{ deployment_name }}"
           ag_port: "{{ port_number }}"
           ag_user: "admin"
           ag_password: {{ enc_password.stdout }}
