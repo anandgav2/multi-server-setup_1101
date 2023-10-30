@@ -69,7 +69,7 @@
       become_user: "{{ functional_user }}"
       args:
         chdir: "{{ sandbox_root }}/abinitio/cip/public_internal"
-		
+
     - name: Configure CIP Private Sandbox
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
