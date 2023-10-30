@@ -1,0 +1,82 @@
+- name: CIP subsystem data directories creation
+  hosts:
+     - server1
+	   - server2
+  become: yes # Run tasks with root privileges
+  vars:
+    log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
+    comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+  
+  tasks:
+  
+    - name: Load Global parameters
+      include_vars:
+        file: "{{ item }}"
+      with_items:
+        - "{{ installer_path }}/cip_setup_automation.yml"
+        - "{{ installer_path }}/installer-versions.yml"
+        - ./config-params.yml
+        - "{{ comm_config_file }}"
+
+    - name: Create Parent Directories for Project
+      shell: |
+	    air sandbox pset .sandbox.pset -base dev.pset
+        define-directories -basedir {{ sandbox_root }}/abinitio/stdenv -type both -mfs-depth {{ data_mfs_depth }} -subdir default
+        build-mfs -basedir {{ sandbox_root }}/abinitio/stdenv -mfs-depth {{ data_mfs_depth }} -data-areas {{ data_root_path }}/cip/data-areas
+      register: command_output
+      become_user: "{{ functional_user }}"
+      args:
+        chdir: "{{ sandbox_root }}/abinitio/stdenv"
+		
+    - name: Display Status
+      ansible.builtin.debug:
+        var: command_output
+
+    - name: Set params in global abinitiorc
+      lineinfile:
+        path: "{{ destination }}/abinitio-V{{ coop_version }}/config/abinitiorc"
+        line: |
+         AB_ENV_ROOT : {{ sandbox_root }}/abinitio/stdenv
+        state: present
+
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          => Check Out CIP
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false 
+
+    - name: Checkout CIP
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        - air project export /Projects/abinitio/cip/private_internal -basedir {{ sandbox_root }}/abinitio/cip/private_internal -parameters -export-commons -common /Projects/abinitio {{ sandbox_root }}/abinitio -common /Projects/abinitio/cip/public_internal {{ sandbox_root }}/abinitio/cip/public_internal
+      register: command_output
+      become_user: "{{ functional_user }}"
+
+    - name: Display Status
+      ansible.builtin.debug:
+        var: command_output
+		
+    - name: Configure CIP Public Sandbox
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        - air sandbox parameter -path .sandbox.pset PUBLIC_PROTOTYPE_REL_LOC /abinitio/cip/public_internal
+      register: command_output
+      become_user: "{{ functional_user }}"
+      args:
+        chdir: "{{ sandbox_root }}/abinitio/cip/public_internal"
+		
+    - name: Configure CIP Private Sandbox
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        - air sandbox pset .sandbox.pset -base dev.pset
+        - project-directories -create abinitio -proj {{ sandbox_root }}/abinitio/cip/private_internal -ignore-owner -all-commons
+        - mkdir {{ sandbox_root }}/abinitio/cip/private_internal/run
+      register: command_output
+      become_user: "{{ functional_user }}"
+      args:
+        chdir: "{{ sandbox_root }}/abinitio/cip/private_internal"
