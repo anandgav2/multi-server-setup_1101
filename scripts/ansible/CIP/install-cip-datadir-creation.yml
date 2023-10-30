@@ -28,7 +28,7 @@
       become_user: "{{ functional_user }}"
       args:
         chdir: "{{ sandbox_root }}/abinitio/stdenv"
-		
+
     - name: Display Status
       ansible.builtin.debug:
         var: command_output
