@@ -150,7 +150,7 @@ pipeline {
                 }
             }
         }
-/*
+
         stage('Install AG') 
         { 
             steps 
@@ -168,9 +168,9 @@ pipeline {
                 }
 
             }
-        }*/
+        }
 
-        /*stage('Install Cafe') 
+        stage('Install Cafe') 
         { 
             steps 
             { 
@@ -189,7 +189,7 @@ pipeline {
 
         } 
 
-        stage('Install CC') 
+        /*stage('Install CC') 
         { 
             steps 
             {
@@ -208,7 +208,7 @@ pipeline {
 
             }
         }
-*/
+
         stage('Install CIP') 
         { 
             steps 
@@ -227,7 +227,7 @@ pipeline {
 
             }
         }
-/*
+
         stage('Seed Data') 
         { 
             steps 

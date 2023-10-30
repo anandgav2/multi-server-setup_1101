@@ -1,5 +1,5 @@
 - name: CAFE Installation
-  hosts: cip-instance
+  hosts: cafe
   become: yes # Run tasks with root privileges
   vars:
     log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
@@ -149,9 +149,9 @@
       lineinfile:
         path: "{{ comm_config_file }}"
         line: |
-          cafe_host: "{{ cip_instance_public_ip }}"
+          cafe_host: "{{ ansible_hostname }}"
           cafe_port: "{{ port_number }}"
-          cafe_url: "http://{{ cip_instance_public_ip }}:{{ port_number }}/{{ root_path }}/app/"
+          cafe_url: "http://{{ ansible_hostname }}:{{ port_number }}/{{ root_path }}/app/"
           cafe_root_path: "{{ root_path }}"
           cafe_user: "{{ web_app_user }}"
           cafe_password: {{ enc_password.stdout }}
@@ -218,11 +218,29 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Cafe URL - http://{{ cip_instance_public_ip }}:{{ port_number }}/{{ root_path }}/app/
+          => Cafe URL - http://{{ ansible_host }}:{{ port_number }}/{{ root_path }}/app/
         state: present
       delegate_to: localhost
       no_log: true
       become: false
+
+- name: Assign Cafe User Role in AG
+  hosts: ag
+  become: yes # Run tasks with root privileges
+  vars:
+    log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
+    comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+  
+  tasks:
+
+    - name: Load Global parameters
+      include_vars:
+        file: "{{ item }}"
+      with_items:
+        - "{{ installer_path }}/cip_setup_automation.yml"
+        - "{{ installer_path }}/installer-versions.yml"
+        - "{{ comm_config_file }}"     
 
     - name: Log step
       lineinfile:
@@ -265,7 +283,7 @@
       shell: |
         source /etc/profile
         source {{ apps_root_path }}/abinitio/abinitio-deployment/ag/authgateway/config/import.profile
-        export AB_AG_CONN_PARAMS="-a {{ ag_url }} -u {{ ag_user }} -p {{ ag_password }}"
+        export AB_AG_CONN_PARAMS="$AB_AG_CONN_PARAMS -u {{ ag_user }} -p {{ ag_password }}"
         ag-import feed save {{ apps_root_path }}/abinitio/ag_user_feeds/cafe/CafeCreateUserGroup.feed
         ag-import run -feed "CafeCreateUserGroup" -progress -approve
       become_user: "{{ functional_user }}"
