@@ -28,7 +28,7 @@ pipeline {
                 }
             }
         }
-
+/*
         stage('Terraform Init & Plan --> Initialize EC2 instance')
         { 
             when {
@@ -150,7 +150,7 @@ pipeline {
                 }
             }
         }
-/*
+
         stage('Install AG') 
         { 
             steps 
@@ -218,7 +218,7 @@ pipeline {
                     def sT = new Date()
                     def startTime = sT.format(TIME_FORMAT)
                     sh "echo ----------- CIP INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"    
-                    sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-cip-main.yml' 
+                    //sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-cip-main.yml' 
                     sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-cip-datadir-creation.yml' 
                     def eT = new Date()
                     def endTime = eT.format(TIME_FORMAT)
