@@ -309,7 +309,7 @@
       with_items: 
         - install-environment -root {{ sandbox_root }}/abinitio -data-mount {{ data_root_path }}/cip
         - mv {{ sandbox_root }}/abinitio/sand/stdenv {{ sandbox_root }}/abinitio/stdenv
-        - air project import /Projects/abinitio/stdenv -basedir  {{ sandbox_root }}/abinitio/stdenv -auto-add -create
+        - air project import /Projects/abinitio/stdenv -basedir  {{ sandbox_root }}/abinitio/stdenv -auto-add -create -force
       register: command_output
       become_user: "{{ functional_user }}"
  
