@@ -420,7 +420,7 @@
     - name: checkin configuration pset dev for cip_private sandbox
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
-        air project import /Projects/abinitio/cip/private_internal -basedir {{ sandbox_root }}/abinitio/cip/private_internal -files dev.pset
-        air project import //Projects/abinitio/stdenv -basedir {{ sandbox_root }}/abinitio/stdenv -files dev.pset
+        - air project import /Projects/abinitio/cip/private_internal -basedir {{ sandbox_root }}/abinitio/cip/private_internal -files dev.pset
+        - air project import /Projects/abinitio/stdenv -basedir {{ sandbox_root }}/abinitio/stdenv -files dev.pset
       register: command_output
       become_user: "{{ functional_user }}"
