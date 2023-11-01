@@ -3,7 +3,7 @@
   become: yes # Run tasks with root privileges
 
   vars:
-    installer_path: "/disk1/installer"
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
     host_alias_content: "{{ lookup('file', '/disk1/installer/host_alias.txt').splitlines() }}"
 
   tasks:
