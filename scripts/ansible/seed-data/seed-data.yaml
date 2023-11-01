@@ -1,5 +1,5 @@
 - name: seed-data
-  hosts: cip-instance
+  hosts: cipui
   become: yes # Run tasks with root privileges
 
   vars:
@@ -29,7 +29,6 @@
       become: false  
 
     - name: Copy Telco Tar File
-      #when : demo_type == 'TELCO'
       copy:
         src: "{{ installer_path }}/seed_data.tar"
         dest: "{{ sandbox_root }}/abinitio/cip/seed_data.tar"
