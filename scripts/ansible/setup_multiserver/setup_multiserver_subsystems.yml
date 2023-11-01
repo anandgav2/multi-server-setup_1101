@@ -4,7 +4,7 @@
 
   vars:
     installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
-    host_alias_content: "{{ lookup('file', '/disk1/installer/host_alias.txt').splitlines() }}"
+    host_alias_content: "{{ lookup('file', '{{ installer_path }}/host_alias.txt').splitlines() }}"
 
   tasks:
     - name: Load CIP Config parameters
