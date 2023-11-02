@@ -1,10 +1,10 @@
 - name: Generate executables.csv dynamically
-  hosts: localhost
+  hosts: cipui
   become: yes # Run tasks with root privileges
 
   vars:
-    installer_path: "/disk1/installer"
-    host_alias_content: "{{ lookup('file', '/disk1/installer/host_alias.txt').splitlines() }}"
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+    host_alias_content: "{{ lookup('file', '{{ installer_path }}/host_alias.txt').splitlines() }}"
 
   tasks:
     - name: Load CIP Config parameters
@@ -30,7 +30,7 @@
 
     - name: write to inventory
       shell: echo -e "cip:\n  hosts:" > ./inventory.yml
-      become_user: abinitio
+      become_user: "{{ functional_user }}"
 
     - name: call another yaml
       include_tasks: parse_multiserver_config.yaml
@@ -65,7 +65,7 @@
         - "{{ 'cip_common_segmentation_server: ' + cip_common_segmentation_server | split(',') | reject('match', '^$') | unique | join(',') }}"
       loop_control:
         loop_var: subsystem_mapping
-      become_user: abinitio
+      become_user: "{{ functional_user }}"
 
     - name: call another yaml for base pset configuration
       include_tasks: create_base_config.yaml

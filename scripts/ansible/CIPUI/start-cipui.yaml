@@ -43,6 +43,15 @@
       loop:
         - "{{ functional_user }}"
 
+    - name: get control server config entry
+      shell: cat /disk1/installer/cip_setup_server_config.yml |grep Control|head -1
+      register: cmd_result
+      become_user: abinitio
+
+    - name: set control server
+      set_fact:
+        control_server: "{{ cmd_result.stdout | split('_') |first }}"
+        
     - name: Log step
       lineinfile:
         path: "{{ log_file }}"
