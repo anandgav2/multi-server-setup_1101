@@ -6,6 +6,7 @@
   vars:
     installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
     host_alias_content: "{{ lookup('file', '{{ installer_path }}/host_alias.txt').splitlines() }}"
+    use_existing_servers: "{{ lookup('env', 'USE_EXISTING_SERVERS').split(',') | first}}"
 
   tasks:
     - name: Load CIP Config parameters
@@ -32,8 +33,21 @@
     - name: write to inventory
       shell: echo -e "cip:\n  hosts:" > ./inventory.yml
       
-
-    - name: call another yaml
+    - name: call yaml if aws servers
+      include_tasks: parse_multiserver_config.yaml
+      vars:
+        host: "{{ item | split(' ') | first }}"
+        host_ip: "{{ item | split(' ') | last }}"
+        pem_file: "{{ ansible_env.PWD | dirname | dirname }}/terraform/aws-cip-key-multi.pem"
+        config: "{{ lookup('vars',item | split(' ') | first + '_config') }}"
+        counter: "{{ iteration+1 }}"
+        user: "ec2-user"
+      when: use_existing_servers == True
+      loop: "{{ host_alias_content }}"
+      loop_control:
+        index_var: iteration
+        
+    - name: call yaml if existing servers
       include_tasks: parse_multiserver_config.yaml
       vars:
         host: "{{ item | split(' ') | first }}"
@@ -41,6 +55,7 @@
         pem_file: "{{ lookup('vars',item | split(' ') | first + '_private_key') }}"
         config: "{{ lookup('vars',item | split(' ') | first + '_config') }}"
         counter: "{{ iteration+1 }}"
+      when: use_existing_servers == False
       loop: "{{ host_alias_content }}"
       loop_control:
         index_var: iteration
