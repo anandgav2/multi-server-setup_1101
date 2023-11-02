@@ -1,6 +1,7 @@
 - name: Generate executables.csv dynamically
-  hosts: cipui
+  hosts: localhost
   become: yes # Run tasks with root privileges
+
 
   vars:
     installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
