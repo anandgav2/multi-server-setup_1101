@@ -42,7 +42,7 @@
         config: "{{ lookup('vars',item | split(' ') | first + '_config') }}"
         counter: "{{ iteration+1 }}"
         user: "ec2-user"
-      when: use_existing_servers == True
+      when: use_existing_servers == False
       loop: "{{ host_alias_content }}"
       loop_control:
         index_var: iteration
@@ -55,7 +55,7 @@
         pem_file: "{{ lookup('vars',item | split(' ') | first + '_private_key') }}"
         config: "{{ lookup('vars',item | split(' ') | first + '_config') }}"
         counter: "{{ iteration+1 }}"
-      when: use_existing_servers == False
+      when: use_existing_servers == True
       loop: "{{ host_alias_content }}"
       loop_control:
         index_var: iteration
