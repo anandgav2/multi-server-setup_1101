@@ -83,7 +83,7 @@
         loop_var: subsystem_mapping
       
     - name: call another yaml for base pset configuration
-      include_tasks: create_base_config.yaml
+      include_tasks: create_base_config.yml
       vars:
         host: "{{ item | split(' ') | first }}"
         config: "{{ lookup('vars',item | split(' ') | first + '_config') }}"
