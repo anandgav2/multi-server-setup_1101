@@ -1,5 +1,5 @@
 - name: Generate executables.csv dynamically
-  hosts: localhost
+  hosts: cipui
   become: yes # Run tasks with root privileges
 
 
@@ -32,6 +32,7 @@
     - name: write to inventory
       shell: echo -e "cip:\n  hosts:" > ./inventory.yml
       become_user: "{{ functional_user }}"
+      delegate_to: localhost
 
     - name: call another yaml
       include_tasks: parse_multiserver_config.yaml
@@ -67,7 +68,8 @@
       loop_control:
         loop_var: subsystem_mapping
       become_user: "{{ functional_user }}"
-
+      delegate_to: localhost
+      
     - name: call another yaml for base pset configuration
       include_tasks: create_base_config.yaml
       vars:
