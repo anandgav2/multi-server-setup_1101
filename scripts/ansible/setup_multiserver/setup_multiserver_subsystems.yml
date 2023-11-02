@@ -31,8 +31,9 @@
 
     - name: write to inventory
       shell: echo -e "cip:\n  hosts:" > ./inventory.yml
-      become_user: "{{ functional_user }}"
       delegate_to: localhost
+      become_user: "{{ functional_user }}"
+      
 
     - name: call another yaml
       include_tasks: parse_multiserver_config.yaml
