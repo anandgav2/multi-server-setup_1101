@@ -49,67 +49,67 @@
 - name: set to cip_common_all_target_servers  
   set_fact: 
     cip_common_all_target_servers: "{{ cip_common_all_target_servers| default('') + ',' + host }}"
-  when: '"Utility" in config'
+  when: '"utility" in config'
 
 - name: set to cip_common_control_server
   set_fact:
     cip_common_control_server: "{{ cip_common_control_server| default('') + ',' + host }}"
-  when: '"Control" in config'
+  when: '"control" in config'
 
 - name: set to cip_common_act_server
   set_fact:
     cip_common_act_server: "{{ cip_common_act_server| default('') + ',' + host }}"
-  when: '"Control" in config'
+  when: '"control" in config'
 
 - name: set to cip_common_audit_server
   set_fact:
     cip_common_audit_server: "{{ cip_common_audit_server| default('') + ',' + host }}"
-  when: '"Audit" in config'
+  when: '"audit" in config'
   
 - name: set to cip_common_collect_server
   set_fact:
     cip_common_collect_server: "{{ cip_common_collect_server| default('') + ',' + host }}"
-  when: '"Collect_Event" in config'
+  when: '"collect_event" in config'
   
 - name: set to cip_common_contact_policy_server
   set_fact:
     cip_common_contact_policy_server: "{{ cip_common_contact_policy_server| default('') + ',' + host }}"
-  when: '"Contact_Policy" in config'  
+  when: '"contact_policy" in config'  
 
 - name: set to cip_common_detect_servers
   set_fact:
     cip_common_detect_servers: "{{ cip_common_detect_servers| default('') + ',' + host }}"
-  when: '"Detect" in config' 
+  when: '"detect" in config' 
   
 - name: set to cip_common_eligibility_servers
   set_fact:
     cip_common_eligibility_servers: "{{ cip_common_eligibility_servers| default('') + ',' + host }}"
-  when: '"Detect" in config' 
+  when: '"detect" in config' 
   
 - name: set to cip_common_eligible_queue_servers
   set_fact:
     cip_common_eligible_queue_servers: "{{ cip_common_eligible_queue_servers| default('') + ',' + host }}"
-  when: '"Detect" in config' 
+  when: '"detect" in config' 
   
 - name: set to cip_common_enrichment_queue_servers
   set_fact:
     cip_common_enrichment_queue_servers: "{{ cip_common_enrichment_queue_servers| default('') + ',' + host }}"
-  when: '"Enrichment" in config' 
+  when: '"enrichment" in config' 
 
 - name: set to cip_common_enrichment_servers
   set_fact:
     cip_common_enrichment_servers: "{{ cip_common_enrichment_servers| default('') + ',' + host }}"
-  when: '"Enrichment" in config'
+  when: '"enrichment" in config'
   
 - name: set to cip_common_inbound_channel_queue_servers
   set_fact:
     cip_common_inbound_channel_queue_servers: "{{ cip_common_inbound_channel_queue_servers| default('') + ',' + host }}"
-  when: '"Control" in config'
+  when: '"control" in config'
   
 - name: set to cip_common_segmentation_server
   set_fact:
     cip_common_segmentation_server: "{{ cip_common_segmentation_server| default('') + ',' + host }}"
-  when: '"Segmentation" in config'
+  when: '"segmentation" in config'
 
   #- name: print var
   #debug:
