@@ -218,7 +218,7 @@ pipeline {
                     def sT = new Date()
                     def startTime = sT.format(TIME_FORMAT)
                     sh "echo ----------- Generating Execuatbles and CIP Inventory file -----------  >> ${env.LOG_FILE}"    
-                    sh 'cd "${WORKSPACE}/scripts/ansible/setup_multiserver"  ; ansible-playbook setup_multiserver_subsystems.yml' 
+                    sh 'cd "${WORKSPACE}/scripts/ansible/setup_multiserver"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key setup_multiserver_subsystems.yml' 
                     def eT = new Date()
                     def endTime = eT.format(TIME_FORMAT)
                     sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
