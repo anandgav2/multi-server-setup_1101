@@ -31,7 +31,6 @@
 
     - name: write to inventory
       shell: echo -e "cip:\n  hosts:" > ./inventory.yml
-      become_user: "{{ functional_user }}"
       
 
     - name: call another yaml
@@ -67,7 +66,6 @@
         - "{{ 'cip_common_segmentation_server: ' + cip_common_segmentation_server | split(',') | reject('match', '^$') | unique | join(',') }}"
       loop_control:
         loop_var: subsystem_mapping
-      become_user: "{{ functional_user }}"
       
     - name: call another yaml for base pset configuration
       include_tasks: create_base_config.yaml
