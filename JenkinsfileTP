@@ -16,7 +16,7 @@ pipeline {
 	}
 
     stages {
-/*
+
         stage('Initialize Log and common config') {
             steps {
                 script {
@@ -150,7 +150,7 @@ pipeline {
                 }
             }
         }
-
+/*
         stage('Install AG') 
         { 
             steps 
