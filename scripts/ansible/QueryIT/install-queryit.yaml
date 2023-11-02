@@ -1,5 +1,5 @@
 - name: Query IT Installation
-  hosts: cipui
+  hosts: queryit
   become: yes # Run tasks with root privileges
   vars:
     installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
@@ -272,7 +272,7 @@
       become_user: "{{ functional_user }}"   
 
 - name: Assign Query>it User Role in AG
-  hosts: cipui
+  hosts: queryit
   become: yes 
   vars:
     log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
