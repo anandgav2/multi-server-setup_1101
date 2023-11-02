@@ -51,3 +51,4 @@
               CIP_COMMON_REPORT_SERVER@||||{{ cip_common_audit_server }}		
               CIP_COMMON_CIPDB_HOST@||||{{ cip_common_audit_server }}		
       become: false
+      delegate_to: localhost
