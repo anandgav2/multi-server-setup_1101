@@ -19,6 +19,7 @@
   shell: |
           echo -e "    cip_instance_{{ counter }}:\n        ansible_host: {{ host_ip }}\n        ansible_ssh_private_key_file: {{ pem_file }}\n        ansible_user: abinitio" >> ./inventory.yml
   become_user: abinitio
+  delegate_to: localhost
   
 - name: write executable for each host
   lineinfile: 
@@ -31,6 +32,7 @@
         loop_var: subsystem
   no_log: false
   become_user: abinitio
+  delegate_to: localhost
 
   #- name: remove quotes from executable file
   #replace:
