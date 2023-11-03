@@ -298,7 +298,7 @@ pipeline {
                     def sT = new Date()
                     def startTime = sT.format(TIME_FORMAT)
                     sh "echo ----------- Bringing UP CIP Subsystems -----------  >> ${env.LOG_FILE}"
-                    sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key create_db.yaml'
+                    sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key create_db.yml'
                     sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../setup_multiserver/inventory.yml --vault-password-file=../vault_key start-cip.yaml'
                     def eT = new Date()
                     def endTime = eT.format(TIME_FORMAT)
