@@ -50,8 +50,7 @@
 
     - name: fetch file name  CIP DB conf
       shell: |
-        source /etc/profile
-        #chmod 700 $(XXurl -realpath $(m_env -g AB_DB_DATA_DIR))/cipdb/database/postgresql.conf
+        "{{ installer_path }}/source_and_run.sh sed  's/max_connections = .*/max_connections = 1000/g' $(XXurl -realpath $(m_env -g AB_DB_DATA_DIR))/cipdb/database/postgresql.conf"
         #$(XXurl -realpath $(m_env -g AB_DB_DATA_DIR))/cipdb/database/postgresql.conf
       register: CIPDB_CONF_FILE_NAME
       become_user: "{{ functional_user }}"
@@ -65,7 +64,7 @@
     - name: stop and start CIP DB
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
-        - sed  's/max_connections = .*/max_connections = 1000/g' $(XXurl -realpath $(m_env -g AB_DB_DATA_DIR))/cipdb/database/postgresql.conf
+        #- sed  's/max_connections = .*/max_connections = 1000/g' $(XXurl -realpath $(m_env -g AB_DB_DATA_DIR))/cipdb/database/postgresql.conf
         - ab-db stop cipdb
         - ab-db start cipdb
       register: command_output
