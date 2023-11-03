@@ -1,60 +1,34 @@
 pipeline {
-    
+
     agent {
         label "${AGENT_NODE}"
 	}
-    
+
     tools {
         terraform 'Terraform'
 	}
-    
+
     environment {
 		LOG_FILE="${HOME}/demo_setup.log"
        	CONFIG_FILE="${WORKSPACE}/scripts/ansible/cip_common_setup.yml"
        	TIME_FORMAT = "yyyy-MM-dd HH:mm:ss"
+        COUNT=2
 	}
 
     stages {
-	
-        stage('Update inventory file if want to use existing servers')
-	    {
-		    when {
-             	expression {
-                    return env.USE_EXISTING_SERVERS == "True"  
-                }
-            }
-            
-            steps
-		    {
-                script
-			    {
 
+        stage('Initialize Log and common config') {
+            steps {
+                script {
                     echo "##### SUMMARY LOG FILE : ${env.LOG_FILE} #########"
                     sh "rm -f ${env.LOG_FILE}"
                     sh "touch ${env.LOG_FILE}"
                     sh "rm -f ${env.CONFIG_FILE}"
                     sh "touch ${env.CONFIG_FILE}"
-
-                    sh "echo Extracting details for inventory file >> ${env.LOG_FILE}"
-                    sh "cat ${env.INSTALLER_PATH}/cip_setup_automation.yml"
- //                   cip_instance_public_ip = sh(script: "grep 'cip_host:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'",returnStdout:true);
-                    a360_instance_public_ip = sh(script: "grep 'a360_host:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'",returnStdout:true);
-                    //cip_key_file = sh(script: "grep 'cip_host_key_file:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", returnStdout:true);
-                    a360_key_file = sh(script: "grep 'a360_host_key_file:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", returnStdout:true);
-	                functional_user = sh(script: "grep 'functional_user:' ${env.INSTALLER_PATH}/cip_setup_automation.yml  | awk '{print \$2}' | sed 's/\"//g'", rreturnStdout:true);
-             		sh "echo 'cip:\n  hosts:\n    cip-instance:\n      ansible_host: ${cip_instance_public_ip}      ansible_ssh_private_key_file: ${cip_key_file}      ansible_user: ${functional_user}\n    a360-instance:\n      ansible_host: ${a360_instance_public_ip}      ansible_ssh_private_key_file: ${a360_key_file}      ansible_user: ${functional_user}' > ./scripts/terraform/inventory.yml"
-                    
-                    sh "echo SERVER PUBLIC IPs >> ${env.LOG_FILE}" 
-                    //sh "echo 'cip_instance_public_ip: ${cip_instance_public_ip}' >> ${env.LOG_FILE}"
-                    sh "echo 'a360_instance_public_ip: ${a360_instance_public_ip}' >> ${env.LOG_FILE}"
-				    //sh "echo 'cip_instance_public_ip: ${cip_instance_public_ip}' >> ${env.CONFIG_FILE}"
-                    sh "echo 'a360_instance_public_ip: ${a360_instance_public_ip}' >> ${env.CONFIG_FILE}"
-			    }
-                
-		    }
-	    
+                }
+            }
         }
-/*
+
         stage('Terraform Init & Plan --> Initialize EC2 instance')
         { 
             when {
@@ -66,19 +40,22 @@ pipeline {
             steps 
             { 
                 script {
-                    def sT = new Date()
-                    //def timeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-                    def startTime = sT.format(TIME_FORMAT)
-                    echo "##### SUMMARY LOG FILE : ${env.LOG_FILE} #########"
-                    sh "rm -f ${env.LOG_FILE}"
-                    sh "touch ${env.LOG_FILE}"
-                    sh "rm -f ${env.CONFIG_FILE}"
-                    sh "touch ${env.CONFIG_FILE}"
-                    sh "echo ----------- SERVER CREATION STARTED -----------  >> ${env.LOG_FILE}"
-                    sh "echo Start Time ::  ${startTime} >> ${env.LOG_FILE}" 
-                    sh 'cd "${WORKSPACE}/scripts/terraform" ;pwd;terraform init --lock=false;terraform plan --lock=false;terraform plan'   
+                    dir("${WORKSPACE}/scripts/terraform") {
+                        def sT = new Date()
+                        def startTime = sT.format(TIME_FORMAT)
+                        sh "echo ----------- SERVER CREATION STARTED -----------  >> ${env.LOG_FILE}"
+                        sh "echo Start Time ::  ${startTime} >> ${env.LOG_FILE}"
+                        cnt = sh(script: "grep 'aws_server_count:' ${env.INSTALLER_PATH}/cip_setup_automation.yml | awk '{print \$2}' | sed 's/\"//g'",returnStdout:true);
+                        COUNT = cnt.trim()
+                        sh """
+                            pwd; 
+                            terraform init --lock=false; 
+                            terraform plan --lock=false -var 'server_cnt=${COUNT}'; 
+                            terraform plan -var 'server_cnt=${COUNT}' -out=myplan.tfplan;
+                        """
+                    }
                 }
-                
+
             }
         }
 
@@ -89,29 +66,37 @@ pipeline {
                     return env.USE_EXISTING_SERVERS == "False"  
                 }
             }
-            
+
             steps 
             { 
                 script 
                 {  
                     dir("${WORKSPACE}/scripts/terraform")
                     {
-                        sh 'terraform apply --lock=false -auto-approve' 
+                        sh 'terraform apply --lock=false -auto-approve myplan.tfplan' 
                         def eT = new Date()
                         def endTime = eT.format(TIME_FORMAT)
                         sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
                         sh "echo SERVER PUBLIC IPs >> ${env.LOG_FILE}" 
                         sh "terraform output >> ${env.LOG_FILE}"
                         sh "echo ------- SERVER CREATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
-                        cip_instance_public_ip= sh(script: "terraform output cip_instance_public_ip", returnStdout:true);
-                        a360_instance_public_ip= sh(script: "terraform output a360_instance_public_ip", returnStdout:true);
-                        sh "echo 'cip_instance_public_ip: ${cip_instance_public_ip}' >> ${env.CONFIG_FILE}"
-                        sh "echo 'a360_instance_public_ip: ${a360_instance_public_ip}' >> ${env.CONFIG_FILE}"
+                        sh "echo ------- Place Host Alis File at ${env.INSTALLER_PATH} ---------- >> ${env.LOG_FILE}"
+                        sh "cp host_alias.txt ${env.INSTALLER_PATH}"
                     }
                 } 
             }
         }
-*/
+
+        stage('Create Inventory File') {
+            steps {
+                script {
+                    sh "echo ------- Generate inventory file ---------- >> ${env.LOG_FILE}"
+                    sh 'cd "${WORKSPACE}/scripts/ansible/ServerConfig"  ; ansible-playbook create-inventory.yaml'  
+                    sh "echo ------- Generated inventory file ---------- >> ${env.LOG_FILE}"
+                }
+            }
+        }
+
         stage('Configure Server') 
         { 
             steps  
@@ -147,6 +132,24 @@ pipeline {
                 }
             }
         }
+
+        stage('Create EME') 
+        { 
+            steps 
+            { 
+                script{
+                    echo""
+                    def sT = new Date()
+                    def startTime = sT.format(TIME_FORMAT)
+                    sh "echo ----------- Create EME STARTED -----------  >> ${env.LOG_FILE}"
+                    sh 'cd "${WORKSPACE}/scripts/ansible/EME"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-eme.yaml' 
+                    def eT = new Date()
+                    def endTime = eT.format(TIME_FORMAT)
+                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
+                    sh "echo ------- Create EME SUCCESSFUL ---------- >> ${env.LOG_FILE}"
+                }
+            }
+        }
 /*
         stage('Install AG') 
         { 
@@ -163,7 +166,7 @@ pipeline {
                     sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
                     sh "echo ------- AG INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                 }
-                
+
             }
         }
 
@@ -183,8 +186,8 @@ pipeline {
                     sh "echo ------- CAFE INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                 }
             }
-        
-        }
+
+        } 
 
         stage('Install CC') 
         { 
@@ -205,7 +208,26 @@ pipeline {
 
             }
         }
+*/
+        stage('Generate Execuatbles and CIP Inventory file') 
+        { 
+            steps 
+            { 
+                script{
+                    echo""
+                    def sT = new Date()
+                    def startTime = sT.format(TIME_FORMAT)
+                    sh "echo ----------- Generating Execuatbles and CIP Inventory file -----------  >> ${env.LOG_FILE}"    
+                    sh 'cd "${WORKSPACE}/scripts/ansible/setup_multiserver"  ; ansible-playbook setup_multiserver_subsystems.yml' 
+                    def eT = new Date()
+                    def endTime = eT.format(TIME_FORMAT)
+                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
+                    sh "echo ------- Execuatbles and CIP Inventory file creation successful---------- >> ${env.LOG_FILE}"
+                }
 
+            }
+        }
+/*
         stage('Install CIP') 
         { 
             steps 
@@ -215,7 +237,8 @@ pipeline {
                     def sT = new Date()
                     def startTime = sT.format(TIME_FORMAT)
                     sh "echo ----------- CIP INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"    
-                    sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-cip.yaml' 
+                    sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-cip-main.yml' 
+                    sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-cip-datadir-creation.yml' 
                     def eT = new Date()
                     def endTime = eT.format(TIME_FORMAT)
                     sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
@@ -249,7 +272,7 @@ pipeline {
             steps 
             { 
                 script{
-                    
+
                     echo""
                     def sT = new Date()
                     def startTime = sT.format(TIME_FORMAT)
@@ -268,7 +291,7 @@ pipeline {
             steps 
             {
                 script{
-                    
+
                     echo""
                     def sT = new Date()
                     def startTime = sT.format(TIME_FORMAT)
@@ -288,7 +311,7 @@ pipeline {
             steps 
             {
                 script{
-                    
+
                     echo""
                     def sT = new Date()
                     def startTime = sT.format(TIME_FORMAT)
@@ -302,8 +325,8 @@ pipeline {
 
             }
         }
-  */      
-        stage('Install A360') 
+
+         stage('Install A360') 
         { 
             steps 
             { 
@@ -320,30 +343,11 @@ pipeline {
                 }
 
             }
-        } 
+        } */
 
-     /*   stage('Install A360 + CIP Integration') 
-        { 
-            steps 
-            { 
-                script{
-                    echo""
-                    def sT = new Date()
-                    def startTime = sT.format(TIME_FORMAT)
-                    sh "echo ----------- A360 Integration STARTED -----------  >> ${env.LOG_FILE}"        
-                    sh 'cd "${WORKSPACE}/scripts/ansible/act360"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key A360_and_cip_integration.yaml' 
-                    def eT = new Date()
-                    def endTime = eT.format(TIME_FORMAT)
-                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
-                    sh "echo ------- A360 Integration SUCCESSFUL ---------- >> ${env.LOG_FILE}"
-                }
-
-            }
-        } 
-    
     }
 
-    post {
+   /*  post {
         failure {
             script {
 
@@ -372,5 +376,5 @@ pipeline {
 
             }
         }
-    }*/
+    }  */
 }
