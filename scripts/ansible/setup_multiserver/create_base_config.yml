@@ -1,13 +1,11 @@
-- name: print variables
-  debug:
-    var: "{{ input }}"
-  with_items:
-    - host
-    - config
-  loop_control:
+    - name: print variables
+      debug:
+      var: "{{ input }}"
+      with_items:
+        - host
+        - config
+      loop_control:
         loop_var: input
-  
-  tasks:
 
     - name: Load Global parameters
       include_vars:
