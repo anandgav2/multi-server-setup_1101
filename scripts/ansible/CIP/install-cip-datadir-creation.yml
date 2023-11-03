@@ -80,11 +80,3 @@
       args:
         chdir: "{{ sandbox_root }}/abinitio/cip/private_internal"
       ignore_errors: True
-
-    - name: Copy executable File from localhost
-      copy:        
-        src: "../setup_multiserver/{{ ansible_host }}.executable.csv"
-        dest: "{{ sandbox_root }}/abinitio/cip/private_internal/run/executable.csv"
-        remote_src: false
-        group: abinitio
-      become_user: "{{ functional_user }}"
