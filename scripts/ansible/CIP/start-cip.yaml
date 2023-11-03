@@ -28,7 +28,7 @@
       ansible.builtin.debug:
         var: command_output
 
-	  - name: create and upgrade CIPDB
+    - name: create and upgrade CIPDB
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
         - air sandbox run ../pset/utility/create_environment/create_all_databases.pset
@@ -43,7 +43,7 @@
       ansible.builtin.debug:
         var: command_output
     
-	  - name: Run create env and queue job
+    - name: Run create env and queue job
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
         - air sandbox run ../pset/utility/create_environment/create_environment.pset
