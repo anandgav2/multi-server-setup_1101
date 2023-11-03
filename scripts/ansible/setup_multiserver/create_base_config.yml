@@ -18,7 +18,7 @@
         - "{{ comm_config_file }}"
 
   - name: Write dev Config
-      copy:
+    copy:
         dest: dev.pset
         content: |
               !base||||.project.pset
