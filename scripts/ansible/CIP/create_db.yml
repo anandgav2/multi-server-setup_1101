@@ -48,11 +48,9 @@
       ansible.builtin.debug:
         var: command_output
 
-    - name: fetch file name  CIP DB conf
-      shell: |
-        "{{ installer_path }}/source_and_run.sh sed  's/max_connections = .*/max_connections = 1000/g' $(XXurl -realpath $(m_env -g AB_DB_DATA_DIR))/cipdb/database/postgresql.conf"
-        #$(XXurl -realpath $(m_env -g AB_DB_DATA_DIR))/cipdb/database/postgresql.conf
-      register: CIPDB_CONF_FILE_NAME
+    - name: fetch CIP DB conf Path
+      ansible.builtin.command: XXurl -realpath $(m_env -g AB_DB_DATA_DIR)
+      register: CIPDB_CONF_FILE_PATH
       become_user: "{{ functional_user }}"
 
     #- name: Increase CIP DB connections
@@ -65,6 +63,7 @@
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
         #- sed  's/max_connections = .*/max_connections = 1000/g' $(XXurl -realpath $(m_env -g AB_DB_DATA_DIR))/cipdb/database/postgresql.conf
+        - sed -i 's/max_connections = .*/max_connections = 1000/g' {{ CIPDB_CONF_FILE_PATH }}/cipdb/database/postgresql.conf
         - ab-db stop cipdb
         - ab-db start cipdb
       register: command_output
