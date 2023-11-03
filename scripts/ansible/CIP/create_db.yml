@@ -1,0 +1,58 @@
+- name: CIP Installation
+  hosts: cipui
+  become: yes # Run tasks with root privileges
+  vars:
+    log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
+    comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+  
+  tasks:
+
+    - name: Load Global parameters
+      include_vars:
+        file: "{{ item }}"
+      with_items:
+        - "{{ installer_path }}/cip_setup_automation.yml"
+        - "{{ installer_path }}/installer-versions.yml"
+        - ./config-params.yml
+        - "{{ comm_config_file }}"
+        - "../setup_multiserver/subsystem_mapping.yml"
+        - "../QueryIT/config-params.yml"
+
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          => Creating CIP DB instance
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false 
+
+    - name: Create CIP DB Instance
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        #- ab-db create cipdb -U admin -p {{ cip_db_port }} -P admin -n 
+        - ab-db create cipdb -U {{ cip_db_user }} -p {{ cip_db_port }} -P {{ cip_db_password }} -n 
+        - ab-db start cipdb
+      register: command_output
+      become_user: "{{ functional_user }}"
+    
+    - name: Create CIP DB 
+      shell: |
+        source /etc/profile && source $(XXurl -realpath $(m_env -g AB_DB_DATA_DIR))/cipdb/db.env && createdb cip
+      register: command_output
+      become_user: "{{ functional_user }}"
+        
+    - name: Display DB Status
+      ansible.builtin.debug:
+        var: command_output
+
+    - name: Increase CIP DB connections
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        - sed -i 's/max_connections = .*/max_connections = 1000/g' $(XXurl -realpath $(m_env -g AB_DB_DATA_DIR))/cipdb/database/postgresql.conf
+        - ab-db stop cipdb
+        - ab-db start cipdb
+      register: command_output
+      become_user: "{{ functional_user }}" 
