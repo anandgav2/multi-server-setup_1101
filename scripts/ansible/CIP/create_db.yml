@@ -56,7 +56,7 @@
 
     - name: Increase CIP DB connections
       shell: | 
-      sed -i 's/max_connections = .*/max_connections = 1000/g' "{{ CIPDB_CONF_FILE_NAME.stdout }}"
+      "sed -i 's/max_connections = .*/max_connections = 1000/g' {{ CIPDB_CONF_FILE_NAME.stdout }}"
       register: command_output
       become_user: "{{ functional_user }}"
 
