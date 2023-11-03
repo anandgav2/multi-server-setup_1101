@@ -23,23 +23,6 @@
       no_log: true
       become: false
 
-    - name: Copy base pset from Installer node to cip servers
-      find:
-        paths: "../setup_multiserver"
-        patterns: "dev.pset"
-      register: found_files
-      delegate_to: localhost
-      become: false      
-
-    - name: Copy files to remote host
-      copy:
-        src: "{{ item.path }}"
-        dest: "{{ sandbox_root }}/abinitio/cip/private_internal"
-        remote_src: false
-        group: abinitio
-      loop: "{{ found_files.files }}"
-      become_user: "{{ functional_user }}"
-
     - name: Start CIP Subsystems
       ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
       with_items:
