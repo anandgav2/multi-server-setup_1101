@@ -12,9 +12,6 @@
         file: "{{ item }}"
       with_items:
         - "{{ installer_path }}/cip_setup_automation.yml"
-        - "{{ installer_path }}/installer-versions.yml"
-        - ./config-params.yml
-        - "{{ comm_config_file }}"
 
     
     - name: Copy executable File from localhost
