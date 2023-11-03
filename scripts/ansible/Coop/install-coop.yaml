@@ -253,27 +253,40 @@
       register: command_output
       become_user: "{{ functional_user }}"
 
-    - name: Get hostnames and IPs
+    - name: Get CIP hostnames and IPs
       set_fact:
-        server_info_list: "{{ server_info_list | default([]) + [{'IP': hostvars[item].ansible_host,'HOSTNAME': hostvars[item].ansible_hostname}] }}"
+        cip_servers: "{{ cip_servers | default([]) + [ hostvars[item].ansible_hostname, hostvars[item].ansible_host ] }}"
       loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
+      when: hostvars[item].ansible_host !=  hostvars['a360'].ansible_host
+
+    - name: Get A360 hostnames and IPs
+      set_fact:
+        a360_servers: "{{ a360_servers | default([]) + [  hostvars[item].ansible_hostname , hostvars[item].ansible_host ] }}"
+      loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
+      when: hostvars[item].ansible_host ==  hostvars['a360'].ansible_host
 
     - name: Create Hetro connection File
       lineinfile:
-        path: "/home/{{ functional_user }}/.abinitiorc"
+        path: "/home/{{ functional_user }}/abinitiorc_test"
         line: |
-          
-          AB_NODES @ {{ item.HOSTNAME }} : {{ item.IP }}
-          AB_USERNAME @ {{ item.HOSTNAME }} : {{ functional_user }}
-          AB_CONNECTION @ {{ item.HOSTNAME }} : ssh
-          AB_SSH_NEEDS_PASSWORD @ {{ item.HOSTNAME }} : ture
-          AB_ENCRYPTED_PASSWORD @ {{ item.HOSTNAME }} : {{ command_output.stdout }}
-          AB_HOME @ {{ item.HOSTNAME }} : {{ destination }}/abinitio-V{{ coop_version }}
+          AB_JOB_ALLOWED_HOSTNAMES: {{ cip_servers | join(':') }}:{{ a360_servers | join(':') }}
+ 
+          AB_NODES @ CIP : {{ cip_servers | join(' ') }}
+          AB_USERNAME @ CIP : {{ functional_user }}
+          AB_CONNECTION @ CIP : ssh
+          AB_SSH_NEEDS_PASSWORD @ CIP : ture
+          AB_ENCRYPTED_PASSWORD @ CIP : {{ command_output.stdout }}
+          AB_HOME @ CIP : {{ destination }}/abinitio-V{{ coop_version }}
+
+          AB_NODES @ A360 : {{ a360_servers | join(' ') }}
+          AB_USERNAME @ A360 : {{ functional_user }}
+          AB_CONNECTION @ A360 : ssh
+          AB_SSH_NEEDS_PASSWORD @ A360 : ture
+          AB_ENCRYPTED_PASSWORD @ A360 : {{ command_output.stdout }}
 
         state: present
         create: yes
       become_user: "{{ functional_user }}"
-      loop: "{{ server_info_list }}"
 
     - name: Log step
       lineinfile:
@@ -287,22 +300,22 @@
 
     - name: SSH into the server and accept key fingerprint HOSTNAME
       expect:
-        command: ssh {{ item.HOSTNAME }}
+        command: ssh {{ item }}
         responses:
           'Are you sure you want to continue connecting (yes/no/[fingerprint])?': "yes"
         timeout: 10
       become_user: "{{ functional_user }}"
-      loop: "{{ server_info_list }}"
+      loop: "{{ cip_servers }}"
       ignore_errors: yes
 
     - name: SSH into the server and accept key fingerprint IP
       expect:
-        command: ssh {{ item.IP }}
+        command: ssh {{ item }}
         responses:
           'Are you sure you want to continue connecting (yes/no/[fingerprint])?': "yes"
         timeout: 10
       become_user: "{{ functional_user }}"
-      loop: "{{ server_info_list }}"
+      loop: "{{ a360_servers }}"
       ignore_errors: yes
 
 
