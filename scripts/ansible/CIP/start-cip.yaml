@@ -1,5 +1,5 @@
 - name: start CIP services
-  hosts: cip-instance
+  hosts: cip_instance*
   become: yes # Run tasks with root privileges
   vars:
     log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
