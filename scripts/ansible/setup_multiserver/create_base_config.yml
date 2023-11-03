@@ -1,6 +1,6 @@
     - name: print variables
       debug:
-      var: "{{ input }}"
+        var: "{{ input }}"
       with_items:
         - host
         - config
