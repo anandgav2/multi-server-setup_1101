@@ -49,7 +49,7 @@
         var: command_output
 
     - name: Increase CIP DB connections
-      shell: sed -i 's/max_connections = .*/max_connections = 1000/g' $(XXurl -realpath $(m_env -g AB_DB_DATA_DIR))/cipdb/database/postgresql.conf
+      shell: {{ installer_path }}/source_and_run.sh sed -i 's/max_connections = .*/max_connections = 1000/g' $(XXurl -realpath $(m_env -g AB_DB_DATA_DIR))/cipdb/database/postgresql.conf
       register: command_output
       become_user: "{{ functional_user }}"
 
