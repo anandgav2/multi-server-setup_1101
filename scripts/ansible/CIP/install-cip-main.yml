@@ -376,9 +376,10 @@
 
         
     - name: set CIPDB_HOST param value
-      ansible.builtin.command: m_env -g AB_HOST_INTERFACE
+      shell: source /etc/profile && {{ installer_path }}/source_and_run.sh XXurl -realpath $(m_env -g AB_DB_DATA_DIR)
       register: CIPDB_HOST
-
+      become_user: "{{ functional_user }}" 
+      
     - name: Write configuration pset dev for cip_private sandbox
       copy:
         dest: "{{ sandbox_root }}/abinitio/cip/private_internal/dev.pset"
