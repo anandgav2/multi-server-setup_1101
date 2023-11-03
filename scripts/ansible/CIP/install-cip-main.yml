@@ -372,7 +372,12 @@
 
     - name: Display Status
       ansible.builtin.debug:
-        var: command_output        
+        var: command_output
+
+        
+    - name: set CIPDB_HOST param value
+      ansible.builtin.command: m_env -g AB_HOST_INTERFACE
+      register: CIPDB_HOST
 
     - name: Write configuration pset dev for cip_private sandbox
       copy:
@@ -404,7 +409,7 @@
               CIP_COMMON_ENRICHMENT_SERVERS@||||{{ cip_common_enrichment_servers }}		
               CIP_COMMON_INBOUND_CHANNEL_QUEUE_SERVERS@||||{{ cip_common_inbound_channel_queue_servers }}		
               CIP_COMMON_REPORT_SERVER@||||{{ cip_common_audit_server }}		
-              CIP_COMMON_CIPDB_HOST@||||'m_env -g AB_HOST_INTERFACE'
+              CIP_COMMON_CIPDB_HOST@||||{{ CIPDB_HOST.stdout }}
       become_user: "{{ functional_user }}"              
 
     - name: Write configuration pset dev for stdenv sandbox
