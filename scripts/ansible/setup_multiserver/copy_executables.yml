@@ -1,0 +1,26 @@
+- name: CIP subsystem data directories creation
+  hosts: cip_instance*
+  become: yes # Run tasks with root privileges
+  vars:
+    log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
+    comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+  
+  tasks:
+    - name: Load Global parameters
+      include_vars:
+        file: "{{ item }}"
+      with_items:
+        - "{{ installer_path }}/cip_setup_automation.yml"
+        - "{{ installer_path }}/installer-versions.yml"
+        - ./config-params.yml
+        - "{{ comm_config_file }}"
+
+    
+    - name: Copy executable File from localhost
+      copy:        
+        src: "./{{ ansible_host }}.executable.csv"
+        dest: "{{ sandbox_root }}/abinitio/cip/private_internal/run/executable.csv"
+        remote_src: false
+        group: abinitio
+      become_user: "{{ functional_user }}"
