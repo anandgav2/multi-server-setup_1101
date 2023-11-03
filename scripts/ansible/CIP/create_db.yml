@@ -65,7 +65,7 @@
     - name: stop and start CIP DB
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
-        - sed -i 's/max_connections = .*/max_connections = 1000/g' $(XXurl -realpath $(m_env -g AB_DB_DATA_DIR))/cipdb/database/postgresql.conf
+        - sed  's/max_connections = .*/max_connections = 1000/g' $(XXurl -realpath $(m_env -g AB_DB_DATA_DIR))/cipdb/database/postgresql.conf
         - ab-db stop cipdb
         - ab-db start cipdb
       register: command_output
