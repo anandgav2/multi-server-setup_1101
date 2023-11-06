@@ -16,8 +16,8 @@
     
     - name: Copy executable File from localhost
       copy:        
-        src: "./{{ ansible_host }}.executable.csv"
-        dest: "{{ sandbox_root }}/abinitio/cip/private_internal/run/executable.csv"
+        src: "./{{ ansible_host }}.executables.csv"
+        dest: "{{ sandbox_root }}/abinitio/cip/private_internal/run/executables.csv"
         remote_src: false
         group: abinitio
       become_user: "{{ functional_user }}"
