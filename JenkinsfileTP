@@ -50,9 +50,10 @@ pipeline {
                         sh """
                             pwd;
                             terraform init --lock=false;
-                            terraform plan --lock=false -var 'server_cnt=${COUNT}';
-                            terraform plan -var 'server_cnt=${COUNT}' -out=myplan.tfplan;
+                            terraform plan --lock=false -var 'server_cnt=${COUNT}' -out=myplan.tfplan;
+                            
                         """
+                        //terraform plan -var 'server_cnt=${COUNT}' -out=myplan.tfplan;
                     }
                 }
 
