@@ -24,8 +24,8 @@
   
 - name: write executable for each host
   lineinfile: 
-    #path: "{{ host | split(' ') | first + '.executable.csv' }}"
-    path: "{{ host_ip + '.executable.csv' }}"
+    #path: "{{ host | split(' ') | first + '.executables.csv' }}"
+    path: "{{ host_ip + '.executables.csv' }}"
     line: "{{ lookup('vars',subsystem,default='') }}"
     state: present
     create: true
