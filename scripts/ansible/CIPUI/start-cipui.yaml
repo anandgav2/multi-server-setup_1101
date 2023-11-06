@@ -43,14 +43,23 @@
       loop:
         - "{{ functional_user }}"
 
-    - name: get control server config entry
+    - name: get control server alias from cip_setup_server_config.yml
       shell: cat /disk1/installer/cip_setup_server_config.yml |grep Control|head -1
-      register: cmd_result
+      register: control_server_config_line
       become_user: abinitio
 
+    - name: set control server alias
+      set_fact:
+        control_server_alias: "{{ control_server_config_line.stdout | split('_') |first }}"
+        
+    - name: get control server alias line from host_alias.txt
+      shell: cat /disk1/installer/host_alias.txt |grep {{ control_server_alias }}|head -1
+      register: control_server_alias_line
+      become_user: abinitio
+      
     - name: set control server
       set_fact:
-        control_server: "{{ cmd_result.stdout | split('_') |first }}"
+        control_server: "{{ control_server_alias_line.stdout | split(' ') |last }}"
         
     - name: Log step
       lineinfile:
