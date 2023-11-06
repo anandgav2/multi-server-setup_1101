@@ -69,7 +69,7 @@
     - name: Start CIP Subsystems
       ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
       with_items:
-        - "{{ sandbox_root }}/abinitio/cip/private_internal/run/start_system.ksh"
+        - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh start"
       register: command_output
       become_user: "{{ functional_user }}"
       args:
