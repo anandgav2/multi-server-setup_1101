@@ -267,7 +267,7 @@
 
     - name: Create Hetro connection File
       lineinfile:
-        path: "/home/{{ functional_user }}/abinitiorc_test"
+        path: "/home/{{ functional_user }}/.abinitiorc"
         line: |
           AB_JOB_ALLOWED_HOSTNAMES: {{ cip_servers | join(':') }}:{{ a360_servers | join(':') }}
  
