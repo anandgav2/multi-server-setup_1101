@@ -256,6 +256,7 @@
     - name: Get CIP hostnames and IPs
       set_fact:
         cip_servers: "{{ cip_servers | default([]) + [ hostvars[item].ansible_hostname, hostvars[item].ansible_host ] }}"
+        a360_servers: "[ 'localhost' ]"
       loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
       when: hostvars[item].ansible_host !=  hostvars['a360'].ansible_host
 
