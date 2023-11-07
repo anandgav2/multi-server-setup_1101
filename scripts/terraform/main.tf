@@ -7,7 +7,7 @@ resource "tls_private_key" "new_key" {
 }
 
 resource "aws_key_pair" "aws-cip-key-multi" {
-  key_name   = "aws-cip-key-multi"
+  key_name   = "aws-cip-key-multi1"
   public_key = tls_private_key.new_key.public_key_openssh
 }
 
