@@ -66,10 +66,49 @@
       no_log: true
       become: false
 
-    - name: Start CIP Subsystems
+    - name: Start CIP-Utility Subsystems
       ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
       with_items:
-        - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh start"
+        - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh start utility"
+      register: command_output
+      become_user: "{{ functional_user }}"
+      args:
+        chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
+    
+    - name: Pause for 60 seconds
+      pause:
+        seconds: 60
+
+    - name: Start CIP-Control Subsystems
+      ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
+      with_items:
+        - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh start control_subsystem"
+      register: command_output
+      become_user: "{{ functional_user }}"
+      args:
+        chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
+    
+    - name: Pause for 60 seconds
+      pause:
+        seconds: 60
+
+    - name: Start CIP-Enrich, Detect Subsystems
+      ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
+      with_items:
+        - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh start enrichment_subsystem detect_subsystem"
+      register: command_output
+      become_user: "{{ functional_user }}"
+      args:
+        chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
+    
+    - name: Pause for 60 seconds
+      pause:
+        seconds: 60
+
+    - name: Start CIP-ContactPolicy, Communication and Fulfillment Subsystems
+      ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
+      with_items:
+        - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh start contact_policy_subsystem communication_subsystem fulfillment_subsystem"
       register: command_output
       become_user: "{{ functional_user }}"
       args:
