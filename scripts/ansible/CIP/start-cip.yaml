@@ -75,9 +75,9 @@
       args:
         chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
     
-    - name: Pause for 60 seconds
+    - name: Pause for 120 seconds
       pause:
-        seconds: 60
+        seconds: 120
 
     - name: Start CIP-Control Subsystems
       ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
@@ -95,7 +95,7 @@
     - name: Start CIP-Enrich, Detect Subsystems
       ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
       with_items:
-        - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh start enrichment_subsystem detect_subsystem"
+        - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh start enrichment_subsystem detect_subsystem collect_event_subsystem"
       register: command_output
       become_user: "{{ functional_user }}"
       args:
