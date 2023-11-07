@@ -250,11 +250,11 @@
 
     - name: Delete root directories
       shell: |
-        sudo rm -rf {{ installer_path }}
-        sudo rm -rf {{ data_root_path }}
-        sudo rm -rf {{ apps_root_path }}
-        sudo rm -rf /usr/local/abinitio
-        sudo rm -rf /var/abinitio/*
+        #sudo rm -rf {{ installer_path }}
+        #sudo rm -rf {{ data_root_path }}
+        #sudo rm -rf {{ apps_root_path }}
+        #sudo rm -rf /usr/local/abinitio
+        #sudo rm -rf /var/abinitio/*
       loop:
         - abinitio
       ignore_errors: true
