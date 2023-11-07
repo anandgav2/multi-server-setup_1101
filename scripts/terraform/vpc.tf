@@ -1,7 +1,7 @@
 
 
 resource "aws_security_group" "cip-multi" {
-   name        = "cip-multi"
+   name        = "cip-multi-group"
    description = "Allow TCP inbound traffic"
 
   ingress {
