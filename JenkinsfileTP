@@ -28,7 +28,7 @@ pipeline {
                 }
             }
         }
-
+/*
         stage('Terraform Init & Plan --> Initialize EC2 instance')
         {
             when {
@@ -151,7 +151,7 @@ pipeline {
                 }
             }
         }
-/*
+*/
         stage('Install AG')
         {
             steps
@@ -189,7 +189,7 @@ pipeline {
             }
 
         }
-
+/*
         stage('Install CC')
         {
             steps
@@ -208,7 +208,7 @@ pipeline {
                 }
 
             }
-        }*/
+        }
 
         stage('Generate Execuatbles and CIP Inventory file')
         {
@@ -249,7 +249,7 @@ pipeline {
 
             }
         }
-/*
+*/
         stage('Seed Data')
         {
             steps
@@ -286,8 +286,8 @@ pipeline {
                     sh "echo ------- Install Query>IT SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                 }
             }
-        }*/
-
+        }
+/*
         stage('Start CIP Subsystem')
         {
             steps
@@ -308,7 +308,7 @@ pipeline {
 
             }
         }
-/*
+*/
         stage('Start CIPUI')
         {
             steps
@@ -328,7 +328,7 @@ pipeline {
 
             }
         }
-
+/*
          stage('Install A360')
         {
             steps
