@@ -153,7 +153,7 @@
           CIP_COMMON_QUERY_IT_SANDBOX@ {{ sandbox_root }}/queryit       
           CIP_COMMON_QUERY_IT_DB_USERNAME@ {{ functional_user }}
           CIP_COMMON_QUERY_IT_DB_PASSWORD@ {{ query_it_en_passwd }}
-        become_user: "{{ functional_user }}"
+      become_user: "{{ functional_user }}"
 
     - name: Add QueryIt information in global apphubrc
       lineinfile:
