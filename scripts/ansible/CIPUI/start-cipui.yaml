@@ -1,11 +1,11 @@
 - name: CIP-UI Installation
-  hosts: cip-instance
+  hosts: cipui
   become: yes # Run tasks with root privileges
 
   vars:
     log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
     comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
-    cip_instance_localhost_ip: "127.0.0.1"
+#    cip_instance_localhost_ip: "127.0.0.1"
     installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
 
   tasks:
@@ -44,7 +44,7 @@
         - "{{ functional_user }}"
 
     - name: get control server alias from cip_setup_server_config.yml
-      shell: cat /disk1/installer/cip_setup_server_config.yml |grep Control|head -1
+      shell: cat {{ installer_path }}/cip_setup_server_config.yml | grep control| head -1
       register: control_server_config_line
       become_user: abinitio
 
@@ -53,13 +53,13 @@
         control_server_alias: "{{ control_server_config_line.stdout | split('_') |first }}"
         
     - name: get control server alias line from host_alias.txt
-      shell: cat /disk1/installer/host_alias.txt |grep {{ control_server_alias }}|head -1
+      shell: cat {{ installer_path }}/host_alias.txt | grep {{ control_server_alias }} | head -1
       register: control_server_alias_line
       become_user: abinitio
       
     - name: set control server
       set_fact:
-        control_server: "{{ control_server_alias_line.stdout | split(' ') |last }}"
+        control_server: "{{ control_server_alias_line.stdout | split(' ') | last }}"
         
     - name: Log step
       lineinfile:
@@ -304,7 +304,7 @@
 
     - name: "update Cafe Host"
       command: >
-        jq ".AbCafeHost.host=\"{{cip_instance_localhost_ip}}\"" "{{json_file}}"
+        jq ".AbCafeHost.host=\"{{cafe_host}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -315,7 +315,7 @@
 
     - name: "update AuthGateway Host"
       command: >
-        jq ".AuthGateway.host=\"{{cip_instance_localhost_ip}}\"" "{{json_file}}"
+        jq ".AuthGateway.host=\"{{ag_host}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -326,7 +326,7 @@
 
     - name: "update DeploySSH Host"
       command: >
-        jq ".DeploySSH.host=\"{{cip_instance_localhost_ip}}\"" "{{json_file}}"
+        jq ".DeploySSH.host=\"{{control_server}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -337,7 +337,7 @@
 
     - name: "update DeployWebService Host"
       command: >
-        jq ".DeployWebService.host=\"{{cip_instance_localhost_ip}}\"" "{{json_file}}"
+        jq ".DeployWebService.host=\"{{control_server}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -348,7 +348,7 @@
 
     - name: "update GraphWebService Host"
       command: >
-        jq ".GraphWebService.host=\"{{cip_instance_localhost_ip}}\"" "{{json_file}}"
+        jq ".GraphWebService.host=\"{{control_server}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -359,7 +359,7 @@
 
     - name: "update HttpConfig Host"
       command: >
-        jq ".HttpConfig.host=\"{{cip_instance_localhost_ip}}\"" "{{json_file}}"
+        jq ".HttpConfig.host=\"{{control_server}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -370,7 +370,7 @@
 
     - name: "update KillSSH Host"
       command: >
-        jq ".KillSSH.host=\"{{cip_instance_localhost_ip}}\"" "{{json_file}}"
+        jq ".KillSSH.host=\"{{control_server}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -381,7 +381,7 @@
 
     - name: "update NBOSQueryService Host"
       command: >
-        jq ".NBOSQueryService.host=\"{{cip_instance_localhost_ip}}\"" "{{json_file}}"
+        jq ".NBOSQueryService.host=\"{{ansible_host}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -392,7 +392,7 @@
 
     - name: "update ParseWebService Host"
       command: >
-        jq ".ParseWebService.host=\"{{cip_instance_localhost_ip}}\"" "{{json_file}}"
+        jq ".ParseWebService.host=\"{{control_server}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -403,7 +403,7 @@
 
     - name: "update PostgressDB Host"
       command: >
-        jq ".PostgressDB.host=\"{{cip_instance_localhost_ip}}\"" "{{json_file}}"
+        jq ".PostgressDB.host=\"{{ansible_host}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -414,7 +414,7 @@
 
     - name: "update SubscriberQueryService Host"
       command: >
-        jq ".SubscriberQueryService.host=\"{{cip_instance_localhost_ip}}\"" "{{json_file}}"
+        jq ".SubscriberQueryService.host=\"{{control_server}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -425,7 +425,7 @@
       
     - name: "update UploadWhiteListFile remote_landing_ssh_hostname"
       command: >
-        jq ".UploadWhiteListFile.remote_landing_ssh_hostname=\"{{cip_instance_localhost_ip}}\"" "{{json_file}}"
+        jq ".UploadWhiteListFile.remote_landing_ssh_hostname=\"{{control_server}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -473,25 +473,7 @@
       
     - name: Display result
       ansible.builtin.debug:
-        var: json_modify_result
-
-    - name: Create AG User Feeds Directory
-      ansible.builtin.file:
-        path: "{{ apps_root_path }}/abinitio/ag_user_feeds/cipui"
-        state: directory
-        group: abinitio
-      become_user: "{{ functional_user }}"        
-
-    - name: Copy CIPUI Feed File and User Excel for CIPUI
-      copy:
-        src: "{{ item }}"
-        dest: "{{ apps_root_path }}/abinitio/ag_user_feeds/cipui"
-        remote_src: false
-        group: abinitio
-      with_items:
-        - ./AGPrincipalRole.csv
-        - ./CIPUICreateUserGroup.feed
-      become_user: "{{ functional_user }}"               
+        var: json_modify_result            
     
     - name: Untar localdbStarterPack.tar.gz
       ansible.builtin.command:
@@ -672,14 +654,64 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
+          => CIP UI is running on 
+                http://{{ ansible_host }}:32400
+                cip_ui_user: {{ web_app_user }}
+                cip_ui_password: {{ web_app_user }}
+
+          => More Users Can be added to access CIPUI using AG
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false   
+
+- name: Assign CIP UI User Role in AG
+  hosts: ag
+  become: yes # Run tasks with root privileges
+  vars:
+    log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
+    comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+  
+  tasks:
+
+    - name: Load Global parameters
+      include_vars:
+        file: "{{ item }}"
+      with_items:
+        - "{{ installer_path }}/cip_setup_automation.yml"
+        - "{{ installer_path }}/installer-versions.yml"
+        - "{{ comm_config_file }}"              
+
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
           => Assigning WEB_APP_USER to Access CIP UI, Using AG
         state: present
       delegate_to: localhost
       no_log: true
       become: false
+
+    - name: Create AG User Feeds Directory
+      ansible.builtin.file:
+        path: "{{ apps_root_path }}/abinitio/ag_user_feeds/cipui"
+        state: directory
+        group: abinitio
+      become_user: "{{ functional_user }}"        
+
+    - name: Copy CIPUI Feed File and User Excel for CIPUI
+      copy:
+        src: "{{ item }}"
+        dest: "{{ apps_root_path }}/abinitio/ag_user_feeds/cipui"
+        remote_src: false
+        group: abinitio
+      with_items:
+        - ./AGPrincipalRole.csv
+        - ./CIPUICreateUserGroup.feed
+      become_user: "{{ functional_user }}"   
     
     - name: update CIPUICreateUserGroup.feed
-      when: inventory_hostname != 'a360-instance'
       lineinfile:
         path: "{{ apps_root_path }}/abinitio/ag_user_feeds/cipui/CIPUICreateUserGroup.feed"
         line: |
@@ -691,22 +723,7 @@
       shell: |
         source /etc/profile
         source {{ apps_root_path }}/abinitio/abinitio-deployment/ag/authgateway/config/import.profile
-        export AB_AG_CONN_PARAMS="-a {{ ag_url }} -u {{ ag_user }} -p {{ ag_password }}"
+        export AB_AG_CONN_PARAMS="$AB_AG_CONN_PARAMS -u {{ ag_user }} -p {{ ag_password }}"
         ag-import feed save {{ apps_root_path }}/abinitio/ag_user_feeds/cipui/CIPUICreateUserGroup.feed
         ag-import run -feed "CIPUICreateUserGroup" -progress -approve
       become_user: "{{ functional_user }}"
-
-    - name: Log step
-      lineinfile:
-        path: "{{ log_file }}"
-        line: |
-          => CIP UI is running on 
-                http://{{ cip_instance_public_ip }}:32400
-                cip_ui_user: {{ web_app_user }}
-                cip_ui_password: {{ web_app_user }}
-
-          => More Users Can be added to access CIPUI using AG
-        state: present
-      delegate_to: localhost
-      no_log: true
-      become: false   
