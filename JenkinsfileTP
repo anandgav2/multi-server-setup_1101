@@ -151,7 +151,7 @@ pipeline {
                 }
             }
         }
-*/
+
         stage('Install AG')
         {
             steps
@@ -189,7 +189,7 @@ pipeline {
             }
 
         }
-/*
+
         stage('Install CC')
         {
             steps
@@ -249,7 +249,8 @@ pipeline {
 
             }
         }
-*/
+
+
         stage('Seed Data')
         {
             steps
@@ -268,7 +269,7 @@ pipeline {
 
             }
         }
-
+*/
         stage('Install QueryIT')
         {
             steps
