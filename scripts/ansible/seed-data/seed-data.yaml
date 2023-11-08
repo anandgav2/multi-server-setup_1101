@@ -37,7 +37,7 @@
         remote_src: false
         group: abinitio
       become_user: "{{ functional_user }}"
-      when: ansible_host == cipui
+      when: inventory_hostname == cipui
 
     - name: Log step
       lineinfile:
@@ -57,7 +57,7 @@
       become_user: "{{ functional_user }}"
       args:
         chdir: "{{ sandbox_root }}/abinitio/cip"
-      when: ansible_host == cipui
+      when: inventory_hostname == cipui
     
     - name: Display Status
       ansible.builtin.debug:
@@ -81,7 +81,7 @@
       become_user: "{{ functional_user }}"
       args:
         chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
-      when: ansible_host == cipui
+      when: inventory_hostname == cipui
     
     - name: Pause for 120 seconds
       pause:
@@ -95,7 +95,7 @@
       become_user: "{{ functional_user }}"
       args:
         chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
-      when: ansible_host == control
+      when: inventory_hostname == control
     
     - name: Pause for 120 seconds
       pause:
@@ -111,9 +111,9 @@
       become_user: "{{ functional_user }}"
       args:
         chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
-      when: ansible_host == cipui
+      when: inventory_hostname == cipui
 
     - name: Display Status
       ansible.builtin.debug:
         var: command_output
-      when: ansible_host == cipui
+      when: inventory_hostname == cipui
