@@ -1,5 +1,5 @@
 - name: seed-data
-  hosts: control
+  hosts: cipui
   become: yes # Run tasks with root privileges
 
   vars:
@@ -67,7 +67,33 @@
         state: present
       delegate_to: localhost
       no_log: true
-      become: false  
+      become: false
+
+    - name: Start CIP-Utility Subsystems
+      ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
+      with_items:
+        - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh start utility"
+      register: command_output
+      become_user: "{{ functional_user }}"
+      args:
+        chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
+    
+    - name: Pause for 120 seconds
+      pause:
+        seconds: 120
+
+    - name: Start CIP-Control Subsystems
+      ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
+      with_items:
+        - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh start control_subsystem"
+      register: command_output
+      become_user: "{{ functional_user }}"
+      args:
+        chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
+    
+    - name: Pause for 120 seconds
+      pause:
+        seconds: 120
 
     - name: Import Seed Data SQL
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
