@@ -390,7 +390,7 @@
               Environment||||{{ sandbox_root }}/abinitio/stdenv
               CIP_COMMON_LOCAL_ENRICHMENT_LAYOUT@||||$CIP_COMMON_LOCAL_MFS_QUEUE
               CIP_COMMON_SEGMENTATION_MUTABLE_AB_HOME@||||$AB_HOME
-              CIP_COMMON_LOCAL_SEGMENTATION_LAYOUT@||||{{ data_root_path }}/cip/mfs/mfs_{{ data_mfs_depth }}_way
+              CIP_COMMON_LOCAL_SEGMENTATION_LAYOUT@||||$CIP_COMMON_LOCAL_MFS
               CIP_COMMON_ADC_CONFIG_FILE@||||{{ sandbox_root }}/abinitio/cip/private_internal/config/config.dev.props
               CIP_COMMON_CIPDB_PORT@||||{{ cip_db_port }}
               CIP_COMMON_CIPDB_DB_NAME@||||cip
