@@ -46,7 +46,7 @@
     - name: get control server alias from cip_setup_server_config.yml
       shell: cat {{ installer_path }}/cip_setup_server_config.yml | grep control| head -1
       register: control_server_config_line
-      become_user: abinitio
+      become_user: "{{ functional_user }}"
 
     - name: set control server alias
       set_fact:
@@ -55,7 +55,7 @@
     - name: get control server alias line from host_alias.txt
       shell: cat {{ installer_path }}/host_alias.txt | grep {{ control_server_alias }} | head -1
       register: control_server_alias_line
-      become_user: abinitio
+      become_user: "{{ functional_user }}"
       
     - name: set control server
       set_fact:
