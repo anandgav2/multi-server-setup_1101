@@ -1,5 +1,5 @@
 - name: seed-data
-  hosts: cipui
+  hosts: control
   become: yes # Run tasks with root privileges
 
   vars:
