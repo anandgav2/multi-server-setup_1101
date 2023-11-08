@@ -87,7 +87,7 @@
       pause:
         seconds: 120
 
-    - name: Start CIP-Control Subsystems
+    - name: start CIP-Control Subsystems
       ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
       with_items:
         - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh start control_subsystem"
@@ -115,7 +115,7 @@
       pause:
         seconds: 30
 
-    - name: Start CIP-Utility Subsystems
+    - name: Stop CIP-Utility Subsystems
       ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
       with_items:
         - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh stop utility"
