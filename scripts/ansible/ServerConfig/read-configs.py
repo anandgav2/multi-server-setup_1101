@@ -36,6 +36,12 @@ for line in host_alias:
         print("      ansible_ssh_private_key_file: "+pem_file)
         print("      ansible_user: "+f_user)
 
+    if "control" in sub_systems:
+        print("    control:")
+        print("      ansible_host: "+ip)
+        print("      ansible_ssh_private_key_file: "+pem_file)
+        print("      ansible_user: "+f_user)
+
     if "ag" in sub_systems:
         print("    ag:")
         print("      ansible_host: "+ip)
