@@ -129,7 +129,6 @@
 #      pause:
 #        seconds: 30
 
-
     - name: Import Seed Data SQL
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
@@ -142,7 +141,7 @@
       args:
         chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
       when: inventory_hostname == 'cipui'
-      ignore_error: true
+      ignore_errors: true
 
     - name: Display Status
       ansible.builtin.debug:
