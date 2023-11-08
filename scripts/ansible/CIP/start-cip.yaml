@@ -24,10 +24,6 @@
       no_log: true
       become: false 
 
-    - name: Display Status
-      ansible.builtin.debug:
-        var: command_output
-
     - name: create and upgrade CIPDB
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
