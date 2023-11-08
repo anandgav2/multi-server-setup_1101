@@ -32,6 +32,7 @@
       become_user: "{{ functional_user }}"
       args:
         chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
+      when: inventory_hostname == 'cip_instance_1'
 
     - name: Display Status
       ansible.builtin.debug:
