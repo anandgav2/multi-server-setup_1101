@@ -1,0 +1,94 @@
+- name: seed-data
+  hosts:
+     - cipui
+     - control
+  become: yes # Run tasks with root privileges
+
+  vars:
+    log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
+    comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
+    demo_type: "{{ lookup('env', 'DEMO_TYPE').split(',') | first}}"
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+
+  tasks:
+
+    - name: Load Global parameters
+      include_vars:
+        file: "{{ item }}"
+      with_items:
+        - "{{ comm_config_file }}"
+        - "{{ installer_path }}/cip_setup_automation.yml"
+        - "../QueryIT/config-params.yml"
+
+    - name: Start CIP-Utility Subsystems
+      ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
+      with_items:
+        - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh start utility"
+      register: command_output
+      become_user: "{{ functional_user }}"
+      args:
+        chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
+      when: inventory_hostname == 'cipui'
+
+    - name: Pause for 120 seconds
+      pause:
+        seconds: 60
+
+    - name: start CIP-Control Subsystems
+      ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
+      with_items:
+        - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh start control_subsystem"
+      register: command_output
+      become_user: "{{ functional_user }}"
+      args:
+        chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
+      when: inventory_hostname == 'control'
+
+    - name: Pause for 120 seconds
+      pause:
+        seconds: 120
+
+    - name: Stop CIP-Control Subsystems
+      ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
+      with_items:
+        - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh stop control_subsystem"
+      register: command_output
+      become_user: "{{ functional_user }}"
+      args:
+        chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
+      when: inventory_hostname == 'control'
+
+    - name: Pause for 30 seconds
+      pause:
+        seconds: 30
+
+    - name: Stop CIP-Utility Subsystems
+      ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
+      with_items:
+        - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh stop utility"
+      register: command_output
+      become_user: "{{ functional_user }}"
+      args:
+        chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
+      when: inventory_hostname == 'cipui'
+
+    - name: Pause for 30 seconds
+      pause:
+        seconds: 30
+
+    - name: Import Seed Data SQL
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        #- air sandbox run ../pset/utility/import_test_database.pset -IMPORT_DB_DUMP "{{ sandbox_root }}/abinitio/cip/private_internal/xls/seed_data_20221026_131503.sql"
+        - air sandbox run ../pset/subscriber_profile/sample_customer_profile_prepare.pset
+        - air sandbox run ../pset/subscriber_profile/sample_customer_profile_load.pset
+      register: command_output
+      become_user: "{{ functional_user }}"
+      args:
+        chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
+      when: inventory_hostname == 'cipui'
+
+    - name: Display Status
+      ansible.builtin.debug:
+        var: command_output
+      when: inventory_hostname == 'cipui'
