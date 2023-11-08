@@ -139,22 +139,6 @@
       no_log: true
       become: false
 
-    - name: Set Query IT Params in CIP
-      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
-      with_items:
-       - air lock set -object /Projects/abinitio/cip/private_internal/dev.pset
-      register: command_output
-      become_user: "{{ functional_user }}"
-
-    - name: Write configuration pset dev for cip_private sandbox
-      copy:
-        dest: "{{ sandbox_root }}/abinitio/cip/private_internal/dev.pset"
-        content: |     
-          CIP_COMMON_QUERY_IT_SANDBOX@||||{{ sandbox_root }}/queryit       
-          CIP_COMMON_QUERY_IT_DB_USERNAME@||||{{ functional_user }}
-          CIP_COMMON_QUERY_IT_DB_PASSWORD@||||{{ query_it_en_passwd }}
-      become_user: "{{ functional_user }}"
-
     - name: Add QueryIt information in global apphubrc
       lineinfile:
         path: "{{ app_hub_dest }}/config/apphubrc"
@@ -199,13 +183,6 @@
     - name: Create directory hierarchy and set ownership
       shell: |
         {{ installer_path }}/source_and_run.sh {{ installer_path }}/configure_queryit.ksh > configure_queryit.ksh.log 2>&1
-      become_user: "{{ functional_user }}"
-
-    - name: checkin dev.pset
-      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
-      with_items:
-        - air project import /Projects/abinitio/cip/private_internal -basedir {{ sandbox_root }}/abinitio/cip/private_internal -files dev.pset
-      register: command_output
       become_user: "{{ functional_user }}"
 
 - name: Assign Query>it User Role in AG
