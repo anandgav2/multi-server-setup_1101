@@ -134,6 +134,7 @@
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
         - air sandbox run ../pset/utility/import_test_database.pset -IMPORT_DB_DUMP "{{ sandbox_root }}/abinitio/cip/private_internal/xls/seed_data_20221026_131503.sql"
+        - air sandbox run ../pset/utility/create_environment/upgrade_all_databases.pset
 #        - air sandbox run ../pset/subscriber_profile/sample_customer_profile_prepare.pset
 #        - air sandbox run ../pset/subscriber_profile/sample_customer_profile_load.pset
       register: command_output
