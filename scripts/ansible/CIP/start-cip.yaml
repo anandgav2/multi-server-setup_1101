@@ -31,7 +31,7 @@
     - name: create and upgrade CIPDB
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
-        - air sandbox run ../pset/utility/create_environment/create_all_databases.pset
+#        - air sandbox run ../pset/utility/create_environment/create_all_databases.pset
         - air sandbox run ../pset/utility/create_environment/upgrade_all_databases.pset
       register: command_output
       become_user: "{{ functional_user }}"
