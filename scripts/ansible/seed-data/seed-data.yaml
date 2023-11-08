@@ -142,6 +142,7 @@
       args:
         chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
       when: inventory_hostname == 'cipui'
+      ignore_error: true
 
     - name: Display Status
       ansible.builtin.debug:
