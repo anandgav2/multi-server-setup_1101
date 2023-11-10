@@ -9,10 +9,10 @@ pipeline {
         }
 
     environment {
-                LOG_FILE="${HOME}/demo_setup.log"
-        CONFIG_FILE="${WORKSPACE}/scripts/ansible/cip_common_setup.yml"
-        TIME_FORMAT = "yyyy-MM-dd HH:mm:ss"
-        COUNT=2
+            LOG_FILE="${HOME}/demo_setup.log"
+            CONFIG_FILE="${WORKSPACE}/scripts/ansible/cip_common_setup.yml"
+            TIME_FORMAT = "yyyy-MM-dd HH:mm:ss"
+            COUNT=2
         }
 
     stages {
