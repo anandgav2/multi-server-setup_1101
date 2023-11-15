@@ -14,7 +14,7 @@ pipeline {
             TIME_FORMAT = "yyyy-MM-dd HH:mm:ss"
             COUNT=2
         }
-
+/*
     stages {
 
         stage('Initialize Log and common config') {
@@ -150,7 +150,7 @@ pipeline {
                     sh "echo ------- Create EME SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                 }
             }
-        }
+        } */
 /*
         stage('Install AG')
         {
@@ -210,6 +210,7 @@ pipeline {
             }
         }
 */
+/*
         stage('Generate Execuatbles and CIP Inventory file')
         {
             steps
@@ -227,7 +228,7 @@ pipeline {
                 }
 
             }
-        }
+        }*/
 
         stage('Install CIP')
         {
