@@ -48,6 +48,11 @@
          control_server: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',hostvars[item].ansible_host) | first | split(' ') | first }}"
       loop: "{{ hostvars.keys() | select('match', 'control') | list }}"
 
+    - name: find host alias in host_alias.txt
+      set_fact:
+         nbos_server: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',hostvars[item].ansible_host) | first | split(' ') | first }}"
+      loop: "{{ hostvars.keys() | select('match', 'nbos') | list }}"
+
     - name: Print logs
       debug:
          var: control_server
@@ -240,7 +245,12 @@
 
     - name: "update NBOSQueryService port"
       command: >
-        jq ".NBOSQueryService.port=\"29078\"" "{{json_file}}"
+        jq ".NBOSQueryService.port=\"9001\"" "{{json_file}}"
+      register: json_modify_result
+
+    - name: "update NBOSQueryService host"
+      command: >
+        jq ".NBOSQueryService.host=\"{{nbos_server}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
