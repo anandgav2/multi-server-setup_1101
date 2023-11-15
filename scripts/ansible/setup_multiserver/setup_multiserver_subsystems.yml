@@ -79,5 +79,8 @@
         - "{{ 'cip_common_enrichment_servers: ' + cip_common_enrichment_servers | split(',') | reject('match', '^$') | unique | join(',') }}"
         - "{{ 'cip_common_inbound_channel_queue_servers: ' + cip_common_inbound_channel_queue_servers | split(',') | reject('match', '^$') | unique | join(',') }}"
         - "{{ 'cip_common_segmentation_server: ' + cip_common_segmentation_server | split(',') | reject('match', '^$') | unique | join(',') }}"
+        - "{{ 'cip_common_nbos_server: ' + cip_common_nbos_server | split(',') | reject('match', '^$') | unique | join(',') }}"
+        - "{{ 'cip_common_nbos_server_v1: ' + cip_common_nbos_server_v1 | split(',') | reject('match', '^$') | unique | join(',') }}"
+        - "{{ 'inbound_channel_adc_hosts_for_nbos_adc_adapter_queue: ' + inbound_channel_adc_hosts_for_nbos_adc_adapter_queue | split(',') | reject('match', '^$') | unique | join(',') }}"
       loop_control:
         loop_var: subsystem_mapping

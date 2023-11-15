@@ -113,6 +113,17 @@
     cip_common_segmentation_server: "{{ cip_common_segmentation_server| default('') + ',' + host }}"
   when: '"segmentation" in config'
 
+- name: set to cip_common_nbos_server
+  set_fact:
+    cip_common_nbos_server: "{{ cip_common_nbos_server| default('') + ',' + host }}"
+    cip_common_nbos_server_v1: "{{ cip_common_nbos_server| default('') + ',' + host }}"
+  when: '"nbos_control" in config'
+
+- name: set to inbound_channel_adc_hosts_for_nbos_adc_adapter_queue
+  set_fact:
+    inbound_channel_adc_hosts_for_nbos_adc_adapter_queue: "{{ inbound_channel_adc_hosts_for_nbos_adc_adapter_queue| default('') + ',' + host }}"
+  when: '"nbos_data" in config'
+
   #- name: print var
   #debug:
   #      msg: "{{ cip_common_all_target_servers | split(',') | reject('match', '^$') | join(',') }}" 
