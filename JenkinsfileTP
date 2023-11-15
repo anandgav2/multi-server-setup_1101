@@ -14,9 +14,9 @@ pipeline {
             TIME_FORMAT = "yyyy-MM-dd HH:mm:ss"
             COUNT=2
         }
-/*
-    stages {
 
+    stages {
+/*
         stage('Initialize Log and common config') {
             steps {
                 script {
