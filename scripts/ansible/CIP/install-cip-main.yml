@@ -409,6 +409,10 @@
               CIP_COMMON_ENRICHMENT_QUEUE_SERVERS@||||{{ cip_common_enrichment_queue_servers }}		
               CIP_COMMON_ENRICHMENT_SERVERS@||||{{ cip_common_enrichment_servers }}		
               CIP_COMMON_INBOUND_CHANNEL_QUEUE_SERVERS@||||{{ cip_common_inbound_channel_queue_servers }}		
+              CIP_COMMON_NBOS_SERVER@||||{{ cip_common_nbos_server }}
+              CIP_COMMON_NBOS_SERVER_V1@||||{{ cip_common_nbos_server_v1 }}
+              CIP_COMMON_NBOS_PORT@||||9001
+              INBOUND_CHANNEL_ADC_HOSTS_FOR_NBOS_ADC_ADAPTER_QUEUE@||||{{ inbound_channel_adc_hosts_for_nbos_adc_adapter_queue }}
               CIP_COMMON_REPORT_SERVER@||||{{ cip_common_audit_server }}		
               CIP_COMMON_CIPDB_HOST@||||{{ CIPDB_HOST.stdout }}
               CIP_COMMON_PYTHONPATH@||||{{ sandbox_root }}/abinitio/cip/ui/ab_python_lib/modules
