@@ -7,5 +7,6 @@ communication: cip-control,communication_subsystem,$AI_PSET/communication/commun
 control: cip-control,control_subsystem,$AI_PSET/control/control_plan.pset,Plan
 #a360_enrichment: cip-control,enrichment_subsystem,$AI_PSET/enrichment/a360_integrated_enrichment_subsystem.pset,Plan
 #enrichment: cip-control,enrichment_subsystem,$AI_PSET/enrichment/a360_enrich_events.pset,Graph
-enrichment: cip-control,$AI_PSET/enrichment/enrichment_subsystem.pset,Graph
+enrichment: cip-control,$AI_PSET/enrichment/enrichment_subsystem.pset,Plan
 collect_event: cip-control,collect_event_subsystem,$AI_PSET/collect_integrate/cip/collect_event_subsystem.pset,Plan
+nbos_control: cip-control,nbos,$AI_PSET/inbound_channel/nbos_start_services.pset,Plan
