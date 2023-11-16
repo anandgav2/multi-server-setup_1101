@@ -250,7 +250,7 @@ pipeline {
                 }
 
             }
-        } */
+        } 
 
 
         stage('Seed Data')
@@ -272,8 +272,8 @@ pipeline {
                 }
 
             }
-        } 
-/*
+        } */
+
         stage('Install QueryIT')
         {
             steps
@@ -312,7 +312,7 @@ pipeline {
 
             }
         }
-
+/*
         stage('Start CIPUI')
         {
             steps
