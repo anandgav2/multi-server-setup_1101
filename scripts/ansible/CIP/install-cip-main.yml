@@ -70,26 +70,26 @@
 #       become: false
 
 
-# - name: CIP Installation
-#   hosts: cipui
-#   become: yes # Run tasks with root privileges
-#   vars:
-#     log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
-#     comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
-#     installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+- name: CIP Installation
+  hosts: cipui
+  become: yes # Run tasks with root privileges
+  vars:
+    log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
+    comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
   
-#   tasks:
+  tasks:
 
-#     - name: Load Global parameters
-#       include_vars:
-#         file: "{{ item }}"
-#       with_items:
-#         - "{{ installer_path }}/cip_setup_automation.yml"
-#         - "{{ installer_path }}/installer-versions.yml"
-#         - ./config-params.yml
-#         - "{{ comm_config_file }}"
-#         - "../setup_multiserver/subsystem_mapping.yml"
-#         - "../QueryIT/config-params.yml"
+    - name: Load Global parameters
+      include_vars:
+        file: "{{ item }}"
+      with_items:
+        - "{{ installer_path }}/cip_setup_automation.yml"
+        - "{{ installer_path }}/installer-versions.yml"
+        - ./config-params.yml
+        - "{{ comm_config_file }}"
+        - "../setup_multiserver/subsystem_mapping.yml"
+        - "../QueryIT/config-params.yml"
 
 #     - name: find host alias in host_alias.txt
 #       set_fact:
