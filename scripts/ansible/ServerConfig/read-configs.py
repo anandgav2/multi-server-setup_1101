@@ -79,8 +79,8 @@ for line in host_alias:
         print("      ansible_user: "+f_user)
         a360_flag = 1
 
-    if "nbos_control" in sub_systems:
-        print("    nbos_control:")
+    if "nbos_adapter" in sub_systems:
+        print("    nbos_adapter:")
         print("      ansible_host: "+ip)
         print("      ansible_ssh_private_key_file: "+pem_file)
         print("      ansible_user: "+f_user)
