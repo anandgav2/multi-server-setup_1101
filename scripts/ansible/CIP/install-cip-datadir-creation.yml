@@ -29,8 +29,8 @@
       with_items:
         - air sandbox pset "{{ sandbox_root }}/abinitio/stdenv/.sandbox.pset" -base "{{ sandbox_root }}/abinitio/stdenv/dev.pset"
         - define-directories -basedir {{ sandbox_root }}/abinitio/stdenv -type both -mfs-depth {{ data_mfs_depth }} -subdir default
-        - build-mfs -basedir {{ sandbox_root }}/abinitio/stdenv -mfs-depth {{ data_mfs_depth }} -data-areas {{ data_root_path }}/cip/data-areas
-        - build-mfs -basedir {{ sandbox_root }}/abinitio/stdenv -mfs-depth {{ cp_data_mfs_depth }} -data-areas {{ data_root_path }}/cip/data-areas
+        # - build-mfs -basedir {{ sandbox_root }}/abinitio/stdenv -mfs-depth {{ data_mfs_depth }} -data-areas {{ data_root_path }}/cip/data-areas
+        # - build-mfs -basedir {{ sandbox_root }}/abinitio/stdenv -mfs-depth {{ cp_data_mfs_depth }} -data-areas {{ data_root_path }}/cip/data-areas
       register: command_output
       become_user: "{{ functional_user }}"
       args:
@@ -75,6 +75,7 @@
       with_items:
         - air sandbox pset .sandbox.pset -base dev.pset
         - project-directories -create abinitio -proj {{ sandbox_root }}/abinitio/cip/private_internal -ignore-owner -all-commons
+        - AI_MFS_DEPTH={{ cp_data_mfs_depth }} project-directories -create abinitio -proj {{ sandbox_root }}/abinitio/cip/private_internal -ignore-owner -all-commons
         - mkdir {{ sandbox_root }}/abinitio/cip/private_internal/run
       register: command_output
       become_user: "{{ functional_user }}"
