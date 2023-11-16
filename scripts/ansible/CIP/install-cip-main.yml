@@ -441,7 +441,7 @@
         var_inbound_channel_adc_hosts_for_nbos_adc_adapter_queue: "{{ inbound_channel_adc_hosts_for_nbos_adc_adapter_queue |  regex_replace(',',' ')}}"
 
     - name: replace hosts in config.dev.props file
-      shell:
+      shell: |
         sed -i 's/^hosts\\: .*/hosts\\:  $(var_inbound_channel_adc_hosts_for_nbos_adc_adapter_queue) $(cip_common_nbos_server)/g' /data/sandbox/abinitio/cip/private_internal/config/config.dev.props
       register: command_output
       become_user: "{{ functional_user }}"
