@@ -387,6 +387,7 @@
               !base||||.project.pset
               AI_REL_LOC:sandbox@ABENV||||/abinitio/cip/private_internal
               AI_TEST_FLAG@ABENV||||{{ functional_user }}
+              AI_MFS_DEPTH@||||{{ data_mfs_depth }}
               Environment||||{{ sandbox_root }}/abinitio/stdenv
               CIP_COMMON_LOCAL_ENRICHMENT_LAYOUT@||||$CIP_COMMON_LOCAL_MFS_QUEUE
               CIP_COMMON_SEGMENTATION_MUTABLE_AB_HOME@||||$AB_HOME
