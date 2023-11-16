@@ -272,7 +272,7 @@ pipeline {
                 }
 
             }
-        } */
+        } 
 
         stage('Install QueryIT')
         {
@@ -292,7 +292,7 @@ pipeline {
                 }
             }
         }
-
+*/
         stage('Start CIP Subsystem')
         {
             steps
