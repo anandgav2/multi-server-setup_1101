@@ -117,7 +117,7 @@
   set_fact:
     cip_common_nbos_server: "{{ cip_common_nbos_server| default('') + ',' + host }}"
     cip_common_nbos_server_v1: "{{ cip_common_nbos_server| default('') + ',' + host }}"
-  when: '"nbos_control" in config'
+  when: '"nbos_adapter" in config'
 
 - name: set to inbound_channel_adc_hosts_for_nbos_adc_adapter_queue
   set_fact:
