@@ -77,6 +77,7 @@
         - project-directories -create abinitio -proj {{ sandbox_root }}/abinitio/cip/private_internal -ignore-owner -all-commons
         - air sandbox pset .sandbox.pset AI_MFS_DEPTH {{ cp_data_mfs_depth }}
         - project-directories -create abinitio -proj {{ sandbox_root }}/abinitio/cip/private_internal -ignore-owner -all-commons
+        - air sandbox pset .sandbox.pset AI_MFS_DEPTH {{ data_mfs_depth }}
         - mkdir {{ sandbox_root }}/abinitio/cip/private_internal/run
       register: command_output
       become_user: "{{ functional_user }}"
