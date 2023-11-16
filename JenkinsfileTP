@@ -241,8 +241,8 @@ pipeline {
                     sh "echo ----------- CIP INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"
    //                 sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-cip-main.yml'
      //                 sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../setup_multiserver/inventory.yml --vault-password-file=../vault_key install-cip-datadir-creation.yml'
-     //               sh 'cd "${WORKSPACE}/scripts/ansible/setup_multiserver"  ; ansible-playbook -i ./inventory.yml --vault-password-file=../vault_key copy_executables.yml'
-                    sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key create_db.yml'
+       //             sh 'cd "${WORKSPACE}/scripts/ansible/setup_multiserver"  ; ansible-playbook -i ./inventory.yml --vault-password-file=../vault_key copy_executables.yml'
+         //           sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key create_db.yml'
                     def eT = new Date()
                     def endTime = eT.format(TIME_FORMAT)
                     sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
@@ -252,7 +252,7 @@ pipeline {
             }
         }
 
-/*
+
         stage('Seed Data')
         {
             steps
@@ -272,7 +272,7 @@ pipeline {
                 }
 
             }
-        } */
+        } 
 /*
         stage('Install QueryIT')
         {
