@@ -210,7 +210,7 @@ pipeline {
             }
         }
 */
-
+/*
         stage('Generate Execuatbles and CIP Inventory file')
         {
             steps
@@ -251,7 +251,7 @@ pipeline {
 
             }
         } 
-
+*/
 /*
         stage('Seed Data')
         {
