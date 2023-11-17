@@ -21,3 +21,11 @@
         remote_src: false
         group: abinitio
       become_user: "{{ functional_user }}"
+
+    - name: delete files
+      file:
+        path: "./{{ ansible_host }}.executables.csv"
+        state: absent
+        remote_src: false
+        group: abinitio
+      become_user: "{{ functional_user }}"
