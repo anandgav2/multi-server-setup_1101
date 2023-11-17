@@ -74,10 +74,10 @@
       pause:
         seconds: 120
 
-    - name: Start CIP-Enrich, Detect Subsystems
+    - name: Start CIP-Enrich, Detect Subsystems and Nbos
       ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
       with_items:
-        - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh start enrichment_subsystem detect_subsystem collect_event_subsystem"
+        - "{{ sandbox_root }}/abinitio/cip/private_internal/bin/cip-control.ksh start enrichment_subsystem detect_subsystem collect_event_subsystem nbos"
       register: command_output
       become_user: "{{ functional_user }}"
       args:
