@@ -64,7 +64,7 @@
       file:
         path: subsystem_mapping.yml
         state: absent
-        remote_src: false
+      remote_src: false
         
     - name: Print subsystem mapping
       lineinfile:
