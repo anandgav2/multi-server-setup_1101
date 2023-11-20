@@ -28,7 +28,7 @@ pipeline {
                 }
             }
         }
-
+/*
         stage('Terraform Init & Plan --> Initialize EC2 instance')
         {
             when {
@@ -209,7 +209,7 @@ pipeline {
 
             }
         }
-
+*/
         stage('Generate Execuatbles and CIP Inventory file')
         {
             steps
