@@ -417,6 +417,7 @@
               CIP_COMMON_REPORT_SERVER@||||{{ cip_common_audit_server }}		
               CIP_COMMON_CIPDB_HOST@||||{{ CIPDB_HOST.stdout }}
               CIP_COMMON_PYTHONPATH@||||{{ sandbox_root }}/abinitio/cip/ui/ab_python_lib/modules
+              INBOUND_CHANNEL_NBOS_LOOKUP_FILE_SYSTEM_TYPE@||||local
       become_user: "{{ functional_user }}"              
 
     - name: Write configuration pset dev for stdenv sandbox
