@@ -26,5 +26,5 @@
       file:
         path: "./{{ ansible_host }}.executables.csv"
         state: absent
-        remote_src: false
+      delegate_to: localhost
         
