@@ -60,11 +60,12 @@
       loop_control:
          index_var: iteration
 
-    - name: delete subsystem_mapping file if exist
+    - name: delete subsystem_mapping file
       file:
         path: subsystem_mapping.yml
         state: absent
       delegate_to: localhost
+      ignore_errors: true
         
     - name: Print subsystem mapping
       lineinfile:
