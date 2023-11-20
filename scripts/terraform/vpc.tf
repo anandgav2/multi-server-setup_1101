@@ -12,6 +12,13 @@ resource "aws_security_group" "cip-multi" {
   }
 
   ingress {
+    from_port   = 9001  # NBOS port
+    to_port     = 9001
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # Restrict this to your IP range for better security
+  }
+
+  ingress {
     from_port   = 5678  # Your desired port
     to_port     = 5678
     protocol    = "tcp"
