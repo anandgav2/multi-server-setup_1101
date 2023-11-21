@@ -149,7 +149,7 @@
         name: nodejs
         state: present
     
-    - name: Install Node.js on CentOS/RHEL
+    - name: Install expect on CentOS/RHEL
       when: ansible_distribution in ['CentOS', 'RedHat']
       yum:
         name: expect
