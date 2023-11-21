@@ -197,11 +197,16 @@
       no_log: true
       become: false
 
+    - name: find host alias in host_alias.txt
+      set_fact:
+         eme_host_alias: "{{ hostvars[item].ab_host_alias }}"
+      loop: "{{ hostvars.keys() | select('match', 'eme') | list }}"
+
     - name: Add cafe settings for eme in apphubrc
       lineinfile:
         path: "{{ app_hub_dest }}/config/apphubrc"
         line: |
-          AB_AIR_ROOT @ cipcafe : {{ data_root_path }}/eme/cipeme/repo
+          AB_AIR_ROOT @ cipcafe : //{{ eme_host_alias }}{{ data_root_path }}/eme/cipeme/repo
           AB_AIR_BRANCH @ cipcafe : main
           AB_APPCONF_ROOT_DIR @ cipcafe : {{ data_root_path }}/sand/appconfdir
 

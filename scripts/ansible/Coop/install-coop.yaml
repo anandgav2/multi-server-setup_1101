@@ -154,6 +154,20 @@
         state: present  # Add the line if not present
       notify: Reload Profile
 
+    - name: Get a360 host IP
+      set_fact:
+         a360_ip: "{{ hostvars[item].ansible_host }}"
+      loop: "{{ hostvars.keys() | select('match', 'a360') | list }}"
+
+    - name: Add environment parameters to /etc/profile
+      lineinfile:
+        path: /etc/profile
+        line: |
+          AB_AIR_ROOT=//{{ eme_host_alias }}{{ data_root_path }}/eme/cipeme/repo
+        state: present  # Add the line if not present
+      notify: Reload Profile
+      when: ansible_host != a360_ip
+
     - name: Setup ab-cinfod daemon
       shell: |
         source /etc/profile

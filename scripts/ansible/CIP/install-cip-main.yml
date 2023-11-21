@@ -24,7 +24,7 @@
      
     - name: Create sandbox and data hierarchy and set ownership
       shell: |
-        sudo mkdir -p {{ sandbox_root }}/abinitio/CIP_V{{ cip_version }}
+        sudo mkdir -p {{ cip_base_path }}
         sudo mkdir -p {{ data_root_path }}/cip
         sudo mkdir -p {{ data_root_path }}/cip/data-areas
         sudo chown -R {{ item }}:abinitio {{ data_root_path }}
@@ -63,7 +63,7 @@
       lineinfile:
         path: "{{ comm_config_file }}"
         line: |
-          cip_db_name: "cip"
+          cip_db_name: "{{ cip_db_name }}"
           cip_db_port: "{{ cip_db_port }}"
         state: present
       delegate_to: localhost
@@ -91,11 +91,6 @@
         - "../setup_multiserver/subsystem_mapping.yml"
         - "../QueryIT/config-params.yml"
 
-    - name: find host alias in host_alias.txt
-      set_fact:
-         host_alias: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',hostvars[item].ansible_host) | first | split(' ') | first }}"
-      loop: "{{ hostvars.keys() | select('match', 'eme') | list }}"
-
     - name: Log step
       lineinfile:
         path: "{{ log_file }}"
@@ -106,17 +101,19 @@
       no_log: true
       become: false  
 
-    - name: Copy Config File
-      copy:
-        src: "../Coop/coop-config.ini"
-        dest: "{{ installer_path }}"
-        remote_src: false
-        group: abinitio
-      become_user: "{{ functional_user }}"
-  
-    - name: Display Version
-      ansible.builtin.debug:
-        var: cip_version
+    # no need to read the config will get overwrriten that was set during COOP setup
+    # - name: Copy Config File
+    #   copy:
+    #     src: "../Coop/coop-config.ini"
+    #     dest: "{{ installer_path }}"
+    #     remote_src: false
+    #     group: abinitio
+    #   become_user: "{{ functional_user }}"
+
+    - name: Read Coop Configuration File
+      slurp:
+        src: "{{ installer_path }}/coop-config.ini"
+      register: coop_config_file_content
 
     - name: Log step
       lineinfile:
@@ -128,10 +125,9 @@
       no_log: true
       become: false  
 
-    - name: Read Coop Configuration File
-      slurp:
-        src: "{{ installer_path }}/coop-config.ini"
-      register: coop_config_file_content
+    - name: Display Version
+      ansible.builtin.debug:
+        var: cip_version
 
     - name: Find the Installer Tar
       find:
@@ -167,7 +163,6 @@
     - name: Extract Folder Path
       set_fact:
         folder_path: "{{ found_files.files[0].path |  regex_replace('\\.(tgz|tar\\.gz|tar)$','')}}"
-        #folder_path: "{{ found_files.files[0].path |  regex_replace('\\.tgz$', '')  }}"
 
     - name: Display  Folder Path
       ansible.builtin.debug:
@@ -192,7 +187,7 @@
     - name: Parse Coop Configuration Values
       set_fact:
         coop_config_values: "{{ (coop_config_file_content['content'] | b64decode).split('\n') | map('trim') }}"
-      register: parsed_config
+        cip_base_path: "{{ sandbox_root }}/{{ functional_user }}/cip-v{{ cip_version }}"
 
     - name: Read Installation Directory value from config
       set_fact:
@@ -204,9 +199,8 @@
         path: /etc/profile
         line: |
           export PG_HOME=$AB_HOME/lib/postgresql
-          export PYTHONPATH={{ sandbox_root }}/abinitio/cip/ui/ab_python_lib/modules
+          export PYTHONPATH={{ cip_base_path }}/ui/ab_python_lib/modules
           export LD_LIBRARY_PATH=$AB_HOME/lib/postgresql/lib:$LD_LIBRARY_PATH
-          AB_AIR_ROOT=//{{ host_alias }}{{ data_root_path }}/eme/cipeme/repo
         state: present  # Add the line if not present
         #notify: Reload Profile
 
@@ -244,15 +238,15 @@
       
     - name: Create sandbox and UI directory
       shell: |
-          sudo mkdir -p {{ sandbox_root }}/abinitio/cip/ui
-          sudo chown -R {{ item }}:abinitio {{ sandbox_root }}/abinitio/cip
+          sudo mkdir -p {{ cip_base_path }}/ui
+          sudo chown -R {{ item }}:abinitio {{ cip_base_path }}
       loop:
         - "{{ functional_user }}"
 
     - name: Copy files to remote host
       copy:
         src: "{{ folder_path }}/ab_python_lib.tgz"
-        dest: "{{ sandbox_root }}/abinitio/cip/ui/ab_python_lib.V{{ cip_version }}.tgz"
+        dest: "{{ cip_base_path }}/ui/ab_python_lib.V{{ cip_version }}.tgz"
         remote_src: true
         group: abinitio
       loop: "{{ found_files.files }}"
@@ -261,7 +255,7 @@
     - name: Copy UI files to remote host
       copy:
         src: "{{ folder_path }}/ui.tgz"
-        dest: "{{ sandbox_root }}/abinitio/cip/ui/ui.V{{ cip_version }}.tgz"
+        dest: "{{ cip_base_path }}/ui/ui.V{{ cip_version }}.tgz"
         remote_src: true
         group: abinitio
       loop: "{{ found_files.files }}"
@@ -269,30 +263,30 @@
 
     - name: Untar Python modules
       shell: |
-        su - {{ item }} -c "tar -zxvf {{ sandbox_root }}/abinitio/cip/ui/ab_python_lib.V{{ cip_version }}.tgz -C {{ sandbox_root }}/abinitio/cip/ui"
-        mv {{ sandbox_root }}/abinitio/cip/ui/ab_python_lib {{ sandbox_root }}/abinitio/cip/ui/ab_python_lib.V{{ cip_version }}
+        su - {{ item }} -c "tar -zxvf {{ cip_base_path }}/ui/ab_python_lib.V{{ cip_version }}.tgz -C {{ cip_base_path }}/ui"
+        mv {{ cip_base_path }}/ui/ab_python_lib {{ cip_base_path }}/ui/ab_python_lib.V{{ cip_version }}
       loop:
         -  "{{ functional_user }}"
     
     - name: Untar UI module
       shell: |
-        su - {{ item }} -c "tar -zxvf {{ sandbox_root }}/abinitio/cip/ui/ui.V{{ cip_version }}.tgz -C {{ sandbox_root }}/abinitio/cip/ui"
-        mv {{ sandbox_root }}/abinitio/cip/ui/web {{ sandbox_root }}/abinitio/cip/ui/web.V{{ cip_version }}
+        su - {{ item }} -c "tar -zxvf {{ cip_base_path }}/ui/ui.V{{ cip_version }}.tgz -C {{ cip_base_path }}/ui"
+        mv {{ cip_base_path }}/ui/web {{ cip_base_path }}/ui/web.V{{ cip_version }}
       loop:
         -  "{{ functional_user }}"
 
     - name: Create Sym Link for Python modules
       file:
-        src: "{{ sandbox_root }}/abinitio/cip/ui/ab_python_lib.V{{ cip_version }}"
-        dest: "{{ sandbox_root }}/abinitio/cip/ui/ab_python_lib"
+        src: "{{ cip_base_path }}/ui/ab_python_lib.V{{ cip_version }}"
+        dest: "{{ cip_base_path }}/ui/ab_python_lib"
         state: link
         group: abinitio
       become_user: "{{ functional_user }}"
 
     - name: Create Sym Link for web
       file:
-        src: "{{ sandbox_root }}/abinitio/cip/ui/web.V{{ cip_version }}"
-        dest: "{{ sandbox_root }}/abinitio/cip/ui/web"
+        src: "{{ cip_base_path }}/ui/web.V{{ cip_version }}"
+        dest: "{{ cip_base_path }}/ui/web"
         state: link
         group: abinitio
       become_user: "{{ functional_user }}"
@@ -301,16 +295,16 @@
       lineinfile:
         path: "{{ destination }}/abinitio-V{{ coop_version }}/config/abinitiorc"
         line: |
-          AB_SQL_MUTABLE_SEARCH_PATH : {{ sandbox_root }}/abinitio/cip/cip_common/components:~ab_home/lib/absql
+          AB_SQL_MUTABLE_SEARCH_PATH : {{ cip_base_path }}/cip_common/components:~ab_home/lib/absql
           AB_EASY_RESOLVE_NAMES_VERSION : 1
         state: present      
 
     - name: Create Abinitio environment
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items: 
-        - install-environment -root {{ sandbox_root }}/abinitio -data-mount {{ data_root_path }}/cip
-        - mv {{ sandbox_root }}/abinitio/sand/stdenv {{ sandbox_root }}/abinitio/stdenv
-        - air project import /Projects/abinitio/stdenv -basedir  {{ sandbox_root }}/abinitio/stdenv -auto-add -create -force
+        - install-environment -root {{ sandbox_root }}/{{ functional_user }} -data-mount {{ data_root_path }}/cip
+        - mv {{ sandbox_root }}/{{ functional_user }}/sand/stdenv {{ sandbox_root }}/{{ functional_user }}/stdenv
+        - air project import /Projects/abinitio/stdenv -basedir  {{ sandbox_root }}/{{ functional_user }}/stdenv -auto-add -create -force
       register: command_output
       become_user: "{{ functional_user }}"
  
@@ -332,14 +326,14 @@
       lineinfile:
         path: "{{ destination }}/abinitio-V{{ coop_version }}/config/abinitiorc"
         line: |
-         AB_ENV_ROOT : {{ sandbox_root }}/abinitio/stdenv
+         AB_ENV_ROOT : {{ sandbox_root }}/{{ functional_user }}/stdenv
         state: present       
 
     - name: Load CIP sav files
       shell: |
         source /etc/profile
-        create-project -rel-loc abinitio/cip/private_internal -type private -env {{ sandbox_root }}/abinitio/stdenv -checkin Y
-        create-project -rel-loc abinitio/cip/public_internal -type public -env {{ sandbox_root }}/abinitio/stdenv -checkin Y
+        create-project -rel-loc abinitio/cip/private_internal -type private -env {{ sandbox_root }}/{{ functional_user }}/stdenv -checkin Y
+        create-project -rel-loc abinitio/cip/public_internal -type public -env {{ sandbox_root }}/{{ functional_user }}/stdenv -checkin Y
         air project modify /Projects/abinitio/cip/private_internal -common /Projects/abinitio/cip/public_internal
         air promote load adc.sav -history-file adc.hist -comment '{{ cip_version }}' -no-analyze
         air promote load engine.sav -history-file engine.hist -comment 'CIP Install {{ cip_version }}' -relocate /Projects/abinitio/cip/stdenv /Projects/abinitio/stdenv -no-analyze
@@ -366,7 +360,7 @@
     - name: Checkout CIP 
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
-        - air project export /Projects/abinitio/cip/private_internal -basedir {{ sandbox_root }}/abinitio/cip/private_internal -parameters -export-commons -common /Projects/abinitio {{ sandbox_root }}/abinitio -common /Projects/abinitio/cip/public_internal {{ sandbox_root }}/abinitio/cip/public_internal
+        - air project export /Projects/abinitio/cip/private_internal -basedir {{ cip_base_path }}/private_internal -parameters -export-commons -common /Projects/abinitio {{ sandbox_root }}/{{ functional_user }} -common /Projects/abinitio/cip/public_internal {{ cip_base_path }}/public_internal
       register: command_output
       become_user: "{{ functional_user }}"
 
@@ -382,17 +376,17 @@
       
     - name: Write configuration pset dev for cip_private sandbox
       copy:
-        dest: "{{ sandbox_root }}/abinitio/cip/private_internal/dev.pset"
+        dest: "{{ cip_base_path }}/private_internal/dev.pset"
         content: |
               !base||||.project.pset
               AI_REL_LOC:sandbox@ABENV||||/abinitio/cip/private_internal
               AI_TEST_FLAG@ABENV||||{{ functional_user }}
               AI_MFS_DEPTH@||||{{ data_mfs_depth }}
-              Environment||||{{ sandbox_root }}/abinitio/stdenv
+              Environment||||{{ sandbox_root }}/{{ functional_user }}/stdenv
               CIP_COMMON_LOCAL_ENRICHMENT_LAYOUT@||||$CIP_COMMON_LOCAL_MFS_QUEUE
               CIP_COMMON_SEGMENTATION_MUTABLE_AB_HOME@||||$AB_HOME
               CIP_COMMON_LOCAL_SEGMENTATION_LAYOUT@||||$CIP_COMMON_LOCAL_MFS
-              CIP_COMMON_ADC_CONFIG_FILE@||||{{ sandbox_root }}/abinitio/cip/private_internal/config/config.dev.props
+              CIP_COMMON_ADC_CONFIG_FILE@||||{{ cip_base_path }}/private_internal/config/config.dev.props
               CIP_COMMON_CIPDB_PORT@||||{{ cip_db_port }}
               CIP_COMMON_CIPDB_DB_NAME@||||cip
               CIP_COMMON_QUERY_IT_SANDBOX@||||{{ sandbox_root }}/queryit   
@@ -416,13 +410,13 @@
               INBOUND_CHANNEL_ADC_HOSTS_FOR_NBOS_ADC_ADAPTER_QUEUE@||||{{ inbound_channel_adc_hosts_for_nbos_adc_adapter_queue }}
               CIP_COMMON_REPORT_SERVER@||||{{ cip_common_audit_server }}		
               CIP_COMMON_CIPDB_HOST@||||{{ CIPDB_HOST.stdout }}
-              CIP_COMMON_PYTHONPATH@||||{{ sandbox_root }}/abinitio/cip/ui/ab_python_lib/modules
+              CIP_COMMON_PYTHONPATH@||||{{ cip_base_path }}/ui/ab_python_lib/modules
               INBOUND_CHANNEL_NBOS_LOOKUP_FILE_SYSTEM_TYPE@||||local
       become_user: "{{ functional_user }}"              
 
     - name: Write configuration pset dev for stdenv sandbox
       copy:
-        dest: "{{ sandbox_root }}/abinitio/stdenv/dev.pset"
+        dest: "{{ sandbox_root }}/{{ functional_user }}/stdenv/dev.pset"
         content: |
               !base||||.project.pset
               AI_ADMIN_PRIVATE_ROOT@ABENV||||{{ sandbox_root }}
@@ -436,14 +430,14 @@
 
     - name: replace hosts in config.dev.props file
       shell: |
-        sed -i 's/^hosts:.*/hosts:                          {{ var_inbound_channel_adc_hosts_for_nbos_adc_adapter_queue }} {{ cip_common_nbos_server }}/g' {{ sandbox_root }}/abinitio/cip/private_internal/config/config.dev.props
+        sed -i 's#^hosts:.*#hosts:                          {{ var_inbound_channel_adc_hosts_for_nbos_adc_adapter_queue }} {{ cip_common_nbos_server }}\ndata.engines.per.host@{{ cip_common_nbos_server }}: 0#g' {{ cip_base_path }}/private_internal/config/config.dev.props
       register: command_output
       become_user: "{{ functional_user }}"
 
     - name: checkin configuration pset dev for cip_private sandbox
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
-        - air project import /Projects/abinitio/cip/private_internal -basedir {{ sandbox_root }}/abinitio/cip/private_internal -files dev.pset config/config.dev.props
-        - air project import /Projects/abinitio/stdenv -basedir {{ sandbox_root }}/abinitio/stdenv -files dev.pset
+        - air project import /Projects/abinitio/cip/private_internal -basedir {{ cip_base_path }}/private_internal -files dev.pset config/config.dev.props
+        - air project import /Projects/abinitio/stdenv -basedir {{ sandbox_root }}/{{ functional_user }}/stdenv -files dev.pset
       register: command_output
       become_user: "{{ functional_user }}"

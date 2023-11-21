@@ -9,6 +9,7 @@
     - config
     - counter
     - user
+    - host_name
   loop_control:
         loop_var: input
 
@@ -124,13 +125,13 @@
 
 - name: set to cip_common_nbos_server
   set_fact:
-    cip_common_nbos_server: "{{ cip_common_nbos_server| default('') + ',' + host }}"
-    cip_common_nbos_server_v1: "{{ cip_common_nbos_server| default('') + ',' + host }}"
+    cip_common_nbos_server: "{{ cip_common_nbos_server| default('') + ',' + host_name }}"
+    cip_common_nbos_server_v1: "{{ cip_common_nbos_server| default('') + ',' + host_name }}"
   when: '"nbos_adapter" in config'
 
 - name: set to inbound_channel_adc_hosts_for_nbos_adc_adapter_queue
   set_fact:
-    inbound_channel_adc_hosts_for_nbos_adc_adapter_queue: "{{ inbound_channel_adc_hosts_for_nbos_adc_adapter_queue| default('') + ',' + host }}"
+    inbound_channel_adc_hosts_for_nbos_adc_adapter_queue: "{{ inbound_channel_adc_hosts_for_nbos_adc_adapter_queue| default('') + ',' + host_name }}"
   when: '"nbos_data" in config'
 
   #- name: print var
