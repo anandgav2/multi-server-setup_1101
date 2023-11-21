@@ -32,6 +32,7 @@ resource "aws_instance" "cip" {
     #!/bin/bash
     setenforce 0
     sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    sudo systemctl restart sshd
     hostnamectl set-hostname "${element(split(" ",element(split("\n",local.host_data),count.index)),1)}"
   EOF
 
