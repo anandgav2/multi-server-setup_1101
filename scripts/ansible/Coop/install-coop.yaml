@@ -133,10 +133,14 @@
         group: abinitio
       become_user: "{{ functional_user }}"
 
+    # - name: find host alias in host_alias.txt
+    #   set_fact:
+    #      eme_host_alias: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',hostvars[item].ansible_host) | first | split(' ') | first }}"
+    #   loop: "{{ hostvars.keys() | select('match', 'eme') | list }}"
+
     - name: find host alias in host_alias.txt
       set_fact:
-         eme_host_alias: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',hostvars[item].ansible_host) | first | split(' ') | first }}"
-         ab_host_alias: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search', ansible_host) | first | split(' ') | first }}"
+         eme_host_alias: "{{ hostvars[item].ab_host_alias }}"
       loop: "{{ hostvars.keys() | select('match', 'eme') | list }}"
          
     #values set according to skuad-e2e-abinitio01
@@ -203,10 +207,10 @@
         state: present  
 
     - name: Configure Key Client
-      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh abkcconf -b /var/abinitio/data -u {{ functional_user }} -s"
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh abkcconf -b {{ ab_data_dir }} -u {{ functional_user }} -s"
 
     - name: Start Key Client
-      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh /var/abinitio/data/abkc/abkcd start"
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ ab_data_dir }}/abkc/abkcd start"
       become_user: "{{ functional_user }}"
 
     - name: Pause for 20 seconds
@@ -282,7 +286,6 @@
     - name: Get CIP host aliases
       set_fact:
         cip_servers: "{{ cip_servers | default([]) + [ hostvars[item].ab_host_alias ] }}"
-        a360_servers: "{{ a360_servers | default([]) + [ 'localhost' ]}}"
       loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
       when: hostvars[item].ansible_host !=  hostvars['a360'].ansible_host
 

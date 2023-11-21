@@ -111,7 +111,7 @@ pipeline {
             }
         }
 
-        /* stage('Install Co>Operating System')
+        stage('Install Co>Operating System')
         {
             steps
             {
@@ -127,7 +127,7 @@ pipeline {
                     sh "echo ------- COOP INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                 }
             }
-        } */
+        }
 
         /* stage('Create EME')
         {

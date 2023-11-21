@@ -29,54 +29,63 @@ for line in host_alias:
     print("      ansible_host: "+ip)
     print("      ansible_ssh_private_key_file: "+pem_file)
     print("      ansible_user: "+f_user)
+    print("      ab_host_alias: '"+server+"'")
 
     if "eme" in sub_systems:
         print("    eme:")
         print("      ansible_host: "+ip)
         print("      ansible_ssh_private_key_file: "+pem_file)
         print("      ansible_user: "+f_user)
+        print("      ab_host_alias: '"+server+"'")
 
     if "control" in sub_systems:
         print("    control:")
         print("      ansible_host: "+ip)
         print("      ansible_ssh_private_key_file: "+pem_file)
         print("      ansible_user: "+f_user)
+        print("      ab_host_alias: '"+server+"'")
 
     if "ag" in sub_systems:
         print("    ag:")
         print("      ansible_host: "+ip)
         print("      ansible_ssh_private_key_file: "+pem_file)
         print("      ansible_user: "+f_user)
+        print("      ab_host_alias: '"+server+"'")
 
     if "cafe" in sub_systems:
         print("    cafe:")
         print("      ansible_host: "+ip)
         print("      ansible_ssh_private_key_file: "+pem_file)
         print("      ansible_user: "+f_user)
+        print("      ab_host_alias: '"+server+"'")
 
     if "cc" in sub_systems:
         print("    cc:")
         print("      ansible_host: "+ip)
         print("      ansible_ssh_private_key_file: "+pem_file)
         print("      ansible_user: "+f_user)
+        print("      ab_host_alias: '"+server+"'")
 
     if "queryit" in sub_systems:
         print("    queryit:")
         print("      ansible_host: "+ip)
         print("      ansible_ssh_private_key_file: "+pem_file)
         print("      ansible_user: "+f_user)
+        print("      ab_host_alias: '"+server+"'")
 
     if "cipui" in sub_systems:
         print("    cipui:")
         print("      ansible_host: "+ip)
         print("      ansible_ssh_private_key_file: "+pem_file)
         print("      ansible_user: "+f_user)
+        print("      ab_host_alias: '"+server+"'")
         
     if "a360" in sub_systems:
         print("    a360:")
         print("      ansible_host: "+ip)
         print("      ansible_ssh_private_key_file: "+pem_file)
         print("      ansible_user: "+f_user)
+        print("      ab_host_alias: '"+server+"'")
         a360_flag = 1
 
     if "nbos_adapter" in sub_systems:
@@ -84,10 +93,12 @@ for line in host_alias:
         print("      ansible_host: "+ip)
         print("      ansible_ssh_private_key_file: "+pem_file)
         print("      ansible_user: "+f_user)
+        print("      ab_host_alias: '"+server+"'")
 
 if a360_flag == 0:
     print("    a360:")
     print("      ansible_host: null")
     print("      ansible_ssh_private_key_file: "+pem_file)
     print("      ansible_user: "+f_user)
+    print("      ab_host_alias: 'localhost'")
     
