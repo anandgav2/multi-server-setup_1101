@@ -78,28 +78,31 @@
         group: abinitio
       become_user: "{{ functional_user }}"
 
-    - name: find host alias in host_alias.txt
-      set_fact:
-         host_alias: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',ansible_host) |first| split(' ') | first }}"
-         
-    - name: Set hostname
-      hostname:
-        name: "{{ host_alias }}"
-
     - name: Add localhost entry to /etc/hosts
       lineinfile:
         path: /etc/hosts
         line: |
-          127.0.0.1 {{ host_alias }}
-          ::1 {{ host_alias }}
+          127.0.0.1 {{ ansible_hostname }}
+          ::1 {{ ansible_hostname }}
         state: present
            
-    - name: Add remote host entries to /etc/hosts
+    # - name: Add remote host entries to /etc/hosts
+    #   lineinfile:
+    #     path: /etc/hosts
+    #     line: "{{ item | split(' ') | last + ' ' + item | split(' ') | first }}"
+    #     state: present     
+    #   loop: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() }}"
+
+    - name: Add remote host and public ip entries to /etc/hosts
       lineinfile:
         path: /etc/hosts
-        line: "{{ item | split(' ') | last + ' ' + item | split(' ') | first }}"
-        state: present     
-      loop: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() }}"
+        line: "{{ hostvars[item].ansible_host + ' ' + hostvars[item].ansible_hostname }}"
+      loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
+
+    - name: hostvars
+      debug:
+        var: hostvars[item]
+      loop: "{{ hostvars.keys() | select('match', '^server1.*') | list }}"
      
     - name: Log step
       lineinfile:
@@ -112,29 +115,11 @@
       no_log: true
       become: false
 
-#    - name: Install OpenJDK 8 on CentOS/RHEL
-#      when: ansible_distribution in ['CentOS', 'RedHat']
-#      yum:
-#        name: java-1.8.0-openjdk
-#        state: present
-#    
-#    - name: Log step
-#      when: ansible_distribution in ['CentOS', 'RedHat']
-#      lineinfile:
-#        path: "{{ log_file }}"
-#        line: |
-#          =>JDK 8 installed on CIP Instance
-#        state: present
-#      delegate_to: localhost
-#      no_log: true
-#      become: false
-
     - name: Install OpenJDK 11 on CentOS/RHEL
       when: ansible_distribution in ['CentOS', 'RedHat'] #and inventory_hostname == 'a360'
       ansible.builtin.package:
         name: java-11-openjdk
         state: present
-
 
     - name: Log step
       when: ansible_distribution in ['CentOS', 'RedHat'] # and inventory_hostname == 'a360'
