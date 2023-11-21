@@ -224,7 +224,7 @@ pipeline {
             }
         } 
 
-        /* stage('Install CIP')
+        stage('Install CIP')
         {
             steps
             {
@@ -244,7 +244,7 @@ pipeline {
                 }
 
             }
-        }  */
+        } 
 
        /*  stage('Seed Data')
         {
