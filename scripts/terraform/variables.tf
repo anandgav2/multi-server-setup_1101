@@ -1,19 +1,19 @@
-variable "region" {}
+variable "region" {
+  description = "AWS region"
+  default = "ap-south-1"
+}
 
-variable "ami" {}
+variable "ami" {
+  description = "Type of OS"
+  default = "ami-05c8ca4485f8b138a"
+}
 
 variable "instance_type" {
   description = "Type of Instance"
   default     = "r6i.2xlarge"
 }
 
-variable "server_cnt" {
-  description = "This is a variable of type number"
-  type        = number
-  default     = 2
-}
-
-variable "base_hostname" {
-  description = "Base hostname pattern (e.g., skuad-abinitio)"
-  default     = "skuad-abinitio"
+variable "host_alias_path" {
+  type    = string
+  default = "./host_alias.txt"
 }
