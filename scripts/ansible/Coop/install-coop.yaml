@@ -96,16 +96,6 @@
         group: abinitio
       loop: "{{ found_files.files }}"
       become_user: "{{ functional_user }}"
-      async: 600  
-      poll: 0 
-
-    - name: Wait for asynchronous tasks to complete
-      async_status:
-        jid: "{{ copy_result.ansible_job_id }}"
-      register: job_result
-      until: job_result.finished
-      retries: 3  # Adjust the number of retries as needed
-      delay: 10     # Adjust the delay between retries as needed
 
     - name: Untar Files
       shell: |
