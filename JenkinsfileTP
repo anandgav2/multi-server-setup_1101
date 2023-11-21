@@ -129,7 +129,7 @@ pipeline {
             }
         }
 
-        /* stage('Create EME')
+        stage('Create EME')
         {
             steps
             {
@@ -145,7 +145,7 @@ pipeline {
                     sh "echo ------- Create EME SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                 }
             }
-        }  */
+        } 
 
         /* stage('Install AG')
         {
