@@ -381,12 +381,11 @@
     - name: Display Status
       ansible.builtin.debug:
         var: command_output
-
-        
-    - name: set CIPDB_HOST param value
-      shell: source /etc/profile && {{ installer_path }}/source_and_run.sh XXurl $(m_env -g AB_HOST_INTERFACE)
-      register: CIPDB_HOST
-      become_user: "{{ functional_user }}" 
+   
+    - name: Get cipdb hostname
+      set_fact:
+         CIPDB_HOST: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',hostvars[item].ansible_host) | first | split(' ') | last }}"
+      loop: "{{ hostvars.keys() | select('match', 'cipdb') | list }}"
       
     - name: Write configuration pset dev for cip_private sandbox
       copy:
@@ -402,7 +401,7 @@
               CIP_COMMON_LOCAL_SEGMENTATION_LAYOUT@||||$CIP_COMMON_LOCAL_MFS
               CIP_COMMON_ADC_CONFIG_FILE@||||{{ cip_base_path }}/private_internal/config/config.dev.props
               CIP_COMMON_CIPDB_PORT@||||{{ cip_db_port }}
-              CIP_COMMON_CIPDB_DB_NAME@||||cip
+              CIP_COMMON_CIPDB_DB_NAME@||||{{ cip_db_name }}
               CIP_COMMON_QUERY_IT_SANDBOX@||||{{ sandbox_root }}/queryit   
               CIP_COMMON_QUERY_IT_DB_PASSWORD@||||{{ query_it_en_passwd }}
               CIP_COMMON_QUERY_IT_DB_USERNAME@||||{{ functional_user }}
@@ -423,7 +422,7 @@
               CIP_COMMON_NBOS_PORT@||||9001
               INBOUND_CHANNEL_ADC_HOSTS_FOR_NBOS_ADC_ADAPTER_QUEUE@||||{{ inbound_channel_adc_hosts_for_nbos_adc_adapter_queue }}
               CIP_COMMON_REPORT_SERVER@||||{{ cip_common_audit_server }}		
-              CIP_COMMON_CIPDB_HOST@||||{{ CIPDB_HOST.stdout }}
+              CIP_COMMON_CIPDB_HOST@||||{{ CIPDB_HOST }}
               CIP_COMMON_PYTHONPATH@||||{{ cip_base_path }}/ui/ab_python_lib/modules
               INBOUND_CHANNEL_NBOS_LOOKUP_FILE_SYSTEM_TYPE@||||local
       become_user: "{{ functional_user }}"              

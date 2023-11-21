@@ -95,6 +95,13 @@ for line in host_alias:
         print("      ansible_user: "+f_user)
         print("      ab_host_alias: '"+server+"'")
 
+    if "cipdb" in sub_systems:
+        print("    cipdb:")
+        print("      ansible_host: "+ip)
+        print("      ansible_ssh_private_key_file: "+pem_file)
+        print("      ansible_user: "+f_user)
+        print("      ab_host_alias: '"+server+"'")
+
 if a360_flag == 0:
     print("    a360:")
     print("      ansible_host: null")
