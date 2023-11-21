@@ -299,13 +299,13 @@
 
     - name: Get CIP host aliases
       set_fact:
-        cip_servers: "{{ cip_servers | default([]) + [ hostvars[item].ab_host_alias ] }}"
+        cip_servers: "{{ cip_servers | default([]) + [ hostvars[item].ab_host_alias, hostvars[item].ansible_hostname ] }}"
       loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
       when: hostvars[item].ansible_host !=  hostvars['a360'].ansible_host
 
     - name: Get A360 host aliases
       set_fact:
-        a360_servers: "{{ a360_servers | default([]) + [  hostvars[item].ab_host_alias ] }}"
+        a360_servers: "{{ a360_servers | default([]) + [  hostvars[item].ab_host_alias, hostvars[item].ansible_hostname ] }}"
       loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
       when: hostvars[item].ansible_host ==  hostvars['a360'].ansible_host
 
