@@ -24,7 +24,7 @@
      
     - name: Create sandbox and data hierarchy and set ownership
       shell: |
-        sudo mkdir -p {{ cip_base_path }}
+        sudo mkdir -p {{ sandbox_root }}/{{ functional_user }}/cip-v{{ cip_version }}
         sudo mkdir -p {{ data_root_path }}/cip
         sudo mkdir -p {{ data_root_path }}/cip/data-areas
         sudo chown -R {{ item }}:abinitio {{ data_root_path }}
