@@ -93,7 +93,7 @@ pipeline {
             }
         }
 
-        stage('Configure Server')
+        /* stage('Configure Server')
         {
             steps
             {
@@ -109,9 +109,9 @@ pipeline {
                     sh "echo ------- SERVER CONFIGURATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                 }
             }
-        }
+        } */
 
-        stage('Install Co>Operating System')
+        /* stage('Install Co>Operating System')
         {
             steps
             {
@@ -127,9 +127,9 @@ pipeline {
                     sh "echo ------- COOP INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                 }
             }
-        }
+        } */
 
-        stage('Create EME')
+        /* stage('Create EME')
         {
             steps
             {
@@ -145,9 +145,9 @@ pipeline {
                     sh "echo ------- Create EME SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                 }
             }
-        } 
+        }  */
 
-        stage('Install AG')
+        /* stage('Install AG')
         {
             steps
             {
@@ -164,9 +164,9 @@ pipeline {
                 }
 
             }
-        }
+        } */
 
-        stage('Install Cafe')
+        /* stage('Install Cafe')
         {
             steps
             {
@@ -183,9 +183,9 @@ pipeline {
                 }
             }
 
-        }
+        } */
 
-        stage('Install CC')
+        /* stage('Install CC')
         {
             steps
             {
@@ -203,9 +203,9 @@ pipeline {
                 }
 
             }
-        }
+        } */
 
-        stage('Generate Execuatbles and CIP Inventory file')
+        /* stage('Generate Execuatbles and CIP Inventory file')
         {
             steps
             {
@@ -222,9 +222,9 @@ pipeline {
                 }
 
             }
-        } 
+        }  */
 
-        stage('Install CIP')
+        /* stage('Install CIP')
         {
             steps
             {
@@ -244,9 +244,9 @@ pipeline {
                 }
 
             }
-        } 
+        }  */
 
-        stage('Seed Data')
+       /*  stage('Seed Data')
         {
             steps
             {
@@ -265,9 +265,9 @@ pipeline {
                 }
 
             }
-        } 
+        }  */
 
-        stage('Install QueryIT')
+        /* stage('Install QueryIT')
         {
             steps
             {
@@ -284,9 +284,9 @@ pipeline {
                     sh "echo ------- Install Query>IT SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                 }
             }
-        }
+        } */
 
-        stage('Start CIP Subsystem')
+        /* stage('Start CIP Subsystem')
         {
             steps
             {
@@ -304,9 +304,9 @@ pipeline {
                 }
 
             }
-        }
+        } */
 
-        stage('Start CIPUI')
+        /* stage('Start CIPUI')
         {
             steps
             {
@@ -324,7 +324,7 @@ pipeline {
                 }
 
             }
-        }
+        } */
 
 /*          stage('Install A360')
         {
