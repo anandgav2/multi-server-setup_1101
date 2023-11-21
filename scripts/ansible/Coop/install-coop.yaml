@@ -96,6 +96,8 @@
         group: abinitio
       loop: "{{ found_files.files }}"
       become_user: "{{ functional_user }}"
+      async: 600  
+      poll: 0 
 
     - name: Untar Files
       shell: |
@@ -185,7 +187,7 @@
         line: |
           AB_HOSTNAME_KEYSERVER_URLS : {{ ab_key_client_host_urls }} 
           AB_CHARSET : utf-8 
-          AB_HOST_INTERFACE : {{ ansible_hostname }}
+          AB_HOST_INTERFACE : {{ ab_host_alias }}
           AB_AIR_ROOT : //{{ eme_host_alias }}{{ data_root_path }}/eme/cipeme/repo
           AB_TCP_PORT_LEAST : 15000
           AB_TCP_PORT_MOST : 35000
