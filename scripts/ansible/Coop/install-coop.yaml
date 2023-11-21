@@ -25,11 +25,11 @@
 
     - name: Update coop-config.ini
       shell: |
-        sed -i 's/destination=*/destination={{ ab_home_dir }}/g' {{ installer_path }}/coop-config.ini
-        sed -i 's/app_hub_dest=*/app_hub_dest={{ ab_application_hub }}/g' {{ installer_path }}/coop-config.ini
-        sed -i 's/owner=abinitio/owner={{ functional_user }}/g' {{ installer_path }}/coop-config.ini
-        sed -i 's/utility=*/utility={{ ab_work_dir }}/g' {{ installer_path }}/coop-config.ini
-        sed -i 's/data_dir=*/data_dir={{ ab_data_dir }}/g' {{ installer_path }}/coop-config.ini
+        sed -i 's#destination=.*#destination={{ ab_home_dir }}#g' {{ installer_path }}/coop-config.ini
+        sed -i 's#app_hub_dest=.*#app_hub_dest={{ ab_application_hub }}#g' {{ installer_path }}/coop-config.ini
+        sed -i 's#owner=abinitio#owner={{ functional_user }}#g' {{ installer_path }}/coop-config.ini
+        sed -i 's#utility=.*#utility={{ ab_work_dir }}#g' {{ installer_path }}/coop-config.ini
+        sed -i 's#data_dir=.*#data_dir={{ ab_data_dir }}#g' {{ installer_path }}/coop-config.ini
       become_user: "{{ functional_user }}"
 
     - name: Read Configuration File
