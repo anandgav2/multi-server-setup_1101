@@ -100,11 +100,6 @@
           {{ hostvars[item].ansible_host + ' ' + hostvars[item].ansible_hostname }}
           {{ hostvars[item].ansible_default_ipv4.address + ' ' + hostvars[item].ansible_hostname }}
       loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
-
-    - name: hostvars
-      debug:
-        var: hostvars[item]
-      loop: "{{ hostvars.keys() | select('match', '^server1.*') | list }}"
      
     - name: Log step
       lineinfile:
