@@ -96,7 +96,9 @@
     - name: Add remote host and public ip entries to /etc/hosts
       lineinfile:
         path: /etc/hosts
-        line: "{{ hostvars[item].ansible_host + ' ' + hostvars[item].ansible_hostname }}"
+        line: |
+          {{ hostvars[item].ansible_host + ' ' + hostvars[item].ansible_hostname }}
+          {{ hostvars[item].ansible_default_ipv4.address + ' ' + hostvars[item].ansible_hostname }}
       loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
 
     - name: hostvars
