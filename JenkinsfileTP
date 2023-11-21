@@ -93,7 +93,7 @@ pipeline {
             }
         }
 
-        /* stage('Configure Server')
+        stage('Configure Server')
         {
             steps
             {
@@ -109,7 +109,7 @@ pipeline {
                     sh "echo ------- SERVER CONFIGURATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                 }
             }
-        } */
+        }
 
         /* stage('Install Co>Operating System')
         {
