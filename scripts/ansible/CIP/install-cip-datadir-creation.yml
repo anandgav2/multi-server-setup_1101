@@ -20,21 +20,21 @@
     - name: Checkout stdenv 
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
-        - air project export /Projects/abinitio/stdenv -basedir {{ sandbox_root }}/abinitio/stdenv
+        - air project export /Projects/abinitio/stdenv -basedir {{ sandbox_root }}/{{ functional_user }}/stdenv
       register: command_output
       become_user: "{{ functional_user }}"
 
     - name: Create Parent Directories for Project
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
-        - air sandbox pset "{{ sandbox_root }}/abinitio/stdenv/.sandbox.pset" -base "{{ sandbox_root }}/abinitio/stdenv/dev.pset"
-        - define-directories -basedir {{ sandbox_root }}/abinitio/stdenv -type both -mfs-depth {{ data_mfs_depth }} -subdir default
-        - build-mfs -basedir {{ sandbox_root }}/abinitio/stdenv -mfs-depth {{ data_mfs_depth }} -data-areas {{ data_root_path }}/cip/data-areas
-        - build-mfs -basedir {{ sandbox_root }}/abinitio/stdenv -mfs-depth {{ cp_data_mfs_depth }} -data-areas {{ data_root_path }}/cip/data-areas
+        - air sandbox pset "{{ sandbox_root }}/{{ functional_user }}/stdenv/.sandbox.pset" -base "{{ sandbox_root }}/{{ functional_user }}/stdenv/dev.pset"
+        - define-directories -basedir {{ sandbox_root }}/{{ functional_user }}/stdenv -type both -mfs-depth {{ data_mfs_depth }} -subdir default
+        - build-mfs -basedir {{ sandbox_root }}/{{ functional_user }}/stdenv -mfs-depth {{ data_mfs_depth }} -data-areas {{ data_root_path }}/cip/data-areas
+        - build-mfs -basedir {{ sandbox_root }}/{{ functional_user }}/stdenv -mfs-depth {{ cp_data_mfs_depth }} -data-areas {{ data_root_path }}/cip/data-areas
       register: command_output
       become_user: "{{ functional_user }}"
       args:
-        chdir: "{{ sandbox_root }}/abinitio/stdenv"
+        chdir: "{{ sandbox_root }}/{{ functional_user }}/stdenv"
 
     - name: Display Status
       ansible.builtin.debug:
@@ -50,10 +50,14 @@
       no_log: true
       become: false 
 
+    - name: Set CIP Base path
+      set_fact:
+        cip_base_path: "{{ sandbox_root }}/{{ functional_user }}/cip-v{{ cip_version }}"
+
     - name: Checkout CIP
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
-        - air project export /Projects/abinitio/cip/private_internal -basedir {{ sandbox_root }}/abinitio/cip/private_internal -parameters -export-commons -common /Projects/abinitio {{ sandbox_root }}/abinitio -common /Projects/abinitio/cip/public_internal {{ sandbox_root }}/abinitio/cip/public_internal
+        - air project export /Projects/abinitio/cip/private_internal -basedir {{ cip_base_path }}/private_internal -parameters -export-commons -common /Projects/abinitio {{ sandbox_root }}/{{ functional_user }} -common /Projects/abinitio/cip/public_internal {{ cip_base_path }}/public_internal
       register: command_output
       become_user: "{{ functional_user }}"
 
@@ -68,22 +72,22 @@
       register: command_output
       become_user: "{{ functional_user }}"
       args:
-        chdir: "{{ sandbox_root }}/abinitio/cip/public_internal"
+        chdir: "{{ cip_base_path }}/public_internal"
 
     - name: Configure CIP Private Sandbox
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
         - air sandbox pset .sandbox.pset -base dev.pset
-        - project-directories -create abinitio -proj {{ sandbox_root }}/abinitio/cip/private_internal -ignore-owner -all-commons
-        - chmod 777 {{ sandbox_root }}/abinitio/cip/private_internal/dev.pset
-        - air sandbox parameter -path {{ sandbox_root }}/abinitio/cip/private_internal/dev.pset AI_MFS_DEPTH@ {{ cp_data_mfs_depth }}
-        - project-directories -create abinitio -proj {{ sandbox_root }}/abinitio/cip/private_internal -ignore-owner -all-commons
-        - air sandbox parameter -path {{ sandbox_root }}/abinitio/cip/private_internal/dev.pset AI_MFS_DEPTH@ {{ data_mfs_depth }}
-        - mkdir {{ sandbox_root }}/abinitio/cip/private_internal/run
+        - project-directories -create abinitio -proj {{ cip_base_path }}/private_internal -ignore-owner -all-commons
+        - chmod 777 {{ cip_base_path }}/private_internal/dev.pset
+        - air sandbox parameter -path {{ cip_base_path }}/private_internal/dev.pset AI_MFS_DEPTH@ {{ cp_data_mfs_depth }}
+        - project-directories -create abinitio -proj {{ cip_base_path }}/private_internal -ignore-owner -all-commons
+        - air sandbox parameter -path {{ cip_base_path }}/private_internal/dev.pset AI_MFS_DEPTH@ {{ data_mfs_depth }}
+        - mkdir {{ cip_base_path }}/private_internal/run
       register: command_output
       become_user: "{{ functional_user }}"
       args:
-        chdir: "{{ sandbox_root }}/abinitio/cip/private_internal"
+        chdir: "{{ cip_base_path }}/private_internal"
       ignore_errors: True
 
 #    - name: Run create env and queue job
@@ -93,7 +97,7 @@
 #      register: command_output
 #      become_user: "{{ functional_user }}"
 #      args:
-#        chdir: "{{ sandbox_root }}/abinitio/cip/private_internal/run"
+#        chdir: "{{ cip_base_path }}/private_internal/run"
 
 #    - name: Display Status
 #      ansible.builtin.debug:
