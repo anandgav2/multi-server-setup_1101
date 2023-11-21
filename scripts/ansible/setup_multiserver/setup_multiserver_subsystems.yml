@@ -23,7 +23,6 @@
          msg: "{{ item | split(' ') | first}}"
       loop: "{{ host_alias_content }}"
 
-
     - name: get server configuration
       ansible.builtin.debug:
               #msg: "{{ {{ item | split(' ') | first }}_config }}"
@@ -37,7 +36,8 @@
       include_tasks: parse_multiserver_config.yaml
       vars:
         host: "{{ item | split(' ') | first }}"
-        host_ip: "{{ item | split(' ') | last }}"
+        #host_ip: "{{ item | split(' ') | last }}"
+        host_ip: "{{ item.split(' ')[1] }}"
         pem_file: "{{ ansible_env.PWD | dirname | dirname }}/terraform/aws-cip-key-multi.pem"
         config: "{{ lookup('vars',item | split(' ') | first + '_config') }}"
         counter: "{{ iteration+1 }}"
@@ -51,7 +51,8 @@
       include_tasks: parse_multiserver_config.yaml
       vars:
         host: "{{ item | split(' ') | first }}"
-        host_ip: "{{ item | split(' ') | last }}"
+        #host_ip: "{{ item | split(' ') | last }}"
+        host_ip: "{{ item.split(' ')[1] }}"
         pem_file: "{{ lookup('vars',item | split(' ') | first + '_private_key') }}"
         config: "{{ lookup('vars',item | split(' ') | first + '_config') }}"
         counter: "{{ iteration+1 }}"

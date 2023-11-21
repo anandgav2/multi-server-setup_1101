@@ -15,6 +15,15 @@
 - name: Load Global config parameters
   include_vars:
     file: executables.yml
+    file: "{{ installer_path }}/installer-versions.yml"
+
+- name: Set enrichment based on cip_version
+  set_fact:
+    enrichment: "{{ vars['enrichmentV' + cip_version.split('-')[0]] }}"
+    
+- name: Display enrichment variable
+  debug:
+    var: enrichment
 
 - name: write to inventory
   shell: |

@@ -5,8 +5,7 @@ detect: cip-control,detect_subsystem,$AI_PSET/event_engine/detect_subsystem.pset
 fulfillment: cip-control,fulfillment_subsystem,$AI_PSET/fulfillment/fulfillment_subsystem.pset,Plan
 communication: cip-control,communication_subsystem,$AI_PSET/communication/communication_subsystem.pset,Plan
 control: cip-control,control_subsystem,$AI_PSET/control/control_plan.pset,Plan
-#a360_enrichment: cip-control,enrichment_subsystem,$AI_PSET/enrichment/a360_integrated_enrichment_subsystem.pset,Plan
-#enrichment: cip-control,enrichment_subsystem,$AI_PSET/enrichment/a360_enrich_events.pset,Graph
-enrichment: cip-control,enrichment_subsystem,$AI_PSET/enrichment/enrichment_subsystem.pset,Plan
+enrichmentV3: cip-control,enrichment_subsystem,$AI_PSET/enrichment/enrichment_subsystem.pset,Plan
+enrichmentV4: cip-control,enrichment_subsystem,$AI_PSET/enrichment/a360_enrich_events.pset,Graph
 collect_event: cip-control,collect_event_subsystem,$AI_PSET/collect_integrate/cip/collect_event_subsystem.pset,Plan
 nbos_adapter: cip-control,nbos,$AI_PSET/inbound_channel/nbos_start_services.pset,Plan
