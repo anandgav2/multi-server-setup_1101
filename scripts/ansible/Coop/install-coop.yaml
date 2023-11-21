@@ -25,7 +25,11 @@
 
     - name: Update coop-config.ini
       shell: |
+        sed -i 's/destination=*/destination={{ ab_home_dir }}/g' {{ installer_path }}/coop-config.ini
+        sed -i 's/app_hub_dest=*/app_hub_dest={{ ab_application_hub }}/g' {{ installer_path }}/coop-config.ini
         sed -i 's/owner=abinitio/owner={{ functional_user }}/g' {{ installer_path }}/coop-config.ini
+        sed -i 's/utility=*/utility={{ ab_work_dir }}/g' {{ installer_path }}/coop-config.ini
+        sed -i 's/data_dir=*/data_dir={{ ab_data_dir }}/g' {{ installer_path }}/coop-config.ini
       become_user: "{{ functional_user }}"
 
     - name: Read Configuration File
@@ -121,9 +125,18 @@
           destination: {{ destination }}
           app_hub_dest: {{ app_hub_dest }}
 
+    - name: Copy host alias File
+      copy:        
+        src: "{{ installer_path }}/host_alias.txt"
+        dest: "{{ installer_path }}"
+        remote_src: false
+        group: abinitio
+      become_user: "{{ functional_user }}"
+
     - name: find host alias in host_alias.txt
       set_fact:
-         host_alias: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',hostvars[item].ansible_host) | first | split(' ') | first }}"
+         eme_host_alias: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',hostvars[item].ansible_host) | first | split(' ') | first }}"
+         ab_host_alias: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search', ansible_host) | first | split(' ') | first }}"
       loop: "{{ hostvars.keys() | select('match', 'eme') | list }}"
          
     #values set according to skuad-e2e-abinitio01
@@ -169,7 +182,7 @@
           AB_HOSTNAME_KEYSERVER_URLS : {{ ab_key_client_host_urls }} 
           AB_CHARSET : utf-8 
           AB_HOST_INTERFACE : {{ ansible_hostname }}
-          AB_AIR_ROOT : //{{ host_alias }}{{ data_root_path }}/eme/cipeme/repo
+          AB_AIR_ROOT : //{{ eme_host_alias }}{{ data_root_path }}/eme/cipeme/repo
           AB_TCP_PORT_LEAST : 15000
           AB_TCP_PORT_MOST : 35000
         state: present
@@ -184,7 +197,7 @@
           AB_DESCRIPTION @ {{ ab_key_group }} : Rype Development and training server
 
           AB_EME_REPOSITORIES : cipeme
-          AB_AIR_ROOT @ cipeme : //{{ host_alias }}{{ data_root_path }}/eme/cipeme/repo
+          AB_AIR_ROOT @ cipeme : //{{ eme_host_alias }}{{ data_root_path }}/eme/cipeme/repo
           AB_DISPLAY_NAME @ cipeme : cipeme
           AB_DESCRIPTION @ cipeme : CIP Technical Repository
         state: present  
@@ -253,16 +266,29 @@
       register: command_output
       become_user: "{{ functional_user }}"
 
-    - name: Get CIP hostnames and IPs
+    # - name: Get CIP hostnames and IPs
+    #   set_fact:
+    #     cip_servers: "{{ cip_servers | default([]) + [ hostvars[item].ansible_hostname, hostvars[item].ansible_host ] }}"
+    #     a360_servers: "{{ a360_servers | default([]) + [ 'localhost' ]}}"
+    #   loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
+    #   when: hostvars[item].ansible_host !=  hostvars['a360'].ansible_host
+
+    # - name: Get A360 hostnames and IPs
+    #   set_fact:
+    #     a360_servers: "{{ a360_servers | default([]) + [  hostvars[item].ansible_hostname , hostvars[item].ansible_host ] }}"
+    #   loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
+    #   when: hostvars[item].ansible_host ==  hostvars['a360'].ansible_host
+
+    - name: Get CIP host aliases
       set_fact:
-        cip_servers: "{{ cip_servers | default([]) + [ hostvars[item].ansible_hostname, hostvars[item].ansible_host ] }}"
+        cip_servers: "{{ cip_servers | default([]) + [ hostvars[item].ab_host_alias ] }}"
         a360_servers: "{{ a360_servers | default([]) + [ 'localhost' ]}}"
       loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
       when: hostvars[item].ansible_host !=  hostvars['a360'].ansible_host
 
-    - name: Get A360 hostnames and IPs
+    - name: Get A360 host aliases
       set_fact:
-        a360_servers: "{{ a360_servers | default([]) + [  hostvars[item].ansible_hostname , hostvars[item].ansible_host ] }}"
+        a360_servers: "{{ a360_servers | default([]) + [  hostvars[item].ab_host_alias ] }}"
       loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
       when: hostvars[item].ansible_host ==  hostvars['a360'].ansible_host
 
@@ -270,7 +296,8 @@
       lineinfile:
         path: "/home/{{ functional_user }}/.abinitiorc"
         line: |
-          AB_JOB_ALLOWED_HOSTNAMES: {{ cip_servers | join(':') }}:{{ a360_servers | join(':') }}
+          AB_HOST_ALIAS_FILE: {{ installer_path }}/host_alias.txt
+          #AB_JOB_ALLOWED_HOSTNAMES: {{ cip_servers | join(':') }}:{{ a360_servers | join(':') }}
  
           AB_NODES @ CIP : {{ cip_servers | join(' ') }}
           AB_USERNAME @ CIP : {{ functional_user }}
@@ -299,93 +326,30 @@
       no_log: true
       become: false
 
-    - name: SSH into the server and accept key fingerprint HOSTNAME
+    - name: Get SSH Sever
+      set_fact:
+        ssh_servers: "{{ ssh_servers | default([]) + [ hostvars[item].ansible_hostname, hostvars[item].ansible_host ] }}"
+      loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
+  
+    - name: SSH into the server and accept key fingerprint for hetro connection
       expect:
         command: ssh {{ item }}
         responses:
           'Are you sure you want to continue connecting (yes/no/[fingerprint])?': "yes"
         timeout: 10
       become_user: "{{ functional_user }}"
-      loop: "{{ cip_servers }}"
+      loop: "{{ ssh_servers }}"
       ignore_errors: yes
 
-    - name: SSH into the server and accept key fingerprint IP
-      expect:
-        command: ssh {{ item }}
-        responses:
-          'Are you sure you want to continue connecting (yes/no/[fingerprint])?': "yes"
-        timeout: 10
-      become_user: "{{ functional_user }}"
-      loop: "{{ a360_servers }}"
-      ignore_errors: yes
-
-
-#EME code to moved to EME ansible
-#    - name: Create EME
-#      when: inventory_hostname != 'a360-instance'
-#      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh air repository create"
-#      register: command_output
-#      become_user: "{{ functional_user }}"
-#
-#    - name: Display EME Status
-#      when: inventory_hostname != 'a360-instance'
-#      ansible.builtin.debug:
-#        var: command_output.stdout_lines
-#
-#    - name: Change EME Charset
-#      when: inventory_hostname != 'a360-instance'
-#      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
-#      with_items:
-#        - air repository shutdown
-#        - air repository charset -change utf-8 -force
-#        - air repository start
-#        - air repository charset -show
-#      register: command_output
-#      become_user: "{{ functional_user }}"
-#
-#    - name: Check EME Status
-#      when: inventory_hostname != 'a360-instance'
-#      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
-#      with_items:
-#        - air repository show-server
-#      register: command_output
-#      become_user: "{{ functional_user }}"
-#
-#    - name: Display EME Status
-#      when: inventory_hostname != 'a360-instance'
-#      ansible.builtin.debug:
-#        var: command_output
-#
-#    - name: Log step
-#      when: inventory_hostname != 'a360-instance'
-#      lineinfile:
-#        path: "{{ log_file }}"
-#        line: |
-#          =>EME started on {{ inventory_hostname }}. EME Status
-#             {{ command_output.results[0].stdout }}
-#        state: present
-#      delegate_to: localhost
-#      no_log: true
-#      become: false
-#
-#    - name: Create EME Root User
-#      when: inventory_hostname != 'a360-instance'
-#      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
-#      with_items:
-#        - air system user create {{ eme_user }} -group eme-root -clear-password {{ eme_en_passwd }}
-#      register: command_output
-#      become_user: "{{ functional_user }}"
-#      no_log: true
-#
-#    - name: Publish Repository in apphubrc
-#      lineinfile:
-#        path: "{{ app_hub_dest }}/config/apphubrc"
-#        line: |
-#          AB_EME_REPOSITORIES : cipeme
-#          AB_AIR_ROOT @ cipeme : //{{ cip_hostname }}/{{ data_root_path }}/eme/cipeme/repo
-#          AB_DISPLAY_NAME @ cipeme : cipeme
-#          AB_DESCRIPTION @ cipeme : CIP Technical Repository
-#
+    # - name: SSH into the server and accept key fingerprint IP
+    #   expect:
+    #     command: ssh {{ item }}
+    #     responses:
+    #       'Are you sure you want to continue connecting (yes/no/[fingerprint])?': "yes"
+    #     timeout: 10
+    #   become_user: "{{ functional_user }}"
+    #   loop: "{{ a360_servers }}"
+    #   ignore_errors: yes
 
   handlers:
     - name: Reload Profile
