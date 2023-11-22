@@ -140,8 +140,7 @@
 
     - name: find host alias in host_alias.txt
       set_fact:
-         eme_host_alias: "{{ hostvars[item].ab_host_alias }}"
-      loop: "{{ hostvars.keys() | select('match', 'eme') | list }}"
+         eme_host_alias: "{{ hostvars['eme'].ab_host_alias }}"
          
     #values set according to skuad-e2e-abinitio01
     - name: Add environment parameters to /etc/profile
@@ -154,11 +153,6 @@
         state: present  # Add the line if not present
       notify: Reload Profile
 
-    - name: Get a360 host IP
-      set_fact:
-         a360_ip: "{{ hostvars[item].ansible_host }}"
-      loop: "{{ hostvars.keys() | select('match', 'a360') | list }}"
-
     - name: Add environment parameters to /etc/profile
       lineinfile:
         path: /etc/profile
@@ -166,7 +160,7 @@
           AB_AIR_ROOT=//{{ eme_host_alias }}{{ data_root_path }}/eme/cipeme/repo
         state: present  # Add the line if not present
       notify: Reload Profile
-      when: ansible_host != a360_ip
+      when: ab_host_alias != hostvars['a360'].ab_host_alias
 
     - name: Setup ab-cinfod daemon
       shell: |
@@ -192,6 +186,16 @@
       no_log: true
       become: false
 
+    - name: Create Host Alias File
+      lineinfile:
+        path: "{{ installer_path }}/host_alias_file.dat"
+        line: |
+          {{ hostvars[item].ab_host_alias }} {{ hostvars[item].ansible_hostname }}
+          {{ hostvars[item].ab_host_alias }} {{ hostvars[item].ansible_host }}
+        state: present
+      become_user: "{{ functional_user }}"
+      loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
+
     #values set according to skuad-e2e-abinitio01
     - name: Set params in global abinitiorc
       lineinfile:
@@ -199,11 +203,11 @@
         line: |
           AB_HOSTNAME_KEYSERVER_URLS : {{ ab_key_client_host_urls }} 
           AB_CHARSET : utf-8 
-          AB_HOST_INTERFACE : {{ ansible_hostname }}
+          AB_HOST_INTERFACE : {{ ab_host_alias }}
           AB_AIR_ROOT : //{{ eme_host_alias }}{{ data_root_path }}/eme/cipeme/repo
           AB_TCP_PORT_LEAST : 15000
           AB_TCP_PORT_MOST : 35000
-          AB_HOST_ALIAS_FILE: {{ installer_path }}/host_alias.txt
+          AB_HOST_ALIAS_FILE: {{ installer_path }}/host_alias_file.dat
         state: present
 
     #values set according to skuad-e2e-abinitio01
