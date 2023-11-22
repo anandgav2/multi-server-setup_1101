@@ -53,7 +53,7 @@
     - name: Checkout CIP
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
-        - air project export /Projects/abinitio/cip/private_internal -basedir {{ cip_base_path }}/private_internal -parameters -export-commons -common /Projects/abinitio {{ cip_base_path }}/abinitio -common /Projects/abinitio/cip/public_internal {{ cip_base_path }}/public_internal
+        - air project export /Projects/abinitio/cip/private_internal -basedir {{ cip_base_path }}/private_internal -parameters -export-commons -common /Projects/abinitio {{ cip_base_path }}/abinitio -common /Projects/abinitio/cip/public_internal {{ cip_base_path }}/public_internal -common /Projects/abinitio/stdenv {{ sandbox_root }}/{{ functional_user }}/stdenv -exclude /Projects/abinitio/stdenv
       register: command_output
       become_user: "{{ functional_user }}"
 
@@ -74,10 +74,10 @@
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
         - air sandbox pset .sandbox.pset -base dev.pset
-        - project-directories -create abinitio -proj {{ cip_base_path }}/private_internal -ignore-owner -all-commons
+        - project-directories -create {{ functional_user }} -proj {{ cip_base_path }}/private_internal -ignore-owner -all-commons
         - chmod 777 {{ cip_base_path }}/private_internal/dev.pset
         - air sandbox parameter -path {{ cip_base_path }}/private_internal/dev.pset AI_MFS_DEPTH@ {{ cp_data_mfs_depth }}
-        - project-directories -create abinitio -proj {{ cip_base_path }}/private_internal -ignore-owner -all-commons
+        - project-directories -create {{ functional_user }} -proj {{ cip_base_path }}/private_internal -ignore-owner -all-commons
         - air sandbox parameter -path {{ cip_base_path }}/private_internal/dev.pset AI_MFS_DEPTH@ {{ data_mfs_depth }}
         - mkdir {{ cip_base_path }}/private_internal/run
       register: command_output

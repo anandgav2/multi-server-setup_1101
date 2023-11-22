@@ -250,7 +250,7 @@
     - name: Copy files to remote host
       copy:
         src: "{{ folder_path }}/ab_python_lib.tgz"
-        dest: "{{ cip_base_path }}/ui/ab_python_lib.V{{ cip_version }}.tgz"
+        dest: "{{ cip_base_path }}/ui/ab_python_lib.v{{ cip_version }}.tgz"
         remote_src: true
         group: abinitio
       loop: "{{ found_files.files }}"
@@ -259,7 +259,7 @@
     - name: Copy UI files to remote host
       copy:
         src: "{{ folder_path }}/ui.tgz"
-        dest: "{{ cip_base_path }}/ui/ui.V{{ cip_version }}.tgz"
+        dest: "{{ cip_base_path }}/ui/ui.v{{ cip_version }}.tgz"
         remote_src: true
         group: abinitio
       loop: "{{ found_files.files }}"
@@ -267,21 +267,21 @@
 
     - name: Untar Python modules
       shell: |
-        su - {{ item }} -c "tar -zxvf {{ cip_base_path }}/ui/ab_python_lib.V{{ cip_version }}.tgz -C {{ cip_base_path }}/ui"
-        mv {{ cip_base_path }}/ui/ab_python_lib {{ cip_base_path }}/ui/ab_python_lib.V{{ cip_version }}
+        su - {{ item }} -c "tar -zxvf {{ cip_base_path }}/ui/ab_python_lib.v{{ cip_version }}.tgz -C {{ cip_base_path }}/ui"
+        mv {{ cip_base_path }}/ui/ab_python_lib {{ cip_base_path }}/ui/ab_python_lib.v{{ cip_version }}
       loop:
         -  "{{ functional_user }}"
     
     - name: Untar UI module
       shell: |
-        su - {{ item }} -c "tar -zxvf {{ cip_base_path }}/ui/ui.V{{ cip_version }}.tgz -C {{ cip_base_path }}/ui"
-        mv {{ cip_base_path }}/ui/web {{ cip_base_path }}/ui/web.V{{ cip_version }}
+        su - {{ item }} -c "tar -zxvf {{ cip_base_path }}/ui/ui.v{{ cip_version }}.tgz -C {{ cip_base_path }}/ui"
+        mv {{ cip_base_path }}/ui/web {{ cip_base_path }}/ui/web.v{{ cip_version }}
       loop:
         -  "{{ functional_user }}"
 
     - name: Create Sym Link for Python modules
       file:
-        src: "{{ cip_base_path }}/ui/ab_python_lib.V{{ cip_version }}"
+        src: "{{ cip_base_path }}/ui/ab_python_lib.v{{ cip_version }}"
         dest: "{{ cip_base_path }}/ui/ab_python_lib"
         state: link
         group: abinitio
@@ -289,7 +289,7 @@
 
     - name: Create Sym Link for web
       file:
-        src: "{{ cip_base_path }}/ui/web.V{{ cip_version }}"
+        src: "{{ cip_base_path }}/ui/web.v{{ cip_version }}"
         dest: "{{ cip_base_path }}/ui/web"
         state: link
         group: abinitio
@@ -364,7 +364,7 @@
     - name: Checkout CIP 
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
-        - air project export /Projects/abinitio/cip/private_internal -basedir {{ cip_base_path }}/private_internal -parameters -export-commons -common /Projects/abinitio {{ cip_base_path }}/abinitio -common /Projects/abinitio/cip/public_internal {{ cip_base_path }}/public_internal
+        - air project export /Projects/abinitio/cip/private_internal -basedir {{ cip_base_path }}/private_internal -parameters -export-commons -common /Projects/abinitio {{ cip_base_path }}/abinitio -common /Projects/abinitio/cip/public_internal {{ cip_base_path }}/public_internal -common /Projects/abinitio/stdenv {{ sandbox_root }}/{{ functional_user }}/stdenv -exclude /Projects/abinitio/stdenv
       register: command_output
       become_user: "{{ functional_user }}"
 

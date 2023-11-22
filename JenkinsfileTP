@@ -267,7 +267,7 @@ pipeline {
             }
         } 
 
-        /* stage('Install QueryIT')
+        stage('Install QueryIT')
         {
             steps
             {
@@ -284,9 +284,9 @@ pipeline {
                     sh "echo ------- Install Query>IT SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                 }
             }
-        } */
+        }
 
-        /* stage('Start CIP Subsystem')
+        stage('Start CIP Subsystem')
         {
             steps
             {
@@ -304,9 +304,9 @@ pipeline {
                 }
 
             }
-        } */
+        }
 
-        /* stage('Start CIPUI')
+        stage('Start CIPUI')
         {
             steps
             {
@@ -324,7 +324,7 @@ pipeline {
                 }
 
             }
-        } */
+        }
 
 /*          stage('Install A360')
         {

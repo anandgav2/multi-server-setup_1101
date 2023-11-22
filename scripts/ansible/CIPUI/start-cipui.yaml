@@ -21,8 +21,8 @@
 
     - name: Set a new parameter based on an existing parameter
       set_fact:
-        json_file: "{{ sandbox_root }}/abinitio/cip/ui/web/config/default.json"
-        web_root_path: "{{ sandbox_root }}/abinitio/cip/ui/web"
+        json_file: "{{ cip_base_path }}/ui/web/config/default.json"
+        web_root_path: "{{ cip_base_path }}/ui/web"
         query_it_passwd: "{{ query_it_en_passwd }}"
 
     - name: Log step
@@ -45,17 +45,19 @@
 
     - name: find host alias in host_alias.txt
       set_fact:
-         control_server: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',hostvars[item].ansible_host) | first | split(' ') | first }}"
+         control_server: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',hostvars[item].ab_host_alias) | first | split(' ') | last }}"
       loop: "{{ hostvars.keys() | select('match', 'control') | list }}"
 
     - name: find host alias in host_alias.txt
       set_fact:
-         nbos_server: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',hostvars[item].ansible_host) | first | split(' ') | first }}"
-      loop: "{{ hostvars.keys() | select('match', 'nbos') | list }}"
+         nbos_server: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',hostvars[item].ab_host_alias) | first | split(' ') | last }}"
+      loop: "{{ hostvars.keys() | select('match', 'nbos_adapter') | list }}"
 
-    - name: Print logs
-      debug:
-         var: control_server
+    - name: find host alias in host_alias.txt
+      set_fact:
+         cipdb_server: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',hostvars[item].ab_host_alias) | first | split(' ') | last }}"
+      loop: "{{ hostvars.keys() | select('match', 'cipdb') | list }}"
+
         
     - name: Log step
       lineinfile:
@@ -146,7 +148,7 @@
       
     - name: "update Segmentation protoFilePath"
       command: >
-        jq ".Segmentation.protoFilePath=\"{{sandbox_root}}/abinitio/cip/cip_common/components/cip.proto\"" "{{json_file}}"
+        jq ".Segmentation.protoFilePath=\"{{ cip_base_path }}/abinitio/cip/cip_common/components/cip.proto\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -157,7 +159,7 @@
 
     - name: "update Segmentation mapFilePath"
       command: >
-        jq ".Segmentation.mapFilePath=\"{{sandbox_root}}/abinitio/cip/cip_common/components/cip.map\"" "{{json_file}}"
+        jq ".Segmentation.mapFilePath=\"{{ cip_base_path }}/abinitio/cip/cip_common/components/cip.map\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -179,7 +181,7 @@
 
     - name: "update Segmentation autosaveRootDirectory"
       command: >
-        jq ".Segmentation.autosaveRootDirectory=\"{{ sandbox_root }}/abinitio/cip/ez_autosave\"" "{{json_file}}"
+        jq ".Segmentation.autosaveRootDirectory=\"{{ cip_base_path }}/ez_autosave\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -190,7 +192,7 @@
 
     - name: "update Segmentation testSandbox"
       command: >
-        jq ".Segmentation.testSandbox=\"{{ sandbox_root }}/abinitio/cip/private_internal\"" "{{json_file}}"
+        jq ".Segmentation.testSandbox=\"{{ cip_base_path }}/private_internal\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -201,7 +203,7 @@
 
     - name: "update Segmentation queryitSandbox"
       command: >
-        jq ".Segmentation.queryitSandbox=\"{{ sandbox_root }}/queryit\"" "{{json_file}}"
+        jq ".Segmentation.queryitSandbox=\"{{ cip_base_path }}/queryit\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -380,17 +382,6 @@
         dest: "{{json_file}}"
       register: write_result
 
-    - name: "update NBOSQueryService Host"
-      command: >
-        jq ".NBOSQueryService.host=\"{{ansible_host}}\"" "{{json_file}}"
-      register: json_modify_result
-
-    - name: Write updated JSON back to file
-      ansible.builtin.copy:
-        content: "{{ json_modify_result.stdout| from_json|to_nice_json}}"
-        dest: "{{json_file}}"
-      register: write_result
-
     - name: "update ParseWebService Host"
       command: >
         jq ".ParseWebService.host=\"{{control_server}}\"" "{{json_file}}"
@@ -404,7 +395,7 @@
 
     - name: "update PostgressDB Host"
       command: >
-        jq ".PostgressDB.host=\"{{ansible_host}}\"" "{{json_file}}"
+        jq ".PostgressDB.host=\"{{cipdb_server}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -453,7 +444,7 @@
         echo ${PUBLIC_PROTOTYPE_SERIAL_HOME}/landing
       args:
         executable: /bin/ksh
-        chdir: "{{ sandbox_root }}/abinitio/cip/private_internal"
+        chdir: "{{ cip_base_path }}/private_internal"
       become_user: "{{ functional_user }}"
       register: command_output
 
@@ -519,7 +510,7 @@
     - name: add subscriber profile type into dml file
       lineinfile:
         line: "type subscriber_profile_t=subscriber_profile_payloaded_V1_t;"
-        path: "{{ sandbox_root }}/abinitio/cip/cip_common/dml/queryit/qe_cms_audit_types.dml"
+        path: "{{ cip_base_path }}/abinitio/cip/cip_common/dml/queryit/qe_cms_audit_types.dml"
         state: present
 
     - name: Log step
@@ -555,9 +546,9 @@
 
           set ssh_pass "{{ functional_user_password }}"
 
-          set use_nbos_query "N"
+          set use_nbos_query "Y"
 
-          cd "{{ sandbox_root }}/abinitio/cip/ui/web/"
+          cd "{{ cip_base_path }}/ui/web/"
 
           spawn npm run first_modeB
 
@@ -594,7 +585,7 @@
           send  "$use_nbos_query\r"
 
           interact
-        dest: "{{ sandbox_root }}/abinitio/cip/ui/web/input.exp"
+        dest: "{{ cip_base_path }}/ui/web/input.exp"
         mode: "0755"
         owner: "{{ functional_user }}"
 
@@ -606,7 +597,7 @@
     #  register: command_output
     #  become_user: "{{ functional_user }}"
     #  args:
-    #    chdir: "{{ sandbox_root }}/abinitio/cip/ui/web"    
+    #    chdir: "{{ cip_base_path }}/ui/web"    
 
     - name: Run first_modeB
       shell: |
@@ -617,7 +608,7 @@
         source /etc/profile
      
 
-        expect {{ sandbox_root }}/abinitio/cip/ui/web/input.exp
+        expect {{ cip_base_path }}/ui/web/input.exp
 
         echo "Done"
 
@@ -645,7 +636,7 @@
       register: command_output
       become_user: "{{ functional_user }}"
       args:
-        chdir: "{{ sandbox_root }}/abinitio/cip/ui/web"     
+        chdir: "{{ cip_base_path }}/ui/web"     
          
     - name: Print CIP UI logs
       debug:

@@ -17,13 +17,13 @@
         - "{{ comm_config_file }}"
         - ./config-params.yml
 
-    - name: Copy Config File
-      copy:
-        src: "../Coop/coop-config.ini"
-        dest: "{{ installer_path }}"
-        remote_src: false
-        group: abinitio
-      become_user: "{{ functional_user }}"
+    # - name: Copy Config File
+    #   copy:
+    #     src: "../Coop/coop-config.ini"
+    #     dest: "{{ installer_path }}"
+    #     remote_src: false
+    #     group: abinitio
+    #   become_user: "{{ functional_user }}"
 
     - name: Read Coop Configuration File
       slurp:
@@ -34,7 +34,6 @@
       set_fact:
         coop_config_values: "{{ (coop_config_file_content['content'] | b64decode).split('\n') | map('trim') }}"
       register: parsed_config
-
 
     - name: Read Installation Directory value from config
       set_fact:
@@ -53,9 +52,10 @@
 
     - name: Create sandbox and UI directory
       shell: |
-        sudo mkdir -p {{ sandbox_root }}/queryit
-        sudo mkdir -p {{ data_root_path }}/queryitdata
+        sudo mkdir -p {{ cip_base_path }}/queryit
+        sudo mkdir -p {{ data_root_path }}/queryitdata/
         sudo chown -R {{ item }}:abinitio {{ data_root_path }}
+        sudo chown -R {{ item }}:abinitio {{ cip_base_path }}
       loop:
         - "{{ functional_user }}"
 
@@ -72,13 +72,13 @@
     - name: Copy files to remote host
       copy:
         src: "{{ destination }}/abinitio-V{{ coop_version }}/lib/absql/absql.tar.gz"
-        dest:  "{{ sandbox_root }}"
+        dest:  "{{ sandbox_root }}/{{ functional_user }}"
         remote_src: true
         group: abinitio
       become_user: "{{ functional_user }}"
 
     - name: Untar Files
-      ansible.builtin.command: "tar xvf {{ sandbox_root }}/absql.tar.gz -C {{ sandbox_root }}"
+      ansible.builtin.command: "tar xvf {{ sandbox_root }}/{{ functional_user }}/absql.tar.gz -C {{ sandbox_root }}/{{ functional_user }}"
       register: command_output
       become_user: "{{ functional_user }}"
 
@@ -98,11 +98,11 @@
         
     - name: Install QueryIT
       ansible.builtin.command: 
-         cmd: sh -c "source /etc/profile && ./config-absql-sandbox.ksh -sandbox {{ sandbox_root }}/queryit -datadir {{ data_root_path }}/queryitdata -password {{ query_it_en_passwd }} -yes"
+         cmd: sh -c "source /etc/profile && ./config-absql-sandbox.ksh -sandbox {{ cip_base_path }}/queryit -datadir {{ data_root_path }}/queryitdata -password {{ query_it_en_passwd }} -yes"
       register: command_output
       become_user: "{{ functional_user }}"
       args:
-        chdir: "{{ sandbox_root }}/absql/bin"
+        chdir: "{{ sandbox_root }}/{{ functional_user }}/absql/bin"
 
     - name: Log step
       lineinfile:
@@ -119,32 +119,23 @@
       with_items:
         - "ab-qi service start"
         - "ab-qi service status"
-        - air sandbox parameter -basedir . common -common {{ sandbox_root }}/abinitio/cip/private_internal
+        - air sandbox parameter -basedir . common -common {{ cip_base_path }}/private_internal
       register: command_output
       become_user: "{{ functional_user }}"
       args:
-        chdir: "{{ sandbox_root }}/queryit"
+        chdir: "{{ cip_base_path }}/queryit"
 
     - name: Display Status
       ansible.builtin.debug:
         var: command_output
 
-    - name: Log step
-      lineinfile:
-        path: "{{ log_file }}"
-        line: |
-          => Overwriting Query>IT Parameters in CIP 
-        state: present
-      delegate_to: localhost
-      no_log: true
-      become: false
 
     - name: Add QueryIt information in global apphubrc
       lineinfile:
         path: "{{ app_hub_dest }}/config/apphubrc"
         line: |
           AB_SQL_INSTANCES : queryit
-          AB_SQL_INSTANCE_PATH @ queryit : {{ sandbox_root }}/queryit
+          AB_SQL_INSTANCE_PATH @ queryit : {{ cip_base_path }}/queryit
 
     - name: Log step
       lineinfile:
@@ -160,8 +151,8 @@
       ansible.builtin.copy:
         content: |
           #!/bin/ksh
-          source {{ sandbox_root }}/abinitio/cip/private_internal/ab_project_setup.ksh {{ sandbox_root }}/abinitio/cip/private_internal
-          cd {{ sandbox_root }}/queryit
+          source {{ cip_base_path }}/private_internal/ab_project_setup.ksh {{ cip_base_path }}/private_internal
+          cd {{ cip_base_path }}/queryit
           ab-qi add dataspace ai_mfs -data_source_kind mfile -url
           ab-qi add schema cip
           ab-qi add datasource cip.subscriber_profile -kind subgraph_advanced -subgraph_path ${CIP_COMMON_COMPONENTS}/queryit/cip_lookup_query.mp -url mfile:${CIP_COMMON_LOCAL_MFS_LOOKUP} -record_format_file ${CIP_COMMON_DML}/queryit/subscriber_profile.dml
@@ -248,7 +239,7 @@
         ag-import run -feed "QueryitCreateUserGroup" -progress -approve
       become_user: "{{ functional_user }}"   
 
-- name: Assign Query>it User Role in AG
+- name: Verify Query>it User Role in AG
   hosts: queryit
   become: yes 
   vars:
@@ -279,7 +270,7 @@
     - name: check ag connection for queryit
       shell: |
         source /etc/profile
-        cd {{ sandbox_root }}/queryit
+        cd {{ cip_base_path }}/queryit
         ab-qi ag auth_user {{ web_app_user }} {{ web_app_user }}
       become_user: "{{ functional_user }}"
 
