@@ -203,6 +203,7 @@
           AB_AIR_ROOT : //{{ eme_host_alias }}{{ data_root_path }}/eme/cipeme/repo
           AB_TCP_PORT_LEAST : 15000
           AB_TCP_PORT_MOST : 35000
+          AB_HOST_ALIAS_FILE: {{ installer_path }}/host_alias.txt
         state: present
 
     #values set according to skuad-e2e-abinitio01
@@ -313,7 +314,7 @@
       lineinfile:
         path: "/home/{{ functional_user }}/.abinitiorc"
         line: |
-          AB_HOST_ALIAS_FILE: {{ installer_path }}/host_alias.txt
+          
           #AB_JOB_ALLOWED_HOSTNAMES: {{ cip_servers | join(':') }}:{{ a360_servers | join(':') }}
  
           AB_NODES @ CIP : {{ cip_servers | join(' ') }}

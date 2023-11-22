@@ -59,16 +59,6 @@
         state: present
       when: ansible_host != a360_ip
 
-    - name: Write Common Config
-      lineinfile:
-        path: "{{ comm_config_file }}"
-        line: |
-          cip_db_name: "{{ cip_db_name }}"
-          cip_db_port: "{{ cip_db_port }}"
-        state: present
-      delegate_to: localhost
-      become: false
-
 
 - name: CIP Installation
   hosts: cipui
@@ -374,18 +364,13 @@
     - name: Checkout CIP 
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
-        - air project export /Projects/abinitio/cip/private_internal -basedir {{ cip_base_path }}/private_internal -parameters -export-commons -common /Projects/abinitio {{ sandbox_root }}/{{ functional_user }} -common /Projects/abinitio/cip/public_internal {{ cip_base_path }}/public_internal
+        - air project export /Projects/abinitio/cip/private_internal -basedir {{ cip_base_path }}/private_internal -parameters -export-commons -common /Projects/abinitio {{ cip_base_path }}/abinitio -common /Projects/abinitio/cip/public_internal {{ cip_base_path }}/public_internal
       register: command_output
       become_user: "{{ functional_user }}"
 
     - name: Display Status
       ansible.builtin.debug:
         var: command_output
-   
-    - name: Get cipdb hostname
-      set_fact:
-         CIPDB_HOST: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() | select('search',hostvars[item].ansible_host) | first | split(' ') | last }}"
-      loop: "{{ hostvars.keys() | select('match', 'cipdb') | list }}"
       
     - name: Write configuration pset dev for cip_private sandbox
       copy:
@@ -402,7 +387,7 @@
               CIP_COMMON_ADC_CONFIG_FILE@||||{{ cip_base_path }}/private_internal/config/config.dev.props
               CIP_COMMON_CIPDB_PORT@||||{{ cip_db_port }}
               CIP_COMMON_CIPDB_DB_NAME@||||{{ cip_db_name }}
-              CIP_COMMON_QUERY_IT_SANDBOX@||||{{ sandbox_root }}/queryit   
+              CIP_COMMON_QUERY_IT_SANDBOX@||||{{ cip_base_path }}/queryit   
               CIP_COMMON_QUERY_IT_DB_PASSWORD@||||{{ query_it_en_passwd }}
               CIP_COMMON_QUERY_IT_DB_USERNAME@||||{{ functional_user }}
               CIP_COMMON_ALL_TARGET_SERVERS@||||{{ cip_common_all_target_servers }}

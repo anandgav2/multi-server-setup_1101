@@ -92,5 +92,6 @@
         - "{{ 'cip_common_nbos_server: ' + cip_common_nbos_server | split(',') | reject('match', '^$') | unique | join(',') }}"
         - "{{ 'cip_common_nbos_server_v1: ' + cip_common_nbos_server_v1 | split(',') | reject('match', '^$') | unique | join(',') }}"
         - "{{ 'inbound_channel_adc_hosts_for_nbos_adc_adapter_queue: ' + inbound_channel_adc_hosts_for_nbos_adc_adapter_queue | split(',') | reject('match', '^$') | unique | join(',') }}"
+        - "{{ 'CIPDB_HOST: ' + CIPDB_HOST | split(',') | reject('match', '^$') | unique | join(',') }}"
       loop_control:
         loop_var: subsystem_mapping

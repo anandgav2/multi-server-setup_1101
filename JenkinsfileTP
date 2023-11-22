@@ -246,7 +246,7 @@ pipeline {
             }
         } 
 
-       /*  stage('Seed Data')
+        stage('Seed Data')
         {
             steps
             {
@@ -265,7 +265,7 @@ pipeline {
                 }
 
             }
-        }  */
+        } 
 
         /* stage('Install QueryIT')
         {

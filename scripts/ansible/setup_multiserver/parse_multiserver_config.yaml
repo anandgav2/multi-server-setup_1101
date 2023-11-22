@@ -106,12 +106,12 @@
 - name: set to cip_common_enrichment_queue_servers
   set_fact:
     cip_common_enrichment_queue_servers: "{{ cip_common_enrichment_queue_servers| default('') + ',' + host }}"
-  when: '"enrichment" in config' 
+  when: '"enrichment_queue" in config.split(",")' 
 
 - name: set to cip_common_enrichment_servers
   set_fact:
     cip_common_enrichment_servers: "{{ cip_common_enrichment_servers| default('') + ',' + host }}"
-  when: '"enrichment" in config'
+  when: '"enrichment" in config.split(",")'
   
 - name: set to cip_common_inbound_channel_queue_servers
   set_fact:
@@ -133,6 +133,11 @@
   set_fact:
     inbound_channel_adc_hosts_for_nbos_adc_adapter_queue: "{{ inbound_channel_adc_hosts_for_nbos_adc_adapter_queue| default('') + ',' + host_name }}"
   when: '"nbos_data" in config'
+
+- name: set to cipdb_hostname
+  set_fact:
+     CIPDB_HOST: "{{ CIPDB_HOST | default('') + ',' + host_name }}"
+  when: '"cipdb" in config'
 
   #- name: print var
   #debug:
