@@ -30,7 +30,7 @@
         chdir: "{{ cip_base_path }}/private_internal/run"
       when: inventory_hostname == 'cipui'
 
-    - name: Pause for 120 seconds
+    - name: Pause for 60 seconds
       pause:
         seconds: 60
 
@@ -77,7 +77,7 @@
       pause:
         seconds: 30
 
-    - name: Import Seed Data SQL
+    - name: Load Subscriber Profile
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
         #- air sandbox run ../pset/utility/import_test_database.pset -IMPORT_DB_DUMP "{{ cip_base_path }}/private_internal/xls/seed_data_20221026_131503.sql"

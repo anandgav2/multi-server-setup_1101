@@ -299,7 +299,7 @@
       lineinfile:
         path: "{{ destination }}/abinitio-V{{ coop_version }}/config/abinitiorc"
         line: |
-          AB_SQL_MUTABLE_SEARCH_PATH : {{ cip_base_path }}/cip_common/components:~ab_home/lib/absql
+          AB_SQL_MUTABLE_SEARCH_PATH : {{ cip_base_path }}/abinitio/cip/cip_common/components:~ab_home/lib/absql
           AB_EASY_RESOLVE_NAMES_VERSION : 1
         state: present      
 

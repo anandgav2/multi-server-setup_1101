@@ -53,7 +53,7 @@
     - name: Create sandbox and UI directory
       shell: |
         sudo mkdir -p {{ cip_base_path }}/queryit
-        sudo mkdir -p {{ data_root_path }}/queryitdata/
+        sudo mkdir -p {{ data_root_path }}/cip/serial/abinitio/queryitdata/{{ functional_user }}
         sudo chown -R {{ item }}:abinitio {{ data_root_path }}
         sudo chown -R {{ item }}:abinitio {{ cip_base_path }}
       loop:
@@ -98,7 +98,7 @@
         
     - name: Install QueryIT
       ansible.builtin.command: 
-         cmd: sh -c "source /etc/profile && ./config-absql-sandbox.ksh -sandbox {{ cip_base_path }}/queryit -datadir {{ data_root_path }}/queryitdata -password {{ query_it_en_passwd }} -yes"
+         cmd: sh -c "source /etc/profile && ./config-absql-sandbox.ksh -sandbox {{ cip_base_path }}/queryit -datadir {{ data_root_path }}/cip/serial/abinitio/queryitdata/{{ functional_user }} -password {{ query_it_en_passwd }} -yes"
       register: command_output
       become_user: "{{ functional_user }}"
       args:
