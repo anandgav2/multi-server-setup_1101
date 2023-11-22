@@ -193,6 +193,7 @@
           {{ hostvars[item].ab_host_alias }} {{ hostvars[item].ansible_hostname }}
           {{ hostvars[item].ab_host_alias }} {{ hostvars[item].ansible_host }}
         state: present
+        create: yes
       become_user: "{{ functional_user }}"
       loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
 
