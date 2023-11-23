@@ -1,4 +1,4 @@
-- name: CIP Installation
+- name: Create DB
   hosts: cipdb
   become: yes # Run tasks with root privileges
   vars:

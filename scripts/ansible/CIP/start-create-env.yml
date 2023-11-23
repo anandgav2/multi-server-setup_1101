@@ -1,4 +1,4 @@
-- name: create -env 
+- name: Create Env 
   hosts: cip_instance*
   become: yes # Run tasks with root privileges
   vars:
