@@ -328,12 +328,6 @@
           AB_ENCRYPTED_PASSWORD @ CIP : {{ command_output.stdout }}
           AB_HOME @ CIP : {{ destination }}/abinitio-V{{ coop_version }}
 
-          AB_NODES @ A360 : {{ a360_servers | join(' ') }}
-          AB_USERNAME @ A360 : {{ functional_user }}
-          AB_CONNECTION @ A360 : ssh
-          AB_SSH_NEEDS_PASSWORD @ A360 : ture
-          AB_ENCRYPTED_PASSWORD @ A360 : {{ command_output.stdout }}
-
         state: present
         create: yes
       become_user: "{{ functional_user }}"
