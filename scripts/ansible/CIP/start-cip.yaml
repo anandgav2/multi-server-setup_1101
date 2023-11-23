@@ -125,6 +125,11 @@
       become_user: "{{ functional_user }}"
       when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
 
+    - name : print command_output
+      debug: 
+         var: command_output
+      when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
+
     - name: Check if cluster is operational or not
       ansible.builtin.command: '{{ installer_path }}/source_and_run.sh adc lobby status'
       register: command_output
