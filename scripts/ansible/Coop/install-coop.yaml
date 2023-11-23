@@ -192,6 +192,7 @@
         line: |
           {{ hostvars[item].ab_host_alias }} {{ hostvars[item].ansible_hostname }}
           {{ hostvars[item].ansible_hostname }} {{ hostvars[item].ansible_host }}
+          {{ hostvars[item].ansible_hostname }} {{ hostvars[item].ansible_default_ipv4.address }}
         state: present
         create: yes
       become_user: "{{ functional_user }}"
