@@ -127,7 +127,7 @@
         source /etc/profile
         dir_pset={{ cip_base_path }}/private_internal/pset/inbound_channel
         cd {{ cip_base_path }}/private_internal/run        
-        nohup air sandbox run $dir_pset/nbos_start_services.pset -CREATE_ADC_QUEUE True &
+        nohup air sandbox run $dir_pset/nbos_start_services.pset -CREATE_ADC_QUEUE True > 2&1 &
       register: command_output
       become_user: "{{ functional_user }}"
       when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
