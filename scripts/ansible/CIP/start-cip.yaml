@@ -120,10 +120,16 @@
         touch nbos_offerset_offers.${dt}.dat
         touch nbos_algo_offers.${dt}.idx
         touch nbos_algo_offers.${dt}.dat
+        ls -ltr *nbos*
       register: command_output
       become_user: "{{ functional_user }}"
       when: "'nbos_data' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
 
+    - name : print command_output
+      debug: 
+         var: command_output
+      when: "'nbos_data' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
+      
     - name: Start NBOS Subsystem
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
