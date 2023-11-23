@@ -69,7 +69,6 @@ resource "null_resource" "generate_host_alias" {
     command = <<-EOT
       /usr/bin/ssh-keyscan -v -t rsa ${join(" ", aws_instance.cip[*].public_ip)} >> ~/.ssh/known_hosts
       echo '${join("\n", [for instance in aws_instance.cip : "${instance.tags.alias} ${instance.public_ip} ${instance.tags.hostname}" ])}' > ${var.host_alias_path}
-      chmod 666 ${var.host_alias_path}
     EOT
   }
 
