@@ -134,7 +134,7 @@
     - name: Run NBOS Subsystem job
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
-        - air sandbox run ../pset/inbound_channel/nbos_start_services.pset -CREATE_ADC_QUEUE True
+        - nohup air sandbox run ../pset/inbound_channel/nbos_start_services.pset -CREATE_ADC_QUEUE True &
       register: command_output
       become_user: "{{ functional_user }}"
       args:
