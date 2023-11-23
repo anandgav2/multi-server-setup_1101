@@ -316,13 +316,11 @@
       loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
       when: hostvars[item].ansible_host ==  hostvars['a360'].ansible_host
 
-    - name: Create Hetro connection File
+    - name: Create CIP Hetro connection File
       lineinfile:
         path: "/home/{{ functional_user }}/.abinitiorc"
-        line: |
+        line: | 
           
-          #AB_JOB_ALLOWED_HOSTNAMES: {{ cip_servers | join(':') }}:{{ a360_servers | join(':') }}
- 
           AB_NODES @ CIP : {{ cip_servers | join(' ') }}
           AB_USERNAME @ CIP : {{ functional_user }}
           AB_CONNECTION @ CIP : ssh
@@ -339,6 +337,21 @@
         state: present
         create: yes
       become_user: "{{ functional_user }}"
+
+    - name: Create A360 Hetro connection File
+      lineinfile:
+        path: "/home/{{ functional_user }}/.abinitiorc"
+        line: | 
+          
+          AB_NODES @ A360 : {{ a360_servers | join(' ') }}
+          AB_USERNAME @ A360 : {{ functional_user }}
+          AB_CONNECTION @ A360 : ssh
+          AB_SSH_NEEDS_PASSWORD @ A360 : ture
+          AB_ENCRYPTED_PASSWORD @ A360 : {{ command_output.stdout }}
+
+        state: present
+      become_user: "{{ functional_user }}"
+      when: a360_servers is defined
 
     - name: Log step
       lineinfile:
