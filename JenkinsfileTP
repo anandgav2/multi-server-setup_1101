@@ -146,7 +146,7 @@ pipeline {
                 }
             }
         } 
-/*
+
         stage('Install AG')
         {
             steps
@@ -204,7 +204,7 @@ pipeline {
 
             }
         }
-*/
+
         stage('Generate Execuatbles and CIP Inventory file')
         {
             steps
@@ -266,7 +266,7 @@ pipeline {
 
             }
         } 
-/*
+
         stage('Install QueryIT')
         {
             steps
@@ -285,7 +285,7 @@ pipeline {
                 }
             }
         }
-*/
+
         stage('Start CIP Subsystem')
         {
             steps
@@ -305,7 +305,7 @@ pipeline {
 
             }
         }
-/*
+
         stage('Start CIPUI')
         {
             steps
@@ -325,7 +325,7 @@ pipeline {
 
             }
         }
-*/
+
 /*          stage('Install A360')
         {
             steps
