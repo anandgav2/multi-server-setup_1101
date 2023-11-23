@@ -122,14 +122,35 @@
          var: command_output
       when: "'nbos_data' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
 
-    - name: Start NBOS Subsystem
-      shell:
-        source /etc/profile
-        dir_pset={{ cip_base_path }}/private_internal/pset/inbound_channel
-        cd {{ cip_base_path }}/private_internal/run        
-        nohup air sandbox run $dir_pset/nbos_start_services.pset -CREATE_ADC_QUEUE True > 2&1 &
+    # - name: Start NBOS Subsystem
+    #   shell:
+    #     source /etc/profile
+    #     dir_pset={{ cip_base_path }}/private_internal/pset/inbound_channel
+    #     cd {{ cip_base_path }}/private_internal/run        
+    #     nohup air sandbox run $dir_pset/nbos_start_services.pset -CREATE_ADC_QUEUE True > 2&1 &
+    #   register: command_output
+    #   become_user: "{{ functional_user }}"
+    #   when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
+
+    - name: Set NBOS subsystem job parameter
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        - air sandbox lock {{ cip_base_path }}/private_internal/pset/inbound_channel/nbos_start_services.pset
+        - air sandbox parameter -path {{ cip_base_path }}/private_internal/pset/inbound_channel/nbos_start_services.pset CREATE_ADC_QUEUE True
       register: command_output
       become_user: "{{ functional_user }}"
+      args:
+        chdir: "{{ cip_base_path }}/private_internal/run"
+      when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
+
+    - name: Run NBOS Subsystem job
+      ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
+      with_items:
+        - "{{ cip_base_path }}/private_internal/bin/cip-control.ksh start nbos"
+      register: command_output
+      become_user: "{{ functional_user }}"
+      args:
+        chdir: "{{ cip_base_path }}/private_internal/run"
       when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
 
     # - name: Run NBOS Subsystem job
