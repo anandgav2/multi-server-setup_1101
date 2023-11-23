@@ -1,4 +1,4 @@
-- name: CIP subsystem directories creation
+- name: Install CIP
   hosts: server*
   become: yes # Run tasks with root privileges
   vars:

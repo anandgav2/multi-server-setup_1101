@@ -1,4 +1,4 @@
-- name: seed-data
+- name: Load subscriber profile
   hosts:
      - cipui
      - control
