@@ -59,7 +59,9 @@
 
     - name: Wait until trigger file exists
       wait_for:
-        path: "{{ hostvars['control']['lookup_file_name']['stdout'] }}"          
+        path: "{{ hostvars['control']['lookup_file_name']['stdout'] }}"
+      changed_when: false
+      failed_when: false
 
     - name: Stop CIP-Control Subsystems
       ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
