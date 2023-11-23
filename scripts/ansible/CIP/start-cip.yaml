@@ -126,7 +126,7 @@
       shell:
         source /etc/profile
         cd {{ cip_base_path }}/private_internal/run        
-        air sandbox run ../pset/inbound_channel/nbos_start_services.pset -CREATE_ADC_QUEUE True &
+        nohup air sandbox run ../pset/inbound_channel/nbos_start_services.pset -CREATE_ADC_QUEUE True &
       register: command_output
       become_user: "{{ functional_user }}"
       when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
