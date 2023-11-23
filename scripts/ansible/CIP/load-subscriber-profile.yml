@@ -48,6 +48,14 @@
     - name: Pause for 120 seconds
       pause:
         seconds: 120
+    
+    - name: Check if lookup exists
+      shell: |
+        ls  $(air sandbox eval . CIP_COMMON_LOCAL_SERIAL_LOOKUP)/subscriber_profile_format.V2* | tail -1
+      register: lookup_file_name
+      args:
+        chdir: "{{ cip_base_path }}/private_internal"
+      when: inventory_hostname == 'control'        
 
     - name: Stop CIP-Control Subsystems
       ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
@@ -59,9 +67,11 @@
         chdir: "{{ cip_base_path }}/private_internal/run"
       when: inventory_hostname == 'control'
 
-    - name: Pause for 30 seconds
-      pause:
-        seconds: 30
+    - name: Check if lookup file exists on CIPUI server
+      stat:
+        path: "{{ hostvars['control']['lookup_file_name']['stdout'] }}"
+      register: lookup_file_stats
+      when: inventory_hostname == 'cipui'   
 
     - name: Stop CIP-Utility Subsystems
       ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
@@ -71,7 +81,7 @@
       become_user: "{{ functional_user }}"
       args:
         chdir: "{{ cip_base_path }}/private_internal/run"
-      when: inventory_hostname == 'cipui'
+      when: inventory_hostname == 'cipui' and lookup_file_stats.stat.exists
 
     - name: Pause for 30 seconds
       pause:
