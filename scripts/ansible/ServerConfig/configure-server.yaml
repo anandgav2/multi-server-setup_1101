@@ -60,12 +60,10 @@
         sudo mkdir -p {{ apps_root_path }}
         sudo mkdir -p {{ installer_path }}
         sudo mkdir -p {{ data_root_path }}
-        sudo mkdir -p {{ data_root_path }}/a360  
         sudo mkdir -p {{ data_root_path }}/sand/appconfdir
         sudo chown -R {{ item }}:abinitio {{ apps_root_path }}
         sudo chown -R {{ item }}:abinitio {{ installer_path }}
         sudo chown -R {{ item }}:abinitio {{ data_root_path }}
-        sudo chown -R {{ item }}:abinitio {{ data_root_path }}/a360
         sudo chown -R {{ item }}:abinitio {{ data_root_path }}/sand/appconfdir
       loop:
         - "{{ functional_user }}"    

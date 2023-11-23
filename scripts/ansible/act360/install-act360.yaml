@@ -1,5 +1,5 @@
 - name: A-360 Installation
-  hosts: a360-instance
+  hosts: a360
   become: yes # Run tasks with root privileges
   vars:
     log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
@@ -15,6 +15,7 @@
         - "{{ installer_path }}/cip_setup_automation.yml"
         - "{{ installer_path }}/installer-versions.yml"
         - ./config-params.yml
+        - "{{ comm_config_file }}"
 
     - name: Copy the wrapper script
       ansible.builtin.copy:
@@ -30,13 +31,13 @@
         owner: "{{ functional_user }}"
         group: abinitio
 
-    - name: Copy Config File
-      copy:
-        src: "../Coop/coop-config.ini"
-        dest: "{{ installer_path }}"
-        remote_src: false
-        group: abinitio
-      become_user: "{{ functional_user }}"
+    # - name: Copy Config File
+    #   copy:
+    #     src: "../Coop/coop-config.ini"
+    #     dest: "{{ installer_path }}"
+    #     remote_src: false
+    #     group: abinitio
+    #   become_user: "{{ functional_user }}"
   
     - name: Display Version
       ansible.builtin.debug:
@@ -147,19 +148,19 @@
         responses:
           'Would you like to use Basic mode?' : 'y'
           'Please provide ansible-vault key for password encryption:': "{{ vault_key }}"
-          'ab.aiuser_name:':  "{{ ab_aiuser_name }}"
+          'ab.aiuser_name:':  "{{ functional_user }}"
           'ab.aiuser_group:':  "{{ ab_aiuser_group }}"
           'ab.key.host.source:': "{{ ab_key_host_source }}"
           'ab.key.client.host.urls:': "{{ ab_key_client_host_urls }}" 
           'ab.key.users.source:': "{{ ab_key_users_source }}"
           'ab.key.client.users.urls:': "{{ ab_key_client_users_urls }}"
-          'ab.tmp_dir:': "{{ data_root_path }}/tmp"
+          'ab.tmp_dir:': "/tmp"
           'act.base_port_prefix:': "{{ act_base_port_prefix }}"
           'act.name:': "{{ act_name }}"
           'act.portal.scaled_binary_type_decimal_places:': "{{ act_portal_scaled_binary_type_decimal_places }}"
-          'act.root:': "{{ data_root_path }}/a360"
-          'act.data_root:': "{{ data_root_path }}/a360"
-          'act.config_dir:': "{{ data_root_path }}/a360/config"
+          'act.root:': "{{ a360_root }}"
+          'act.data_root:': "{{ a360_root }}"
+          'act.config_dir:': "{{ a360_root }}/config"
           'act.runtime.messagebus_commit_topic_width:': "{{ act_runtime_messagebus_commit_topic_width }}"
           'act.runtime.messagebus_topic_width:': "{{ act_runtime_messagebus_topic_width }}"
           'act.runtime.messagebus_log_entry_topic_width:': "{{ act_runtime_messagebus_log_entry_topic_width }}"
@@ -184,10 +185,8 @@
 
     - name: Create directory hierarchy and set ownership
       shell: |
-        sudo mkdir -p {{ data_root_path }}/act360
-        sudo mkdir -p {{ data_root_path }}/tmp
-        sudo chown -R {{ item }}:abinitio {{ data_root_path }}/act360
-        sudo chown -R {{ item }}:abinitio {{ data_root_path }}/tmp
+        sudo mkdir -p {{ a360_root }}
+        sudo chown -R {{ item }}:abinitio {{ a360_root }}
       loop:
         - "{{ functional_user }}"
 
@@ -229,7 +228,7 @@
       ansible.builtin.command:
         cmd: sh -c "source {{ installer_path }}/source_and_run_act360.ksh && ./active_install.ksh -c ./active.yml >> ./a360_install.log"
       register: command_output
-      failed_when: "'FAILED - RETRYING: wait for deployment to finish (60 retries left)' not in command_output.stderr"
+      ignore_errors: yes
       become_user: "{{ functional_user }}"
       args:
         chdir: "{{ folder_path }}"
@@ -237,6 +236,16 @@
     - name: Display command outputs
       ansible.builtin.debug:
         var: command_output
+
+    - name: Read the last 20 lines of a file
+      command: tail -100 {{ folder_path }}/a360_install.log
+      register: tail_output
+      become_user: "{{ functional_user }}"
+
+    - name: Check for the presence of "str1" in the output
+      fail:
+        msg: "A360 Installation has failed check logs on {{ inventory_hostname }} - {{ folder_path }}/a360_install.log"
+      when: "'FAILED - RETRYING: wait for deployment to finish (30 retries left)' not in tail_output.stdout"
 
     - name: Create AG User Feeds Directory
       ansible.builtin.file:
@@ -252,6 +261,7 @@
         remote_src: false
         group: abinitio
       with_items:
+        - ./AGPrincipal.csv
         - ./AGPrincipalXref.csv
         - ./A360CreateUserGroup.feed
       become_user: "{{ functional_user }}"
@@ -259,6 +269,7 @@
     - name: Update the CSV file with web_app_user
       shell: |
         cd {{ apps_root_path }}/abinitio/ag_user_feeds/A360/
+        sed -i 's/WEB_APP_USER/{{ web_app_user }}/g' AGPrincipal.csv
         sed -i 's/WEB_APP_USER/{{ web_app_user }}/g' AGPrincipalXref.csv
       become_user: "{{ functional_user }}"
 
@@ -270,11 +281,38 @@
         state: present
       become_user: "{{ functional_user }}"
 
+    - name: Check if AG is running
+      shell: |
+        source {{ a360_root }}/bin/env.sh
+        ab-app status ag
+      register: command_output
+      ignore_errors: yes
+      become_user: "{{ functional_user }}"
+
+    - name: Run AG if not running
+      when: "'is running' not in command_output.stdout"
+      shell: |
+        source {{ a360_root }}/bin/env.sh
+        nohup ab-app start ag > /dev/null 2>&1 &
+        sleep 90
+      become_user: "{{ functional_user }}"
+
     - name: Setup Web App User
       shell: |
-        source /etc/profile
-        source {{ apps_root_path }}/abinitio/abinitio-deployment/ag/authgateway/config/import.profile
-        export AB_AG_CONN_PARAMS="-a {{ url }} -u admin -p {{ password }}"
+        source {{ a360_root }}/bin/env.sh
+        source {{ a360_root }}/ab-deployments/ag/config/import.profile
+        export AB_AG_CONN_PARAMS="$AB_AG_CONN_PARAMS -u {{ a360_ag_user }} -p {{ a360_ag_password }}"
         ag-import feed save {{ apps_root_path }}/abinitio/ag_user_feeds/A360/A360CreateUserGroup.feed
         ag-import run -feed "A360CreateUserGroup" -progress -approve
       become_user: "{{ functional_user }}"
+
+    - name: Run Rest of the services if not running
+      shell: |
+        source {{ a360_root }}/bin/env.sh
+        nohup ab-app start act_mhub > /dev/null 2>&1 &
+        sleep 90
+        nohup ab-app start activeportal > /dev/null 2>&1 &
+        sleep 90
+      ignore_errors: yes
+      become_user: "{{ functional_user }}"
+
