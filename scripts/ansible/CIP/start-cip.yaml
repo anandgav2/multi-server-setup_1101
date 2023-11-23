@@ -106,6 +106,12 @@
         touch nbos_offerset_offers.${dt}.dat
         touch nbos_algo_offers.${dt}.idx
         touch nbos_algo_offers.${dt}.dat
+        touch offer_inbound_lookup.${dt}.dat
+        touch offer_inbound_lookup.${dt}.idx
+        touch offer_inbound_channel_alternate_id.${dt}.idx
+        touch offer_inbound_channel_alternate_id.${dt}.dat
+        touch benefit.V2.${dt}.dat
+        touch benefit.V2.${dt}.idx
         ls -ltr *nbos*
       register: command_output
       become_user: "{{ functional_user }}"
