@@ -109,6 +109,7 @@
 
     - name: Touch Required lookups in NBOS data nodes
       shell: |
+        source /etc/profile
         cd {{ cip_base_path }}/private_internal/
         cd $(air sandbox eval . CIP_COMMON_LOCAL_SERIAL_LOOKUP)
         dt=$(date +%Y%m%d%H%M%S)
@@ -132,7 +133,8 @@
 
     - name: Start NBOS Subsystem
       shell:
-        cd {{ cip_base_path }}/private_internal/run
+        source /etc/profile
+        cd {{ cip_base_path }}/private_internal/run        
         air sandbox run ../pset/inbound_channel/nbos_start_services.pset -CREATE_ADC_QUEUE True &
       register: command_output
       become_user: "{{ functional_user }}"
