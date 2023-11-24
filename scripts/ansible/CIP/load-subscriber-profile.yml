@@ -66,8 +66,8 @@
     - name: Stop CIP-Control Subsystems
       shell: |
         source /etc/profile
-        {{ cip_base_path }}/private_internal/bin/cip-control.ksh stop control_subsystem
-        sleep 30
+        {{ cip_base_path }}/private_internal/bin/cip-control.ksh forced_stop control_subsystem
+        sleep 45
         {{ cip_base_path }}/private_internal/bin/cip-control.ksh abandon control_subsystem
       register: command_output
       become_user: "{{ functional_user }}"
@@ -76,8 +76,8 @@
     - name: Stop CIP-Utility Subsystems
       shell: |
         source /etc/profile
-        {{ cip_base_path }}/private_internal/bin/cip-control.ksh stop utility
-        sleep 30
+        {{ cip_base_path }}/private_internal/bin/cip-control.ksh forced_stop utility
+        sleep 45
         {{ cip_base_path }}/private_internal/bin/cip-control.ksh abandon utility
       register: command_output
       when: inventory_hostname == 'cipui'
