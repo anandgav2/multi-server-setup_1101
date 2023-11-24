@@ -28,6 +28,7 @@
         sudo mkdir -p {{ data_root_path }}/cip
         sudo mkdir -p {{ data_root_path }}/cip/data-areas
         sudo chown -R {{ item }}:abinitio {{ data_root_path }}
+        sudo chown -R {{ item }}:abinitio {{ sandbox_root }}
       loop:
         - "{{ functional_user }}"
       when: ansible_host != a360_ip
