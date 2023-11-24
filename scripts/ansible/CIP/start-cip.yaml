@@ -184,7 +184,7 @@
       shell: |
           source /etc/profile
 #         cd {{ cip_base_path }}/private_internal/run/cip/{{ ab_host_alias }}.control
-          cd {{ cip_base_path }}/private_internal/run
+          cd "{{ cip_base_path }}/private_internal/run"
           adc auth create-user lobby admin -role adc-admin
           adc auth encrypted-password lobby admin $(m_password -unrestricted -password admin)
       register: command_output
