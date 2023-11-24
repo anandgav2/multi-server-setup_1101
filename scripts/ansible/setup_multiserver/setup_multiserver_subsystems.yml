@@ -13,10 +13,17 @@
       include_vars:
         file: ./executables.yml
 
-    - name: Load Global config parameters
+    - name: Load Global parameters
       include_vars:
-        file: "{{ installer_path }}/cip_setup_automation.yml"
-        file: "{{ installer_path }}/cip_setup_server_config.yml"
+        file: "{{ item }}"
+      with_items:
+        - "{{ installer_path }}/cip_setup_automation.yml"
+        - "{{ installer_path }}/cip_setup_server_config.yml"
+        
+   # - name: Load Global config parameters
+    #  include_vars:
+     #   file: "{{ installer_path }}/cip_setup_automation.yml"
+      #  file: "{{ installer_path }}/cip_setup_server_config.yml"
 
     - name: Print logs
       debug:
