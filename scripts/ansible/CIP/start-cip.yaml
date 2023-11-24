@@ -187,6 +187,7 @@
           adc auth encrypted-password lobby admin $(m_password -unrestricted -password admin)
       register: command_output
       become_user: "{{ functional_user }}"
+      ignore_errors: True
       when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
       
     - name: print logs
