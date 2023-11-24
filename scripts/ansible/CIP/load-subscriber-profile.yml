@@ -72,6 +72,7 @@
       register: command_output
       become_user: "{{ functional_user }}"
       when: inventory_hostname == 'control'
+      ignore_errors: True
 
     - name: Stop CIP-Utility Subsystems
       shell: |
@@ -81,6 +82,7 @@
         {{ cip_base_path }}/private_internal/bin/cip-control.ksh abandon utility
       register: command_output
       when: inventory_hostname == 'cipui'
+      ignore_errors: True
 
     - name: Pause for 30 seconds
       pause:
