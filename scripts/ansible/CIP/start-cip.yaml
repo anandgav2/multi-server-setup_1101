@@ -172,7 +172,6 @@
       ansible.builtin.command: '{{ installer_path }}/source_and_run.sh adc lobby status'
       register: command_output
       become_user: "{{ functional_user }}"
-      ignore_errors: true
       args:
         chdir: "{{ cip_base_path }}/private_internal/run/cip/{{ ab_host_alias }}.control"
       until: command_output.stdout == "operational"
