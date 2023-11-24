@@ -1,316 +1,316 @@
-- name: CC Installation
-  hosts: cc
-  become: yes # Run tasks with root privileges
-  vars:
-    log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
-    comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
-    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+# - name: CC Installation
+#   hosts: cc
+#   become: yes # Run tasks with root privileges
+#   vars:
+#     log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
+#     comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
+#     installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
 
-  tasks:
+#   tasks:
 
-    - name: Load Global parameters
-      include_vars:
-        file: "{{ item }}"
-      with_items:
-        - "{{ installer_path }}/cip_setup_automation.yml"
-        - "{{ installer_path }}/installer-versions.yml"
-        - "{{ comm_config_file }}"
+#     - name: Load Global parameters
+#       include_vars:
+#         file: "{{ item }}"
+#       with_items:
+#         - "{{ installer_path }}/cip_setup_automation.yml"
+#         - "{{ installer_path }}/installer-versions.yml"
+#         - "{{ comm_config_file }}"
 
-    - name: Create AG Installation and Deployment directories
-      file:
-        path: "{{ item }}"
-        state: directory
-        recurse: yes
-        group: abinitio
-      become_user: "{{ functional_user }}"
-      loop:
-        - "{{ apps_root_path }}/abinitio/abinitio-deployment/cc"
-        - "{{ apps_root_path }}/abinitio/abinitio-install"
+#     - name: Create AG Installation and Deployment directories
+#       file:
+#         path: "{{ item }}"
+#         state: directory
+#         recurse: yes
+#         group: abinitio
+#       become_user: "{{ functional_user }}"
+#       loop:
+#         - "{{ apps_root_path }}/abinitio/abinitio-deployment/cc"
+#         - "{{ apps_root_path }}/abinitio/abinitio-install"
 
-    - name: Log step
-      lineinfile:
-        path: "{{ log_file }}"
-        line: |
-          => Updating CC Config File
-        state: present
-      delegate_to: localhost
-      no_log: true
-      become: false      
+#     - name: Log step
+#       lineinfile:
+#         path: "{{ log_file }}"
+#         line: |
+#           => Updating CC Config File
+#         state: present
+#       delegate_to: localhost
+#       no_log: true
+#       become: false      
 
-    - name: Copy Config File
-      copy:
-        src: "./cc-config.ini"
-        dest: "{{ installer_path }}"
-        group: abinitio
-      become_user: "{{ functional_user }}"
+#     - name: Copy Config File
+#       copy:
+#         src: "./cc-config.ini"
+#         dest: "{{ installer_path }}"
+#         group: abinitio
+#       become_user: "{{ functional_user }}"
 
-    - name: update cc-config.ini
-      lineinfile:
-        path: "{{ installer_path }}/cc-config.ini"
-        line: |
-          install_root= {{ apps_root_path }}/abinitio/abinitio-install
-        state: present
-      become_user: "{{ functional_user }}"
+#     - name: update cc-config.ini
+#       lineinfile:
+#         path: "{{ installer_path }}/cc-config.ini"
+#         line: |
+#           install_root= {{ apps_root_path }}/abinitio/abinitio-install
+#         state: present
+#       become_user: "{{ functional_user }}"
       
-    - name: Display Version
-      ansible.builtin.debug:
-        var: cc_version
+#     - name: Display Version
+#       ansible.builtin.debug:
+#         var: cc_version
 
-    - name: Log step
-      lineinfile:
-        path: "{{ log_file }}"
-        line: |
-          => CC Version to e installed -> {{ cc_version }}
-        state: present
-      delegate_to: localhost
-      no_log: true
-      become: false    
+#     - name: Log step
+#       lineinfile:
+#         path: "{{ log_file }}"
+#         line: |
+#           => CC Version to e installed -> {{ cc_version }}
+#         state: present
+#       delegate_to: localhost
+#       no_log: true
+#       become: false    
 
-    - name: Read Coop Configuration File
-      slurp:
-        src: "{{ installer_path }}/coop-config.ini"
-      register: coop_config_file_content
+#     - name: Read Coop Configuration File
+#       slurp:
+#         src: "{{ installer_path }}/coop-config.ini"
+#       register: coop_config_file_content
 
-    - name: Read Configuration File
-      slurp:
-        src: "{{ installer_path }}/cc-config.ini"
-      register: config_file_content
+#     - name: Read Configuration File
+#       slurp:
+#         src: "{{ installer_path }}/cc-config.ini"
+#       register: config_file_content
 
-    - name: Log step
-      lineinfile:
-        path: "{{ log_file }}"
-        line: |
-          => Get CC Installer Tar
-        state: present
-      delegate_to: localhost
-      no_log: true
-      become: false  
+#     - name: Log step
+#       lineinfile:
+#         path: "{{ log_file }}"
+#         line: |
+#           => Get CC Installer Tar
+#         state: present
+#       delegate_to: localhost
+#       no_log: true
+#       become: false  
 
-    - name: Find the Installer Tar
-      find:
-        paths: "{{ installer_path }}"
-        patterns: "ControlCenter.*{{ cc_version }}*.*"
-      register: found_files
-      delegate_to: localhost
-      become: false
+#     - name: Find the Installer Tar
+#       find:
+#         paths: "{{ installer_path }}"
+#         patterns: "ControlCenter.*{{ cc_version }}*.*"
+#       register: found_files
+#       delegate_to: localhost
+#       become: false
 
-    - name: Display  File List
-      ansible.builtin.debug:
-        var: found_files
+#     - name: Display  File List
+#       ansible.builtin.debug:
+#         var: found_files
 
-    - name: Copy files to remote host
-      copy:
-        src: "{{ item.path }}"
-        dest: "{{ installer_path }}"
-        remote_src: false
-        group: abinitio
-      loop: "{{ found_files.files }}"
-      become_user: "{{ functional_user }}"
+#     - name: Copy files to remote host
+#       copy:
+#         src: "{{ item.path }}"
+#         dest: "{{ installer_path }}"
+#         remote_src: false
+#         group: abinitio
+#       loop: "{{ found_files.files }}"
+#       become_user: "{{ functional_user }}"
 
-    - name: Log step
-      lineinfile:
-        path: "{{ log_file }}"
-        line: |
-          => Installer File - {{ found_files.files[0].path }}
-        state: present
-      delegate_to: localhost
-      no_log: true
-      become: false  
+#     - name: Log step
+#       lineinfile:
+#         path: "{{ log_file }}"
+#         line: |
+#           => Installer File - {{ found_files.files[0].path }}
+#         state: present
+#       delegate_to: localhost
+#       no_log: true
+#       become: false  
 
-    - name: Extract Folder Path
-      set_fact:
-        folder_path: "{{ found_files.files[0].path |  regex_replace('\\.(tgz|tar\\.gz|tar)$', '')  }}"
+#     - name: Extract Folder Path
+#       set_fact:
+#         folder_path: "{{ found_files.files[0].path |  regex_replace('\\.(tgz|tar\\.gz|tar)$', '')  }}"
     
-    - name: Display  Folder Path
-      ansible.builtin.debug:
-        var: folder_path
+#     - name: Display  Folder Path
+#       ansible.builtin.debug:
+#         var: folder_path
 
-    - name: Log step
-      lineinfile:
-        path: "{{ log_file }}"
-        line: |
-          => Untar File
-        state: present
-      delegate_to: localhost
-      no_log: true
-      become: false  
+#     - name: Log step
+#       lineinfile:
+#         path: "{{ log_file }}"
+#         line: |
+#           => Untar File
+#         state: present
+#       delegate_to: localhost
+#       no_log: true
+#       become: false  
 
-    - name: Untar Files
-      shell: |
-        su - {{ item }} -c "tar zxvf {{ installer_path }}/ControlCenter*{{ cc_version }}*.* -C {{ installer_path }}"
-      loop:
-        - "{{ functional_user }}"
+#     - name: Untar Files
+#       shell: |
+#         su - {{ item }} -c "tar zxvf {{ installer_path }}/ControlCenter*{{ cc_version }}*.* -C {{ installer_path }}"
+#       loop:
+#         - "{{ functional_user }}"
 
-    - name: Parse Coop Configuration Values
-      set_fact:
-        coop_config_values: "{{ (coop_config_file_content['content'] | b64decode).split('\n') | map('trim') }}"
-      register: parsed_config
+#     - name: Parse Coop Configuration Values
+#       set_fact:
+#         coop_config_values: "{{ (coop_config_file_content['content'] | b64decode).split('\n') | map('trim') }}"
+#       register: parsed_config
 
-    - name: Parse Configuration Values
-      set_fact:
-        config_values: "{{ (config_file_content['content'] | b64decode).split('\n') | map('trim') }}"
-      register: parsed_config
+#     - name: Parse Configuration Values
+#       set_fact:
+#         config_values: "{{ (config_file_content['content'] | b64decode).split('\n') | map('trim') }}"
+#       register: parsed_config
 
-    - name: Read Installation Directory value from config
-      set_fact:
-        app_hub_dest: "{{ coop_config_values | select('match', '^app_hub_dest=(.*)') | map('regex_replace', '^app_hub_dest=(.*)', '\\1') | first }}"
+#     - name: Read Installation Directory value from config
+#       set_fact:
+#         app_hub_dest: "{{ coop_config_values | select('match', '^app_hub_dest=(.*)') | map('regex_replace', '^app_hub_dest=(.*)', '\\1') | first }}"
 
-    - name: Skip Header Line
-      set_fact:
-        config_values_no_header: "{{ config_values | reject('match', '^\\[Cafe\\]$') | list }}"
+#     - name: Skip Header Line
+#       set_fact:
+#         config_values_no_header: "{{ config_values | reject('match', '^\\[Cafe\\]$') | list }}"
 
-    - name: Display Arguments
-      debug:
-        var: config_values_no_header
+#     - name: Display Arguments
+#       debug:
+#         var: config_values_no_header
     
-    - name: Read Installation Directory value from config
-      set_fact:
-        install_root: "{{ config_values | select('match', '^install_root=(.*)') | map('regex_replace', '^install_root=(.*)', '\\1') | first }}"
-        deployment_name: "{{ config_values | select('match', '^pkg_cc_deployment_name=(.*)') | map('regex_replace', '^pkg_cc_deployment_name=(.*)', '\\1') | first }}"
-        http_port: "{{ config_values | select('match', '^pkg_appServer_http_port=(.*)') | map('regex_replace', '^pkg_appServer_http_port=(.*)', '\\1') | first }}"
-        #master_encrypted_password: "{{ config_values | select('match', '^mh\\.master\\.password_mhub_encrypted: ''(.*)''$') | map('regex_replace', '^^mh\\.master\\.password_mhub_encrypted: ''(.*)''$', '\\1') | first }}"
+#     - name: Read Installation Directory value from config
+#       set_fact:
+#         install_root: "{{ config_values | select('match', '^install_root=(.*)') | map('regex_replace', '^install_root=(.*)', '\\1') | first }}"
+#         deployment_name: "{{ config_values | select('match', '^pkg_cc_deployment_name=(.*)') | map('regex_replace', '^pkg_cc_deployment_name=(.*)', '\\1') | first }}"
+#         http_port: "{{ config_values | select('match', '^pkg_appServer_http_port=(.*)') | map('regex_replace', '^pkg_appServer_http_port=(.*)', '\\1') | first }}"
+#         #master_encrypted_password: "{{ config_values | select('match', '^mh\\.master\\.password_mhub_encrypted: ''(.*)''$') | map('regex_replace', '^^mh\\.master\\.password_mhub_encrypted: ''(.*)''$', '\\1') | first }}"
 
-    - name: Add AG_LOCAL_ROOT in global apphubrc
-      lineinfile:
-        path: "{{ app_hub_dest }}/config/apphubrc"
-        line: |
-          AB_CC_LOCAL_ROOT : {{ apps_root_path }}/abinitio/abinitio-deployment/cc
+#     - name: Add AG_LOCAL_ROOT in global apphubrc
+#       lineinfile:
+#         path: "{{ app_hub_dest }}/config/apphubrc"
+#         line: |
+#           AB_CC_LOCAL_ROOT : {{ apps_root_path }}/abinitio/abinitio-deployment/cc
 
-    - name: Log step
-      lineinfile:
-        path: "{{ log_file }}"
-        line: |
-          => Running CC Installation
-        state: present
-      delegate_to: localhost
-      no_log: true
-      become: false  
+#     - name: Log step
+#       lineinfile:
+#         path: "{{ log_file }}"
+#         line: |
+#           => Running CC Installation
+#         state: present
+#       delegate_to: localhost
+#       no_log: true
+#       become: false  
 
-    - name: Run Install Script
-      ansible.builtin.command: 
-        cmd: sh -c "source /etc/profile && ./cc-install.ksh -install-root {{ install_root }}"
-      register: command_output
-      become_user: "{{ functional_user }}"
-      args:
-        chdir: "{{ folder_path }}"
+#     - name: Run Install Script
+#       ansible.builtin.command: 
+#         cmd: sh -c "source /etc/profile && ./cc-install.ksh -install-root {{ install_root }}"
+#       register: command_output
+#       become_user: "{{ functional_user }}"
+#       args:
+#         chdir: "{{ folder_path }}"
     
-    - name: Display Expect Script Output
-      debug:
-        var: command_output.stdout_lines
+#     - name: Display Expect Script Output
+#       debug:
+#         var: command_output.stdout_lines
 
-    - name: Extract AB_CC_HOME value
-      set_fact:
-         ab_cc_home: "{{ command_output.stdout_lines | join('\n') | regex_search('set AB_CC_HOME to (.*[0-9])', '\\1') | first }}"
+#     - name: Extract AB_CC_HOME value
+#       set_fact:
+#          ab_cc_home: "{{ command_output.stdout_lines | join('\n') | regex_search('set AB_CC_HOME to (.*[0-9])', '\\1') | first }}"
 
-    - name: Add environment parameters to /etc/profile
-      lineinfile:
-        path: /etc/profile
-        line: |
-          export AB_CC_HOME={{ ab_cc_home }}
-        state: present  # Add the line if not present  
-      notify: Reload Profile  
+#     - name: Add environment parameters to /etc/profile
+#       lineinfile:
+#         path: /etc/profile
+#         line: |
+#           export AB_CC_HOME={{ ab_cc_home }}
+#         state: present  # Add the line if not present  
+#       notify: Reload Profile  
 
-    - name: Copy Setup Parameters file to Installation Directory
-      copy:
-        src: "./cc-config.ini"
-        dest: "{{ ab_cc_home }}/package/setup.properties"
-        remote_src: false
-        group: abinitio
-      become_user: "{{ functional_user }}"
+#     - name: Copy Setup Parameters file to Installation Directory
+#       copy:
+#         src: "./cc-config.ini"
+#         dest: "{{ ab_cc_home }}/package/setup.properties"
+#         remote_src: false
+#         group: abinitio
+#       become_user: "{{ functional_user }}"
 
-    - name: Log step
-      lineinfile:
-        path: "{{ log_file }}"
-        line: |
-          => Running CC Deployment
-        state: present
-      delegate_to: localhost
-      no_log: true
-      become: false  
+#     - name: Log step
+#       lineinfile:
+#         path: "{{ log_file }}"
+#         line: |
+#           => Running CC Deployment
+#         state: present
+#       delegate_to: localhost
+#       no_log: true
+#       become: false  
 
-    - name: Run Deployment
-      ansible.builtin.command: 
-        cmd: sh -c "source /etc/profile && ./setup.sh batch"
-      register: command_output
-      become_user: "{{ functional_user }}"
-      args:
-        chdir: "{{ ab_cc_home }}/package"
+#     - name: Run Deployment
+#       ansible.builtin.command: 
+#         cmd: sh -c "source /etc/profile && ./setup.sh batch"
+#       register: command_output
+#       become_user: "{{ functional_user }}"
+#       args:
+#         chdir: "{{ ab_cc_home }}/package"
 
-    - name: Display Expect Script Output
-      debug:
-        var: command_output.stdout_lines
+#     - name: Display Expect Script Output
+#       debug:
+#         var: command_output.stdout_lines
 
-    - name: Shutdown App 
-      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh ab-app force-stop {{ deployment_name }}"
-      register: command_output
-      become_user: "{{ functional_user }}"
+#     - name: Shutdown App 
+#       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh ab-app force-stop {{ deployment_name }}"
+#       register: command_output
+#       become_user: "{{ functional_user }}"
 
-    - name: Display output
-      ansible.builtin.debug:
-        var: command_output.stdout_lines
+#     - name: Display output
+#       ansible.builtin.debug:
+#         var: command_output.stdout_lines
 
-    - name: Pause for 20 seconds
-      pause:
-        seconds: 20
+#     - name: Pause for 20 seconds
+#       pause:
+#         seconds: 20
 
-    - name: Log step
-      lineinfile:
-        path: "{{ log_file }}"
-        line: |
-          => Running --> ab-app start {{ deployment_name }}
-        state: present
-      delegate_to: localhost
-      no_log: true
-      become: false  
+#     - name: Log step
+#       lineinfile:
+#         path: "{{ log_file }}"
+#         line: |
+#           => Running --> ab-app start {{ deployment_name }}
+#         state: present
+#       delegate_to: localhost
+#       no_log: true
+#       become: false  
 
-    - name: Start CC
-      shell: |
-        su - {{ functional_user }} -c "ab-app start {{ deployment_name }}"
-      register: command_outputs
+#     - name: Start CC
+#       shell: |
+#         su - {{ functional_user }} -c "ab-app start {{ deployment_name }}"
+#       register: command_outputs
 
-    - name: Display command outputs
-      ansible.builtin.debug:
-        var: command_outputs
+#     - name: Display command outputs
+#       ansible.builtin.debug:
+#         var: command_outputs
     
-    - name: Pause for 20 seconds
-      pause:
-        seconds: 20
+#     - name: Pause for 20 seconds
+#       pause:
+#         seconds: 20
 
-    - name: Check Status CC
-      shell: |
-        su - {{ functional_user }} -c "ab-app status {{ deployment_name }}"
-      register: command_outputs
+#     - name: Check Status CC
+#       shell: |
+#         su - {{ functional_user }} -c "ab-app status {{ deployment_name }}"
+#       register: command_outputs
 
-    - name: Display command outputs
-      ansible.builtin.debug:
-        var: command_outputs
+#     - name: Display command outputs
+#       ansible.builtin.debug:
+#         var: command_outputs
 
-    - name: Write Common Config
-      lineinfile:
-        path: "{{ comm_config_file }}"
-        line: |
-          cc_url: "http://{{ ansible_host }}:{{ http_port }}/{{ deployment_name }}"
-        state: present
-      delegate_to: localhost
-      no_log: true
-      become: false
+#     - name: Write Common Config
+#       lineinfile:
+#         path: "{{ comm_config_file }}"
+#         line: |
+#           cc_url: "http://{{ ansible_host }}:{{ http_port }}/{{ deployment_name }}"
+#         state: present
+#       delegate_to: localhost
+#       no_log: true
+#       become: false
 
-    - name: Log step
-      lineinfile:
-        path: "{{ log_file }}"
-        line: |
-          => CC is Up and running
-             CC URL -> http://{{ ansible_host }}:{{ http_port }}/{{ deployment_name }}
-             CC User -> admin
-             CC Password -> abIniti0
-        state: present
-      delegate_to: localhost
-      no_log: true
-      become: false  
+#     - name: Log step
+#       lineinfile:
+#         path: "{{ log_file }}"
+#         line: |
+#           => CC is Up and running
+#              CC URL -> http://{{ ansible_host }}:{{ http_port }}/{{ deployment_name }}
+#              CC User -> admin
+#              CC Password -> abIniti0
+#         state: present
+#       delegate_to: localhost
+#       no_log: true
+#       become: false  
 
-  handlers:
-    - name: Reload Profile
-      shell: source /etc/profile  # Command to reload the profile
+#   handlers:
+#     - name: Reload Profile
+#       shell: source /etc/profile  # Command to reload the profile
 
 - name: Run Installer Script with Configuration File
   hosts:
@@ -343,7 +343,7 @@
     - name: Start Reporter
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
-        - ab-reporter start -wss-username ocagent -wss-password ocagent
+        - ab-reporter start -wss-username ocagent -wss-password abIniti0
         - ab-reporter status
       register: command_output
       become_user: "{{ functional_user }}"
