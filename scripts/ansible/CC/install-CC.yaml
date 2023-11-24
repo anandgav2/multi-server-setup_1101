@@ -331,14 +331,14 @@
         - "{{ installer_path }}/cip_setup_automation.yml"
         - "{{ installer_path }}/installer-versions.yml"
 
-    - name: Set params in global abinitiorc
-      lineinfile:
-        path: "{{ ab_home_dir }}/abinitio-V{{ coop_version }}/config/abinitiorc"
-        line: |
-          AB_OPS_CONSOLE_URL : {{ cc_url }}
-          AB_OPS_MONITOR : true
-        state: present
-      when: ab_host_alias != hostvars['cc'].ab_host_alias
+    # - name: Set params in global abinitiorc
+    #   lineinfile:
+    #     path: "{{ ab_home_dir }}/abinitio-V{{ coop_version }}/config/abinitiorc"
+    #     line: |
+    #       AB_OPS_CONSOLE_URL : {{ cc_url }}
+    #       AB_OPS_MONITOR : true
+    #     state: present
+    #   when: ab_host_alias != hostvars['cc'].ab_host_alias
 
     - name: Start Reporter
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
