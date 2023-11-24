@@ -13,10 +13,17 @@
       include_vars:
         file: ./executables.yml
 
-    - name: Load Global config parameters
+    - name: Load Global parameters
       include_vars:
-        file: "{{ installer_path }}/cip_setup_automation.yml"
-        file: "{{ installer_path }}/cip_setup_server_config.yml"
+        file: "{{ item }}"
+      with_items:
+        - "{{ installer_path }}/cip_setup_automation.yml"
+        - "{{ installer_path }}/cip_setup_server_config.yml"
+        
+   # - name: Load Global config parameters
+    #  include_vars:
+     #   file: "{{ installer_path }}/cip_setup_automation.yml"
+      #  file: "{{ installer_path }}/cip_setup_server_config.yml"
 
     - name: Print logs
       debug:
@@ -57,7 +64,7 @@
         pem_file: "{{ lookup('vars',item | split(' ') | first + '_private_key') }}"
         config: "{{ lookup('vars',item | split(' ') | first + '_config') }}"
         counter: "{{ iteration+1 }}"
-        user: "{{ functional_user }}"
+        user: "{{ lookup('vars','functional_user') }}" 
         host_name: "{{ item | split(' ') | last }}"
       when: use_existing_servers == True
       loop: "{{ host_alias_content }}"
