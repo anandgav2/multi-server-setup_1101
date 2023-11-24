@@ -88,7 +88,16 @@
       no_log: true
       become: false
 
-    - name: Copy files to remote host
+    # - name: Copy files to remote host
+    #   copy:
+    #     src: "{{ item.path }}"
+    #     dest: "{{ installer_path }}/"
+    #     remote_src: false
+    #     group: abinitio
+    #   loop: "{{ found_files.files }}"
+    #   become_user: "{{ functional_user }}"
+
+    - name: Copy file to remote hosts
       copy:
         src: "{{ item.path }}"
         dest: "{{ installer_path }}/"
@@ -96,6 +105,20 @@
         group: abinitio
       loop: "{{ found_files.files }}"
       become_user: "{{ functional_user }}"
+      async: 600  
+      poll: 0  # Do not wait for completion in this task
+
+    - name: Wait for completion of the file copy operation
+      async_status:
+        jid: "{{ ansible_job_id }}"
+      register: job_result
+      until: job_result.finished
+      retries: 60  # Adjust the number of retries as needed
+      delay: 15   # Adjust the delay between retries as needed
+
+    - name: Display async job result
+      debug:
+        var: job_result
 
     - name: Untar Files
       shell: |
