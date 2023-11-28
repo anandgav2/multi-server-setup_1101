@@ -1,26 +1,32 @@
 
+# Security Group for Internal Communication 
+resource "aws_security_group" "cip-multi-internal" {
+  name        = "cip-multi-internal"
+  description = "Security group for internal communication"
 
-resource "aws_security_group" "cip-multi" {
-   name        = "cip-multi-group"
-   description = "Allow TCP inbound traffic"
+  ingress {
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "-1"
+    security_group_ids = [aws_security_group.cip-multi-internal.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    security_group_ids = [aws_security_group.cip-multi-internal.id]
+  }
+}
+
+# Security Group for External Communication 
+resource "aws_security_group" "cip-multi-external" {
+   name        = "cip-multi-external"
+   description = "Security group for external communication"
 
   ingress {
     from_port   = 22  # SSH port
     to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Restrict this to your IP range for better security
-  }
-
-  ingress {
-    from_port   = 9001  # NBOS port
-    to_port     = 9001
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Restrict this to your IP range for better security
-  }
-
-  ingress {
-    from_port   = 5678  # Your desired port
-    to_port     = 5678
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]  # Restrict this to your IP range for better security
   }
@@ -40,43 +46,27 @@ resource "aws_security_group" "cip-multi" {
   }
 
   ingress {
-    from_port   = 6461  # Your desired port # Cafe
+    from_port   = 6461  # Your desired port # CC
     to_port     = 6461
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]  # Restrict this to your IP range for better security
   }
 
   ingress {
-    from_port   = 32400  # Your desired port 
+    from_port   = 32400  # Your desired port  # CIPUI
     to_port     = 32400
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]  # Restrict this to your IP range for better security
   }
 
   ingress {
-    from_port   = 15000  # Your desired port
-    to_port     = 35000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Restrict this to your IP range for better security
-  }
-
-  ingress {
-    from_port   = 29000  # Your desired port
+    from_port   = 29000  # Your desired port #A360
     to_port     = 29092
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]  # Restrict this to your IP range for better security
   }
 
 }
-
-resource "aws_security_group_rule" "cip_allow_all_egress" {
-  type        = "egress"
-  from_port   = 0
-  to_port     = 0
-  protocol    = "-1"
-  cidr_blocks = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.cip-multi.id
-} 
 
 
 

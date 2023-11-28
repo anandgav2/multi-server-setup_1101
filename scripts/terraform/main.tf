@@ -36,7 +36,7 @@ resource "aws_instance" "cip" {
     hostnamectl set-hostname "${element(split(" ",element(split("\n",local.host_data),count.index)),1)}"
   EOF
 
-  vpc_security_group_ids = [aws_security_group.cip-multi.id]  # Attach the security group here
+  vpc_security_group_ids = [aws_security_group.cip-multi-internal.id,aws_security_group.cip-multi-external.id]  # Attach the security group here
 
   root_block_device {
     volume_size = 30
