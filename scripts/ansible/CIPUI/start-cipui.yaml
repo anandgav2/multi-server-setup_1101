@@ -250,6 +250,12 @@
         jq ".NBOSQueryService.port=\"9001\"" "{{json_file}}"
       register: json_modify_result
 
+    - name: Write updated JSON back to file
+      ansible.builtin.copy:
+        content: "{{ json_modify_result.stdout| from_json|to_nice_json}}"
+        dest: "{{json_file}}"
+      register: write_result
+
     - name: "update NBOSQueryService host"
       command: >
         jq ".NBOSQueryService.host=\"{{nbos_server}}\"" "{{json_file}}"
