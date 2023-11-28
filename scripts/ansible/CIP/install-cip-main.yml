@@ -386,7 +386,7 @@
               CIP_COMMON_THIS_SERVER@||||$(m_env -g AB_HOST_INTERFACE)
               CIP_COMMON_SEGMENTATION_MUTABLE_AB_HOME@||||$AB_HOME
               CIP_COMMON_SEGMENTATION_SERVER@||||{{ ab_host_alias }}
-              CIP_COMMON_ADC_CONFIG_FILE@||||{{ cip_base_path }}/private_internal/config/config.dev.props
+              CIP_COMMON_ADC_CONFIG_FILE@||||$PROJECT_DIR/config/config.dev.props
               CIP_COMMON_CIPDB_PORT@||||{{ cip_db_port }}
               CIP_COMMON_CIPDB_DB_NAME@||||{{ cip_db_name }}
               CIP_COMMON_QUERY_IT_SANDBOX@||||{{ cip_base_path }}/queryit   
