@@ -326,24 +326,56 @@ pipeline {
             }
         }
 
-/*          stage('Install A360')
-        {
-            steps
-            {
+        stage('Install A360') 
+        { 
+            when {
+                expression {
+                    return env.INSTALL_A360 == "True"
+                }
+            }
+
+            steps 
+            { 
                 script{
                     echo""
                     def sT = new Date()
                     def startTime = sT.format(TIME_FORMAT)
-                    sh "echo ----------- A360 INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"
-                    sh 'cd "${WORKSPACE}/scripts/ansible/act360"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-act360.yaml'
+                    sh "echo ----------- A360 INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"        
+                    sh 'cd "${WORKSPACE}/scripts/ansible/act360"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-act360.yaml' 
                     def eT = new Date()
                     def endTime = eT.format(TIME_FORMAT)
-                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
+                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
                     sh "echo ------- A360 INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                 }
 
             }
-        } */
+        } 
+
+        
+        stage('Install A360 + CIP Integration') 
+        { 
+            when {
+                expression {
+                    return env.INSTALL_A360 == "True"
+                }
+            }
+
+            steps 
+            {     
+                script{
+                    echo""
+                    def sT = new Date()
+                    def startTime = sT.format(TIME_FORMAT)
+                    sh "echo ----------- A360 Integration STARTED -----------  >> ${env.LOG_FILE}"        
+                    sh 'cd "${WORKSPACE}/scripts/ansible/act360"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key A360_and_cip_integration.yaml' 
+                    def eT = new Date()
+                    def endTime = eT.format(TIME_FORMAT)
+                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
+                    sh "echo ------- A360 Integration SUCCESSFUL ---------- >> ${env.LOG_FILE}"
+                }
+
+            }
+        }  
 
     }
 
