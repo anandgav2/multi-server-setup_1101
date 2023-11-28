@@ -385,7 +385,7 @@
               Environment||||{{ sandbox_root }}/{{ functional_user }}/stdenv
               CIP_COMMON_THIS_SERVER@||||$(m_env -g AB_HOST_INTERFACE)
               CIP_COMMON_SEGMENTATION_MUTABLE_AB_HOME@||||$AB_HOME
-              CIP_COMMON_LOCAL_SEGMENTATION_LAYOUT@||||$CIP_COMMON_LOCAL_MFS
+              CIP_COMMON_SEGMENTATION_SERVER@||||{{ ab_host_alias }}
               CIP_COMMON_ADC_CONFIG_FILE@||||{{ cip_base_path }}/private_internal/config/config.dev.props
               CIP_COMMON_CIPDB_PORT@||||{{ cip_db_port }}
               CIP_COMMON_CIPDB_DB_NAME@||||{{ cip_db_name }}
@@ -405,7 +405,6 @@
               CIP_COMMON_ENRICHMENT_SERVERS@||||{{ cip_common_enrichment_servers }}		
               CIP_COMMON_INBOUND_CHANNEL_QUEUE_SERVERS@||||{{ cip_common_inbound_channel_queue_servers }}		
               CIP_COMMON_NBOS_SERVER@||||{{ cip_common_nbos_server }}
-              CIP_COMMON_NBOS_SERVER_V1@||||{{ cip_common_nbos_server_v1 }}
               CIP_COMMON_NBOS_PORT@||||9001
               INBOUND_CHANNEL_ADC_HOSTS_FOR_NBOS_ADC_ADAPTER_QUEUE@||||{{ inbound_channel_adc_hosts_for_nbos_adc_adapter_queue }}
               CIP_COMMON_REPORT_SERVER@||||{{ cip_common_audit_server }}		
