@@ -8,14 +8,14 @@ resource "aws_security_group" "cip-multi-internal" {
     from_port   = 0
     to_port     = 65535
     protocol    = "-1"
-    security_group_ids = [aws_security_group.cip-multi-internal.id]
+    self        = true 
   }
 
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    security_group_ids = [aws_security_group.cip-multi-internal.id]
+    self        = true 
   }
 }
 
