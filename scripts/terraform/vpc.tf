@@ -17,6 +17,13 @@ resource "aws_security_group" "cip-multi-internal" {
     protocol    = "-1"
     self        = true 
   }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]  
+  }
 }
 
 # Security Group for External Communication 
