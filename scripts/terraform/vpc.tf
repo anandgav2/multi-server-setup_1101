@@ -4,11 +4,14 @@ resource "aws_security_group" "cip-multi-internal" {
   name        = "cip-multi-internal"
   description = "Security group for internal communication"
 
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    self        = true 
+  dynamic "ingress" {
+    for_each = aws_instance.cip
+    content {
+      from_port   = 0
+      to_port     = 65535
+      protocol    = "tcp"
+      cidr_blocks = ["${ingress.value.public_ip}/32"]
+    }
   }
 
   egress {
