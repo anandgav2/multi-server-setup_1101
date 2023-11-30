@@ -461,9 +461,9 @@
 
     - name: checkin adc configuration
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
-      with_items:
-        - "air project import /Projects/abinitio/cip/private_internal -basedir {{ cip_base_path }}/private_internal -files  config/{{ adc_config_file_name }} -force"
-        - "air project set-type /Projects/abinitio/cip/private_internal config/{{ adc_config_file_name }} text/plain"
+      shell: |
+        air project import /Projects/abinitio/cip/private_internal -basedir {{ cip_base_path }}/private_internal -files  config/{{ adc_config_file_name }} -force
+        air project set-type /Projects/abinitio/cip/private_internal config/{{ adc_config_file_name }} text/plain
       register: command_output
       become_user: "{{ functional_user }}"
       when: nbos_adc_config_type == 'FILE'
