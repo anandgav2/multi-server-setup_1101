@@ -68,14 +68,6 @@
       loop:
         - "{{ functional_user }}"    
 
-    # - name: Copy host alias File
-    #   copy:        
-    #     src: "{{ installer_path }}/host_alias.txt"
-    #     dest: "{{ installer_path }}"
-    #     remote_src: false
-    #     group: abinitio
-    #   become_user: "{{ functional_user }}"
-
     - name: Add localhost entry to /etc/hosts
       lineinfile:
         path: /etc/hosts
@@ -84,13 +76,6 @@
           ::1 {{ ansible_hostname }}
         state: present
            
-    # - name: Add remote host entries to /etc/hosts
-    #   lineinfile:
-    #     path: /etc/hosts
-    #     line: "{{ item | split(' ') | last + ' ' + item | split(' ') | first }}"
-    #     state: present     
-    #   loop: "{{ lookup('file', installer_path+'/host_alias.txt').splitlines() }}"
-
     - name: Add remote host and public ip entries to /etc/hosts
       lineinfile:
         path: /etc/hosts
@@ -111,13 +96,13 @@
       become: false
 
     - name: Install OpenJDK 11 on CentOS/RHEL
-      when: ansible_distribution in ['CentOS', 'RedHat'] #and inventory_hostname == 'a360'
+      when: ansible_distribution in ['CentOS', 'RedHat'] 
       ansible.builtin.package:
         name: java-11-openjdk
         state: present
 
     - name: Log step
-      when: ansible_distribution in ['CentOS', 'RedHat'] # and inventory_hostname == 'a360'
+      when: ansible_distribution in ['CentOS', 'RedHat'] 
       lineinfile:
         path: "{{ log_file }}"
         line: |
