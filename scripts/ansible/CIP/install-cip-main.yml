@@ -461,7 +461,6 @@
 
 
     - name: checkin adc configuration
-      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       shell: |
         source /etc/profile
         air project import /Projects/abinitio/cip/private_internal -basedir {{ cip_base_path }}/private_internal -files  config/{{ adc_config_file_name }} -force
