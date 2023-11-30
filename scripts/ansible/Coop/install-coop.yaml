@@ -97,10 +97,6 @@
       loop: "{{ found_files.files }}"
       become_user: "{{ functional_user }}"
 
-    - name: Display async job result
-      debug:
-        var: job_result
-
     - name: Untar Files
       shell: |
         su - {{ item }} -c "tar zxvf {{ installer_path }}/AbInitio*{{ coop_version }}*.* -C {{ installer_path }}/"
