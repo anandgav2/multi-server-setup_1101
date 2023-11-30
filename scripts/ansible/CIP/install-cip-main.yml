@@ -60,6 +60,14 @@
         state: present
       when: ansible_host != a360_ip
 
+    - name: Set params in CIP related parameters in global abinitiorc
+      lineinfile:
+        path: "{{ ab_home_dir }}/abinitio-V{{ coop_version }}/config/abinitiorc"
+        line: |
+         AB_EASY_RESOLVE_NAMES_VERSION : 1
+         AB_ENV_ROOT : {{ sandbox_root }}/{{ functional_user }}/stdenv
+        state: present  
+
 
 - name: CIP Installation
   hosts: cipui
@@ -301,7 +309,6 @@
         path: "{{ destination }}/abinitio-V{{ coop_version }}/config/abinitiorc"
         line: |
           AB_SQL_MUTABLE_SEARCH_PATH : {{ cip_base_path }}/abinitio/cip/cip_common/components:~ab_home/lib/absql
-          AB_EASY_RESOLVE_NAMES_VERSION : 1
         state: present      
 
     - name: Create Abinitio environment
@@ -325,14 +332,7 @@
         state: present
       delegate_to: localhost
       no_log: true
-      become: false 
-
-    - name: Set params in global abinitiorc
-      lineinfile:
-        path: "{{ destination }}/abinitio-V{{ coop_version }}/config/abinitiorc"
-        line: |
-         AB_ENV_ROOT : {{ sandbox_root }}/{{ functional_user }}/stdenv
-        state: present       
+      become: false      
 
     - name: Load CIP sav files
       shell: |
