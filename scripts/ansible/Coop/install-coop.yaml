@@ -161,7 +161,7 @@
       lineinfile:
         path: /etc/profile
         line: |
-          AB_AIR_ROOT=//{{ eme_host_alias }}{{ data_root_path }}/eme/cipeme/repo
+          export AB_AIR_ROOT=//{{ eme_host_alias }}{{ data_root_path }}/eme/cipeme/repo
         state: present  # Add the line if not present
       notify: Reload Profile
       when: ab_host_alias != hostvars['a360'].ab_host_alias
