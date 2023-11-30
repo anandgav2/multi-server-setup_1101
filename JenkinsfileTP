@@ -28,7 +28,7 @@ pipeline {
             }
         }
 
-        stage('Terraform Init & Plan --> Initialize EC2 instance')
+        stage('Terraform Create EC2 Instances')
         {
             when {
                 expression {
@@ -50,27 +50,6 @@ pipeline {
                             terraform plan --lock=false -var 'host_alias_path=${env.INSTALLER_PATH}/host_alias.txt' -out=myplan.tfplan;
                             
                         """
-                        //terraform plan -var 'server_cnt=${COUNT}' -out=myplan.tfplan;
-                    }
-                }
-
-            }
-        }
-
-        stage('Terraform Apply -> Create EC2 Instance')
-        {
-            when {
-                expression {
-                    return env.USE_EXISTING_SERVERS == "False"
-                }
-            }
-
-            steps
-            {
-                script
-                {
-                    dir("${WORKSPACE}/scripts/terraform")
-                    {
                         sh 'terraform apply --lock=false -auto-approve myplan.tfplan'
                         def eT = new Date()
                         def endTime = eT.format(TIME_FORMAT)
@@ -80,6 +59,7 @@ pipeline {
                         sh "echo ------- SERVER CREATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                     }
                 }
+
             }
         }
 
@@ -352,7 +332,7 @@ pipeline {
         } 
 
         
-        stage('Install A360 + CIP Integration') 
+        stage('A360 + CIP Integration') 
         { 
             when {
                 expression {
@@ -378,35 +358,4 @@ pipeline {
         }  
 
     }
-
-    /* post {
-        failure {
-            script {
-
-                def targetStageName = 'Update inventory file if want to use existing servers'
-
-                def logFile = "${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_NUMBER}/log"
-                def logs = readFile(logFile).split('\n')
-                def startCapture = false
-                def capturedLogs = []
-
-                for (def line : logs) {
-                    if (startCapture && line =~ /^.*\[Pipeline\] \/\/ stage*.$/) {
-                       break
-                    }
-                    if (startCapture) {
-                        capturedLogs.add(line)
-                    }
-                    if (line =~ /^.*${targetStageName}*.$/) {
-                        startCapture = true
-                    }
-                }
-
-                // Do something with the captured logs, e.g., print or manipulate them
-                sh "echo 'Error Logs of --> ${targetStageName}:' >> ${env.LOG_FILE}"
-                sh "echo '${capturedLogs.join('\n')}' >> ${env.LOG_FILE}"
-
-            }
-        }
-    } */ 
 }
