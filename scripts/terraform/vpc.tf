@@ -4,7 +4,7 @@ resource "aws_security_group" "cip-multi-internal" {
   name        = "cip-multi-internal"
   description = "Security group for internal communication"
 
-  "ingress" {
+  ingress {
     from_port   = 0
     to_port     = 65535
     protocol    = "tcp"
