@@ -458,7 +458,7 @@
         group: abinitio
       become_user: "{{ functional_user }}"
       when: nbos_adc_config_type == 'FILE'
-	  
+
     - name: checkin adc configuration
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
