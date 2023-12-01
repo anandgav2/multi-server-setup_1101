@@ -463,6 +463,7 @@
     - name: checkin adc configuration
       shell: |
         source /etc/profile
+        air project modify /Projects/abinitio/cip/private_internal -extension '*.props' text/plain
         air sandbox add {{ cip_base_path }}/private_internal/config/{{ adc_config_file_name }}
         air sandbox import {{ cip_base_path }}/private_internal -files config/{{ adc_config_file_name }}
       register: command_output
