@@ -191,8 +191,8 @@
         path: "{{ installer_path }}/host_alias_file.dat"
         line: |
           {{ hostvars[item].ab_host_alias }} {{ hostvars[item].ansible_hostname }}
-          {{ hostvars[item].ansible_hostname }} {{ hostvars[item].ansible_host }}
-          {{ hostvars[item].ansible_hostname }} {{ hostvars[item].ansible_default_ipv4.address }}
+#          {{ hostvars[item].ansible_hostname }} {{ hostvars[item].ansible_host }}
+#          {{ hostvars[item].ansible_hostname }} {{ hostvars[item].ansible_default_ipv4.address }}
         state: present
         create: yes
       become_user: "{{ functional_user }}"
@@ -359,7 +359,8 @@
 
     - name: Get SSH Sever
       set_fact:
-        ssh_servers: "{{ ssh_servers | default([]) + [ hostvars[item].ansible_hostname, hostvars[item].ansible_host ] }}"
+#        ssh_servers: "{{ ssh_servers | default([]) + [ hostvars[item].ansible_hostname, hostvars[item].ansible_host ] }}"
+        ssh_servers: "{{ ssh_servers | default([]) + [ hostvars[item].ansible_hostname ] }}"
       loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
   
     - name: SSH into the server and accept key fingerprint for hetro connection
