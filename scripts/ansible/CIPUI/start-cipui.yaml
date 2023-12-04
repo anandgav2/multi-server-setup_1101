@@ -554,6 +554,10 @@
 
           set use_nbos_query "Y"
 
+          set nbos_user "{{ functional_user }}"
+          
+          set nbos_pass "{{ functional_user_password }}"
+
           cd "{{ cip_base_path }}/ui/web/"
 
           spawn npm run first_modeB
@@ -589,6 +593,12 @@
 
           expect "Do you use NBOS query (Y/N) ? :"
           send  "$use_nbos_query\r"
+
+          expect "Please enter the NBOS Username :"
+          send  "$nbos_user\r"
+          
+          expect "Please enter the NBOS Password :"
+          send  "$nbos_pass\r"
 
           interact
         dest: "{{ cip_base_path }}/ui/web/input.exp"
