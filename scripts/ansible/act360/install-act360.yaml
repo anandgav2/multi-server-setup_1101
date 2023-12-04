@@ -124,7 +124,7 @@
         app_hub_dest: "{{ coop_config_values | select('match', '^app_hub_dest=(.*)') | map('regex_replace', '^app_hub_dest=(.*)', '\\1') | first }}"
 
     - name: "Fetch JAVA_HOME"
-      shell: dirname $(dirname $(readlink -f $(which java)))
+      shell: "echo $JAVA_HOME"
       register: java_home 
 
     - name: Get Python Path
