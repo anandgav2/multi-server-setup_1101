@@ -93,7 +93,7 @@
       become_user: "{{ functional_user }}"
       ignore_errors: true
       args:
-        chdir: "{{ sandbox_root }}/queryit"
+        chdir: "{{ cip_base_path }}/queryit"
 
     - name: Print logs
       debug:
