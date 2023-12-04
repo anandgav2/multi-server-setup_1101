@@ -113,7 +113,7 @@
       become: false
 
     - name: "Fetch JAVA_HOME"
-      shell: "dirname $(dirname $(readlink -f $(which java)))"
+      shell: "ls -d /usr/lib/jvm/java-11-openjdk*"
       register: java_home
 
     - name: Set JAVA_HOME Environment Variable
