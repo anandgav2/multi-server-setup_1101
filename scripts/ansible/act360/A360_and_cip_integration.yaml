@@ -117,8 +117,8 @@
         bootstrap.servers={{ a360_hostname }}:29092
         transaction.timeout.ms=9000'
         air sandbox import . -files dev.pset
-#        - air sandbox parameter -path .sandbox.pset CIP_COMMON_LOCAL_ENRICHMENT_QUEUE@ '$CIP_COMMON_LOCAL_MFS_QUEUE/{{ short_host_name.stdout }}.enrichment_q'
       become_user: "{{ functional_user }}"
+#        - air sandbox parameter -path .sandbox.pset CIP_COMMON_LOCAL_ENRICHMENT_QUEUE@ '$CIP_COMMON_LOCAL_MFS_QUEUE/{{ short_host_name.stdout }}.enrichment_q'
 
     - name: Export CIP base pset
       when: ab_host_alias != hostvars['a360'].ab_host_alias
