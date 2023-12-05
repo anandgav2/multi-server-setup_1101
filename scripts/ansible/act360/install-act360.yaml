@@ -154,7 +154,7 @@
           'ab.key.client.host.urls:': "{{ ab_key_client_host_urls }}" 
           'ab.key.users.source:': "{{ ab_key_users_source }}"
           'ab.key.client.users.urls:': "{{ ab_key_client_users_urls }}"
-          'ab.tmp_dir:': "/tmp"
+          'ab.tmp_dir:': "{{ a360_root }}/tmp"
           'act.base_port_prefix:': "{{ act_base_port_prefix }}"
           'act.name:': "{{ act_name }}"
           'act.portal.scaled_binary_type_decimal_places:': "{{ act_portal_scaled_binary_type_decimal_places }}"
@@ -186,7 +186,9 @@
     - name: Create directory hierarchy and set ownership
       shell: |
         sudo mkdir -p {{ a360_root }}
+        sudo mkdir -p {{ a360_root }}/tmp
         sudo chown -R {{ item }}:abinitio {{ a360_root }}
+        sudo chown -R {{ item }}:abinitio {{ a360_root }}/tmp
       loop:
         - "{{ functional_user }}"
 
