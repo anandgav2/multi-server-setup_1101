@@ -16,7 +16,7 @@ pipeline {
 
     stages {
 
-        /* stage('Initialize Log and common config') {
+         stage('Initialize Log and common config') {
             steps {
                 script {
                     echo "##### SUMMARY LOG FILE : ${env.LOG_FILE} #########"
@@ -304,7 +304,7 @@ pipeline {
                 }
 
             }
-        } */
+        } 
 
         stage('Install A360') 
         { 
