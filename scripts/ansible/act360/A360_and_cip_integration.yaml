@@ -97,7 +97,7 @@
         source /etc/profile
         cd {{ cip_base_path }}/private_internal
         air sandbox lock {{ cip_base_path }}/private_internal/dev.pset
-        air sandbox parameter -path dev.pset JAVA_HOME@act_api $JAVA_HOME
+        air sandbox parameter -path dev.pset JAVA_HOME@act_api '\$JAVA_HOME'
         air sandbox parameter -path dev.pset ACT_API_BASE_PORT@ '29000'
         air sandbox parameter -path dev.pset ACT_API_SERVICE_HOST@ {{ a360_hostname }}
         air sandbox parameter -path dev.pset ACT_API_HTTP_CONTEXT_ROOT@ 'active360'
