@@ -93,12 +93,11 @@
         var: command_output.stdout_lines
 
     - name: Set A360 Parameters in CIP base pset
-      when: ab_host_alias == hostvars['control'].ab_host_alias
       shell: |
         source /etc/profile
         cd {{ cip_base_path }}/private_internal
         air sandbox lock {{ cip_base_path }}/private_internal/dev.pset
-        air sandbox parameter -path dev.pset JAVA_HOME@act_api ${JAVA_HOME}
+        air sandbox parameter -path dev.pset JAVA_HOME@act_api $JAVA_HOME
         air sandbox parameter -path dev.pset ACT_API_BASE_PORT@ '29000'
         air sandbox parameter -path dev.pset ACT_API_SERVICE_HOST@ {{ a360_hostname }}
         air sandbox parameter -path dev.pset ACT_API_HTTP_CONTEXT_ROOT@ 'active360'
@@ -118,7 +117,7 @@
         transaction.timeout.ms=9000'
         air sandbox import . -files dev.pset
       become_user: "{{ functional_user }}"
-#        - air sandbox parameter -path .sandbox.pset CIP_COMMON_LOCAL_ENRICHMENT_QUEUE@ '$CIP_COMMON_LOCAL_MFS_QUEUE/{{ short_host_name.stdout }}.enrichment_q'
+      when: ab_host_alias == hostvars['control'].ab_host_alias
 
     - name: Export CIP base pset
       when: ab_host_alias != hostvars['a360'].ab_host_alias
