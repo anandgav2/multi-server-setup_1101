@@ -71,332 +71,332 @@
         cip_common_local_serial: "{{ hostvars[control_inv]['control_out']['stdout_lines'][2] }}"
         cip_common_serial_lookup: "{{ hostvars[control_inv]['control_out']['stdout_lines'][3] }}"
 
-    - name: Create Hetro connection File
-      lineinfile:
-        path: "/home/{{ functional_user }}/.abinitiorc"
-        line: |     
-          AB_HOME @ A360 : {{ a360_ab_home }}
-        state: present
-        create: yes
-      become_user: "{{ functional_user }}"
+    # - name: Create Hetro connection File
+    #   lineinfile:
+    #     path: "/home/{{ functional_user }}/.abinitiorc"
+    #     line: |     
+    #       AB_HOME @ A360 : {{ a360_ab_home }}
+    #     state: present
+    #     create: yes
+    #   become_user: "{{ functional_user }}"
 
-    - name: Get A360 Sandbox Parameters - ACT_API_MESSAGE_BUS_PROPERTIES_FILE
-      when: ab_host_alias ==  hostvars['a360'].ab_host_alias
-      shell: |
-        cat {{ act_api_message_bus_properties_file }}
-      register: command_output
-      become_user: "{{ functional_user }}"
+    # - name: Get A360 Sandbox Parameters - ACT_API_MESSAGE_BUS_PROPERTIES_FILE
+    #   when: ab_host_alias ==  hostvars['a360'].ab_host_alias
+    #   shell: |
+    #     cat {{ act_api_message_bus_properties_file }}
+    #   register: command_output
+    #   become_user: "{{ functional_user }}"
 
-    - name: Kafka Bootstrap server
-      when: ab_host_alias ==  hostvars['a360'].ab_host_alias
-      debug:
-        var: command_output.stdout_lines
+    # - name: Kafka Bootstrap server
+    #   when: ab_host_alias ==  hostvars['a360'].ab_host_alias
+    #   debug:
+    #     var: command_output.stdout_lines
 
-    - name: Set A360 Parameters in CIP base pset
-      when: ab_host_alias == hostvars['control'].ab_host_alias
-      shell: |
-        source /etc/profile
-        cd {{ cip_base_path }}/private_internal
-        air sandbox lock {{ cip_base_path }}/private_internal/dev.pset
-        air sandbox parameter -path dev.pset JAVA_HOME@act_api '\$JAVA_HOME'
-        air sandbox parameter -path dev.pset ACT_API_BASE_PORT@ '29000'
-        air sandbox parameter -path dev.pset ACT_API_SERVICE_HOST@ {{ a360_hostname }}
-        air sandbox parameter -path dev.pset ACT_API_HTTP_CONTEXT_ROOT@ 'active360'
-        air sandbox parameter -path dev.pset ACT_API_CUSTOMER360_ENTITY_NAME@ 'cip_customer'
-        air sandbox parameter -path dev.pset ACT_API_CUSTOMER360_SUBSET_NAME@ 'subset_for_cip_inbound'
-        air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_HTTP_HOST@ {{ a360_hostname }}
-        air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_HTTP_PORT@ '29000'
-        air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_API_URLROOT@ '/activeportal/api/act'
-        air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_USERNAME@ 'cafeuser'
-        air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_PASSWORD_ENCRYPTED@ '2,,LH6OEsUEcn2S0PL8og2Sh9anwwDdN5uOjOWJforE59I'
-        air sandbox parameter -path dev.pset CIP_COMMON_CUSTOMER_360_SUBSET@ 'subset_for_cip_outbound'
-        air sandbox parameter -path dev.pset CIP_COMMON_CUSTOMER_EVENT_OVERRIDE_TYPE_LIST@ 'ET_EVENT1,ET_EVENT2,ET_EVENT3'
-        air sandbox parameter -path dev.pset CIP_COMMON_INTERNAL_EVENT_OVERRIDE_TYPE_LIST@ 'ET_TIMER,ET_CAMPAIGN_EVENT,ET_CAMPAIGN_EVENT_CAMPAIGN_ENDED,ET_NBOS_FULFILLMENT_REQUEST,ET_OUTBOUND_CHANNEL_FULFILLMENT_REQUEST,ET_NBOS_OUTBOUND_EVENT'
-        air sandbox parameter -path dev.pset CIP_COMMON_NOTIFICATION_EVENT_TYPE_LIST@ ''
-        air sandbox parameter -path dev.pset CIP_COMMON_A360_KAFKA_TOPIC_PROPERTIES@ 'acks=-1
-        bootstrap.servers={{ a360_hostname }}:29092
-        transaction.timeout.ms=9000'
-        air sandbox import . -files dev.pset
-      become_user: "{{ functional_user }}"
+    # - name: Set A360 Parameters in CIP base pset
+    #   when: ab_host_alias == hostvars['control'].ab_host_alias
+    #   shell: |
+    #     source /etc/profile
+    #     cd {{ cip_base_path }}/private_internal
+    #     air sandbox lock {{ cip_base_path }}/private_internal/dev.pset
+    #     air sandbox parameter -path dev.pset JAVA_HOME@act_api '\$JAVA_HOME'
+    #     air sandbox parameter -path dev.pset ACT_API_BASE_PORT@ '29000'
+    #     air sandbox parameter -path dev.pset ACT_API_SERVICE_HOST@ {{ a360_hostname }}
+    #     air sandbox parameter -path dev.pset ACT_API_HTTP_CONTEXT_ROOT@ 'active360'
+    #     air sandbox parameter -path dev.pset ACT_API_CUSTOMER360_ENTITY_NAME@ 'cip_customer'
+    #     air sandbox parameter -path dev.pset ACT_API_CUSTOMER360_SUBSET_NAME@ 'subset_for_cip_inbound'
+    #     air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_HTTP_HOST@ {{ a360_hostname }}
+    #     air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_HTTP_PORT@ '29000'
+    #     air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_API_URLROOT@ '/activeportal/api/act'
+    #     air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_USERNAME@ 'cafeuser'
+    #     air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_PASSWORD_ENCRYPTED@ '2,,LH6OEsUEcn2S0PL8og2Sh9anwwDdN5uOjOWJforE59I'
+    #     air sandbox parameter -path dev.pset CIP_COMMON_CUSTOMER_360_SUBSET@ 'subset_for_cip_outbound'
+    #     air sandbox parameter -path dev.pset CIP_COMMON_CUSTOMER_EVENT_OVERRIDE_TYPE_LIST@ 'ET_EVENT1,ET_EVENT2,ET_EVENT3'
+    #     air sandbox parameter -path dev.pset CIP_COMMON_INTERNAL_EVENT_OVERRIDE_TYPE_LIST@ 'ET_TIMER,ET_CAMPAIGN_EVENT,ET_CAMPAIGN_EVENT_CAMPAIGN_ENDED,ET_NBOS_FULFILLMENT_REQUEST,ET_OUTBOUND_CHANNEL_FULFILLMENT_REQUEST,ET_NBOS_OUTBOUND_EVENT'
+    #     air sandbox parameter -path dev.pset CIP_COMMON_NOTIFICATION_EVENT_TYPE_LIST@ ''
+    #     air sandbox parameter -path dev.pset CIP_COMMON_A360_KAFKA_TOPIC_PROPERTIES@ 'acks=-1
+    #     bootstrap.servers={{ a360_hostname }}:29092
+    #     transaction.timeout.ms=9000'
+    #     air sandbox import . -files dev.pset
+    #   become_user: "{{ functional_user }}"
 
-    - name: Export CIP base pset
-      when: ab_host_alias != hostvars['a360'].ab_host_alias
-      shell: |
-        source /etc/profile
-        cd {{ cip_base_path }}/private_internal
-        air sandbox export . -files dev.pset
-      become_user: "{{ functional_user }}"
+    # - name: Export CIP base pset
+    #   when: ab_host_alias != hostvars['a360'].ab_host_alias
+    #   shell: |
+    #     source /etc/profile
+    #     cd {{ cip_base_path }}/private_internal
+    #     air sandbox export . -files dev.pset
+    #   become_user: "{{ functional_user }}"
 
-    - name: Set A360 Sandbox Parameters
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
-      shell: |
-        source {{ a360_root }}/bin/env.sh
-        cd {{ a360_root }}/sand/abinitio/act/main
-        air sandbox parameter -path .sandbox.pset REJECT_MESSAGES_MORE_THAN_N_MINUTES_IN_FUTURE 5256000
-        cd run/
-        air sandbox run ../pset/shutdown_cluster.pset
-        air sandbox run ../pset/launch_cluster.pset
-      become_user: "{{ functional_user }}"
+    # - name: Set A360 Sandbox Parameters
+    #   when: ab_host_alias == hostvars['a360'].ab_host_alias
+    #   shell: |
+    #     source {{ a360_root }}/bin/env.sh
+    #     cd {{ a360_root }}/sand/abinitio/act/main
+    #     air sandbox parameter -path .sandbox.pset REJECT_MESSAGES_MORE_THAN_N_MINUTES_IN_FUTURE 5256000
+    #     cd run/
+    #     air sandbox run ../pset/shutdown_cluster.pset
+    #     air sandbox run ../pset/launch_cluster.pset
+    #   become_user: "{{ functional_user }}"
 
-    - name: Extract Metadata of Entity and Events
-      when: ab_host_alias == hostvars['control'].ab_host_alias
-      shell: |
-        source /etc/profile
-        cd {{ cip_base_path }}/private_internal/run
-        air sandbox run  ../pset/utility/cip_extract_metadata_for_360.pset
-      become_user: "{{ functional_user }}"
+    # - name: Extract Metadata of Entity and Events
+    #   when: ab_host_alias == hostvars['control'].ab_host_alias
+    #   shell: |
+    #     source /etc/profile
+    #     cd {{ cip_base_path }}/private_internal/run
+    #     air sandbox run  ../pset/utility/cip_extract_metadata_for_360.pset
+    #   become_user: "{{ functional_user }}"
 
-    - name: Copy extracted_dmls.tar.gz to A360 Server
-      when: ab_host_alias == hostvars['control'].ab_host_alias
-      shell: |
-        source /etc/profile
-        cd {{ cip_base_path }}/private_internal/
-        m_cp {{ cip_common_serial }}/extracted_dml/extracted_dmls.tar.gz //{{ hostvars['a360'].ab_host_alias }}/{{ installer_path }}
-      become_user: "{{ functional_user }}"
+    # - name: Copy extracted_dmls.tar.gz to A360 Server
+    #   when: ab_host_alias == hostvars['control'].ab_host_alias
+    #   shell: |
+    #     source /etc/profile
+    #     cd {{ cip_base_path }}/private_internal/
+    #     m_cp {{ cip_common_serial }}/extracted_dml/extracted_dmls.tar.gz //{{ hostvars['a360'].ab_host_alias }}/{{ installer_path }}
+    #   become_user: "{{ functional_user }}"
 
-    - name: Create extractors directory and set ownership
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
-      file:
-        path: "{{ a360_root }}/ab-deployments/act_mhub/extractors/"
-        state: directory
-        group: abinitio
-        recurse: yes
-      become_user: "{{ functional_user }}"
+    # - name: Create extractors directory and set ownership
+    #   when: ab_host_alias == hostvars['a360'].ab_host_alias
+    #   file:
+    #     path: "{{ a360_root }}/ab-deployments/act_mhub/extractors/"
+    #     state: directory
+    #     group: abinitio
+    #     recurse: yes
+    #   become_user: "{{ functional_user }}"
 
-    - name: Copy CipCustomer_Setup to extractors directory
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
-      copy:
-        src: "{{ a360_root }}/release_pkg/application/extractors/CipCustomer_Setup"  
-        dest: "{{ a360_root }}/ab-deployments/act_mhub/extractors/"
-        mode: "0755" 
-        remote_src: yes
-      become_user: "{{ functional_user }}"
+    # - name: Copy CipCustomer_Setup to extractors directory
+    #   when: ab_host_alias == hostvars['a360'].ab_host_alias
+    #   copy:
+    #     src: "{{ a360_root }}/release_pkg/application/extractors/CipCustomer_Setup"  
+    #     dest: "{{ a360_root }}/ab-deployments/act_mhub/extractors/"
+    #     mode: "0755" 
+    #     remote_src: yes
+    #   become_user: "{{ functional_user }}"
 
-    - name: Register A360 Extractors
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
-      shell: |
-        source {{ a360_root }}/bin/env.sh
-        source {{ a360_root }}/ab-deployments/act_mhub/config/import.profile
-        cd {{ a360_root }}/ab-deployments/act_mhub/extractors/
-        mh-import register extractors
-      register: command_output
-      become_user: "{{ functional_user }}"
+    # - name: Register A360 Extractors
+    #   when: ab_host_alias == hostvars['a360'].ab_host_alias
+    #   shell: |
+    #     source {{ a360_root }}/bin/env.sh
+    #     source {{ a360_root }}/ab-deployments/act_mhub/config/import.profile
+    #     cd {{ a360_root }}/ab-deployments/act_mhub/extractors/
+    #     mh-import register extractors
+    #   register: command_output
+    #   become_user: "{{ functional_user }}"
 
-    - name: Check A360 Extractors are Registered Output
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
-      debug:
-        var: command_output.stdout_lines
+    # - name: Check A360 Extractors are Registered Output
+    #   when: ab_host_alias == hostvars['a360'].ab_host_alias
+    #   debug:
+    #     var: command_output.stdout_lines
 
-    - name: Import the Extracted Metadata to A360
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
-      shell: |
-        source {{ a360_root }}/bin/env.sh
-        source {{ a360_root }}/ab-deployments/act_mhub/config/import.profile
-        export AB_MHUB_CONN_PARAMS="$AB_MHUB_CONN_PARAMS -u {{ a360_ag_user }} -p {{ a360_ag_password }}"
-        cd {{ a360_root }}/ab-deployments/act_mhub/extractors/CipCustomer_Setup
-        sed -i "s#METADATA_TAR_FILE:.*#METADATA_TAR_FILE: {{ installer_path }}/extracted_dmls.tar.gz#g" CIP-Metadata-Import.feed
-        mh-import feed save CIP-Metadata-Import.feed
-        mh-import run -feed "CIP Metadata Import" -progress -approve
-      register: command_output
-      become_user: "{{ functional_user }}"
+    # - name: Import the Extracted Metadata to A360
+    #   when: ab_host_alias == hostvars['a360'].ab_host_alias
+    #   shell: |
+    #     source {{ a360_root }}/bin/env.sh
+    #     source {{ a360_root }}/ab-deployments/act_mhub/config/import.profile
+    #     export AB_MHUB_CONN_PARAMS="$AB_MHUB_CONN_PARAMS -u {{ a360_ag_user }} -p {{ a360_ag_password }}"
+    #     cd {{ a360_root }}/ab-deployments/act_mhub/extractors/CipCustomer_Setup
+    #     sed -i "s#METADATA_TAR_FILE:.*#METADATA_TAR_FILE: {{ installer_path }}/extracted_dmls.tar.gz#g" CIP-Metadata-Import.feed
+    #     mh-import feed save CIP-Metadata-Import.feed
+    #     mh-import run -feed "CIP Metadata Import" -progress -approve
+    #   register: command_output
+    #   become_user: "{{ functional_user }}"
 
-    - name: Check MH Import Feed Output
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
-      debug:
-        var: command_output.stdout_lines
+    # - name: Check MH Import Feed Output
+    #   when: ab_host_alias == hostvars['a360'].ab_host_alias
+    #   debug:
+    #     var: command_output.stdout_lines
 
-    - name: Run an A360 deployment
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
-      shell: |
-        source {{ a360_root }}/bin/env.sh
-        curl -X POST "http://{{ a360_hostname }}:29000/activeportal/api/act/deploy/start" -H "Content-Type: application/json" -d "{}" -u {{ web_app_user }}:{{ web_app_user }}
-        sleep 30
-      register: response
-      become_user: "{{ functional_user }}"
+    # - name: Run an A360 deployment
+    #   when: ab_host_alias == hostvars['a360'].ab_host_alias
+    #   shell: |
+    #     source {{ a360_root }}/bin/env.sh
+    #     curl -X POST "http://{{ a360_hostname }}:29000/activeportal/api/act/deploy/start" -H "Content-Type: application/json" -d "{}" -u {{ web_app_user }}:{{ web_app_user }}
+    #     sleep 30
+    #   register: response
+    #   become_user: "{{ functional_user }}"
 
-    - name: Check A360 deployment Output
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
-      debug:
-        var: response.stdout_lines
+    # - name: Check A360 deployment Output
+    #   when: ab_host_alias == hostvars['a360'].ab_host_alias
+    #   debug:
+    #     var: response.stdout_lines
 
-    - name: Clean Up Unwanted Lookups
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
-      shell: |
-        cd {{ act_api_adc_lookups_staging_dir }}
-        rm -rf act_customer*
-      become_user: "{{ functional_user }}"
+    # - name: Clean Up Unwanted Lookups
+    #   when: ab_host_alias == hostvars['a360'].ab_host_alias
+    #   shell: |
+    #     cd {{ act_api_adc_lookups_staging_dir }}
+    #     rm -rf act_customer*
+    #   become_user: "{{ functional_user }}"
 
-    - name: Run Lookup Reload
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
-      shell: |
-        source {{ a360_root }}/bin/env.sh
-        cd {{ a360_root }}/sand/abinitio/act/main/run
-        air sandbox run ../pset/reload_lookups.pset
-        adc lobby lookups state
-      register: command_output
-      become_user: "{{ functional_user }}"
+    # - name: Run Lookup Reload
+    #   when: ab_host_alias == hostvars['a360'].ab_host_alias
+    #   shell: |
+    #     source {{ a360_root }}/bin/env.sh
+    #     cd {{ a360_root }}/sand/abinitio/act/main/run
+    #     air sandbox run ../pset/reload_lookups.pset
+    #     adc lobby lookups state
+    #   register: command_output
+    #   become_user: "{{ functional_user }}"
 
-    - name: Display ADC status
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
-      debug:
-        var: command_output.stdout_lines
+    # - name: Display ADC status
+    #   when: ab_host_alias == hostvars['a360'].ab_host_alias
+    #   debug:
+    #     var: command_output.stdout_lines
 
-    - name: Stop CIP Subsystems
-      when: ab_host_alias != hostvars['a360'].ab_host_alias
-      shell: |
-        source /etc/profile
-        cd {{ cip_base_path }}/private_internal/bin
-        ./cip-control.ksh soft_stop all
-        sleep 180
-        ./cip-control.ksh abandon all
-        sleep 30
-      become_user: "{{ functional_user }}"
+    # - name: Stop CIP Subsystems
+    #   when: ab_host_alias != hostvars['a360'].ab_host_alias
+    #   shell: |
+    #     source /etc/profile
+    #     cd {{ cip_base_path }}/private_internal/bin
+    #     ./cip-control.ksh soft_stop all
+    #     sleep 180
+    #     ./cip-control.ksh abandon all
+    #     sleep 30
+    #   become_user: "{{ functional_user }}"
 
-    - name: Start CIP Utility and Control Subsystem
-      when: ab_host_alias != hostvars['a360'].ab_host_alias
-      shell: |
-        source /etc/profile
-        cd {{ cip_base_path }}/private_internal/bin
-        ./cip-control.ksh start utility
-        sleep 120
-        ./cip-control.ksh start control_subsystem
-        sleep 120
-      become_user: "{{ functional_user }}"
+    # - name: Start CIP Utility and Control Subsystem
+    #   when: ab_host_alias != hostvars['a360'].ab_host_alias
+    #   shell: |
+    #     source /etc/profile
+    #     cd {{ cip_base_path }}/private_internal/bin
+    #     ./cip-control.ksh start utility
+    #     sleep 120
+    #     ./cip-control.ksh start control_subsystem
+    #     sleep 120
+    #   become_user: "{{ functional_user }}"
     
-    - name: Check CIP Utility and Control Subsystem Status
-      when: ab_host_alias != hostvars['a360'].ab_host_alias
-      shell: |
-        source /etc/profile
-        cd {{ cip_base_path }}/private_internal/bin
-        ./cip-control.ksh status all
-      register: command_output
-      become_user: "{{ functional_user }}"
+    # - name: Check CIP Utility and Control Subsystem Status
+    #   when: ab_host_alias != hostvars['a360'].ab_host_alias
+    #   shell: |
+    #     source /etc/profile
+    #     cd {{ cip_base_path }}/private_internal/bin
+    #     ./cip-control.ksh status all
+    #   register: command_output
+    #   become_user: "{{ functional_user }}"
 
-    - name: Check if Utility and Control are running
-      when: ab_host_alias != hostvars['a360'].ab_host_alias
-      debug:
-        var: command_output.stdout_lines
+    # - name: Check if Utility and Control are running
+    #   when: ab_host_alias != hostvars['a360'].ab_host_alias
+    #   debug:
+    #     var: command_output.stdout_lines
     
-    - name: Sync Metadata from Active>360 back to CIP
-      when: ab_host_alias == hostvars['control'].ab_host_alias
-      shell: |
-        source /etc/profile
-        cd {{ cip_base_path }}/private_internal/
-        touch $(air sandbox eval . CIP_COMMON_LOCAL_SERIAL_LANDING)/in.subscriber_profile_manual_update.$(date +'%Y%m%d%H%M%S%N' | sed 's/...$//')
-        sleep 120
-      become_user: "{{ functional_user }}"
+    # - name: Sync Metadata from Active>360 back to CIP
+    #   when: ab_host_alias == hostvars['control'].ab_host_alias
+    #   shell: |
+    #     source /etc/profile
+    #     cd {{ cip_base_path }}/private_internal/
+    #     touch $(air sandbox eval . CIP_COMMON_LOCAL_SERIAL_LANDING)/in.subscriber_profile_manual_update.$(date +'%Y%m%d%H%M%S%N' | sed 's/...$//')
+    #     sleep 120
+    #   become_user: "{{ functional_user }}"
 
-    - name: Trigger a Campaign Redeployment
-      when: ab_host_alias == hostvars['cipui'].ab_host_alias
-      shell: |
-        source /etc/profile
-        wget --post-file /dev/null http://{{ ansible_hostname }}:{{ cip_common_deploy_web_port }}/redeploy_campaign -o -
-        sleep 120
-      become_user: "{{ functional_user }}"
+    # - name: Trigger a Campaign Redeployment
+    #   when: ab_host_alias == hostvars['cipui'].ab_host_alias
+    #   shell: |
+    #     source /etc/profile
+    #     wget --post-file /dev/null http://{{ ansible_hostname }}:{{ cip_common_deploy_web_port }}/redeploy_campaign -o -
+    #     sleep 120
+    #   become_user: "{{ functional_user }}"
 
-    - name: Start CIP services
-      when: ab_host_alias != hostvars['a360'].ab_host_alias
-      shell: |
-        source /etc/profile
-        cd {{ cip_base_path }}/private_internal/bin
-        ./cip-control.ksh start detect_subsystem
-        sleep 30
-        ./cip-control.ksh start contact_policy_subsystem
-        sleep 30
-        ./cip-control.ksh start enrichment_subsystem
-        sleep 30
-        ./cip-control.ksh start communication_subsystem
-        sleep 30
-        ./cip-control.ksh start fulfillment_subsystem
-        sleep 30
-        ./cip-control.ksh start collect_event_subsystem
-        sleep 30
-        ./cip-control.ksh start nbos
-        sleep 30
-      become_user: "{{ functional_user }}"
+    # - name: Start CIP services
+    #   when: ab_host_alias != hostvars['a360'].ab_host_alias
+    #   shell: |
+    #     source /etc/profile
+    #     cd {{ cip_base_path }}/private_internal/bin
+    #     ./cip-control.ksh start detect_subsystem
+    #     sleep 30
+    #     ./cip-control.ksh start contact_policy_subsystem
+    #     sleep 30
+    #     ./cip-control.ksh start enrichment_subsystem
+    #     sleep 30
+    #     ./cip-control.ksh start communication_subsystem
+    #     sleep 30
+    #     ./cip-control.ksh start fulfillment_subsystem
+    #     sleep 30
+    #     ./cip-control.ksh start collect_event_subsystem
+    #     sleep 30
+    #     ./cip-control.ksh start nbos
+    #     sleep 30
+    #   become_user: "{{ functional_user }}"
 
-    - name: Check CIP All Subsystem Status
-      when: ab_host_alias != hostvars['a360'].ab_host_alias
-      shell: |
-        source /etc/profile
-        cd {{ cip_base_path }}/private_internal/bin
-        ./cip-control.ksh status all
-      register: command_output
-      become_user: "{{ functional_user }}"
+    # - name: Check CIP All Subsystem Status
+    #   when: ab_host_alias != hostvars['a360'].ab_host_alias
+    #   shell: |
+    #     source /etc/profile
+    #     cd {{ cip_base_path }}/private_internal/bin
+    #     ./cip-control.ksh status all
+    #   register: command_output
+    #   become_user: "{{ functional_user }}"
 
-    - name: Check if CIP is running
-      when: ab_host_alias != hostvars['a360'].ab_host_alias
-      debug:
-        var: command_output.stdout_lines
+    # - name: Check if CIP is running
+    #   when: ab_host_alias != hostvars['a360'].ab_host_alias
+    #   debug:
+    #     var: command_output.stdout_lines
 
-    - name: Load Subscriber Profile Information To A360
-      when: ab_host_alias == hostvars['control'].ab_host_alias
-      shell: |
-        source /etc/profile
-        cd {{ cip_base_path }}/private_internal/
-        chmod 755 pset/subscriber_profile/create_a360_batch_ingest_data.pset
-        air sandbox parameter -path pset/subscriber_profile/create_a360_batch_ingest_data.pset SUBSCRIBER_PROFILE_DATA_FILE '$CIP_COMMON_LOCAL_SERIAL/subscriber_profile.dat'
-        air sandbox parameter -path pset/subscriber_profile/create_a360_batch_ingest_data.pset SUBSCRIBER_PROFILE_INPUT_DML '$CIP_COMMON_PRIVATE_DML/subscriber/sample_subscriber_profile.dml'
-        cd run
-        air sandbox run ../pset/subscriber_profile/create_a360_batch_ingest_data.pset      
-      register: command_output
-      become_user: "{{ functional_user }}"
+    # - name: Load Subscriber Profile Information To A360
+    #   when: ab_host_alias == hostvars['control'].ab_host_alias
+    #   shell: |
+    #     source /etc/profile
+    #     cd {{ cip_base_path }}/private_internal/
+    #     chmod 755 pset/subscriber_profile/create_a360_batch_ingest_data.pset
+    #     air sandbox parameter -path pset/subscriber_profile/create_a360_batch_ingest_data.pset SUBSCRIBER_PROFILE_DATA_FILE '$CIP_COMMON_LOCAL_SERIAL/subscriber_profile.dat'
+    #     air sandbox parameter -path pset/subscriber_profile/create_a360_batch_ingest_data.pset SUBSCRIBER_PROFILE_INPUT_DML '$CIP_COMMON_PRIVATE_DML/subscriber/sample_subscriber_profile.dml'
+    #     cd run
+    #     air sandbox run ../pset/subscriber_profile/create_a360_batch_ingest_data.pset      
+    #   register: command_output
+    #   become_user: "{{ functional_user }}"
 
-    - name: Display create_a360_batch_ingest_data.pset Run Result
-      when: ab_host_alias == hostvars['control'].ab_host_alias
-      debug:
-        var: command_output
+    # - name: Display create_a360_batch_ingest_data.pset Run Result
+    #   when: ab_host_alias == hostvars['control'].ab_host_alias
+    #   debug:
+    #     var: command_output
 
-    - name: Copy Lookups generated from create_a360_batch_ingest_data.pset to A360
-      when: ab_host_alias == hostvars['control'].ab_host_alias
-      shell: |
-        source /etc/profile
-        cd {{ cip_base_path }}/private_internal/
-        m_cp {{ cip_common_local_serial }}/cip_customer_lookup_data.dat //{{ hostvars['a360'].ab_host_alias }}/{{ a360_ai_serial }}
-        m_cp {{ cip_common_local_serial }}/cip_customer_lookup_type.dml //{{ hostvars['a360'].ab_host_alias }}/{{ a360_ai_serial }}
-      become_user: "{{ functional_user }}"
+    # - name: Copy Lookups generated from create_a360_batch_ingest_data.pset to A360
+    #   when: ab_host_alias == hostvars['control'].ab_host_alias
+    #   shell: |
+    #     source /etc/profile
+    #     cd {{ cip_base_path }}/private_internal/
+    #     m_cp {{ cip_common_local_serial }}/cip_customer_lookup_data.dat //{{ hostvars['a360'].ab_host_alias }}/{{ a360_ai_serial }}
+    #     m_cp {{ cip_common_local_serial }}/cip_customer_lookup_type.dml //{{ hostvars['a360'].ab_host_alias }}/{{ a360_ai_serial }}
+    #   become_user: "{{ functional_user }}"
 
-    - name: Run the lookup load with act-admin
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
-      shell: |
-        source {{ a360_root }}/bin/env.sh
-        export PATH={{ a360_root }}/bin:$PATH
-        act-admin lookups -e cip_customer -l ingested_attributes -f {{ a360_ai_serial }}/cip_customer_lookup_data.dat -d {{ a360_ai_serial }}/cip_customer_lookup_type.dml create
-        act-admin lookups status -e cip_customer -l ingested_attributes
-      become_user: "{{ functional_user }}"
+    # - name: Run the lookup load with act-admin
+    #   when: ab_host_alias == hostvars['a360'].ab_host_alias
+    #   shell: |
+    #     source {{ a360_root }}/bin/env.sh
+    #     export PATH={{ a360_root }}/bin:$PATH
+    #     act-admin lookups -e cip_customer -l ingested_attributes -f {{ a360_ai_serial }}/cip_customer_lookup_data.dat -d {{ a360_ai_serial }}/cip_customer_lookup_type.dml create
+    #     act-admin lookups status -e cip_customer -l ingested_attributes
+    #   become_user: "{{ functional_user }}"
 
-    - name: Hit the curl command on a360-host
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
-      uri:
-        url: "http://{{ a360_hostname }}:{{ adc_webserver_port }}/entities/cip_customer?entity_id=10000001"
-        method: GET
-        user: "{{ active_data_user }}"
-        password: "{{ active_data_password }}"
-      register: http_response
+    # - name: Hit the curl command on a360-host
+    #   when: ab_host_alias == hostvars['a360'].ab_host_alias
+    #   uri:
+    #     url: "http://{{ a360_hostname }}:{{ adc_webserver_port }}/entities/cip_customer?entity_id=10000001"
+    #     method: GET
+    #     user: "{{ active_data_user }}"
+    #     password: "{{ active_data_password }}"
+    #   register: http_response
 
-    - name: Display HTTP Response
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
-      debug:
-        var: http_response
+    # - name: Display HTTP Response
+    #   when: ab_host_alias == hostvars['a360'].ab_host_alias
+    #   debug:
+    #     var: http_response
 
-    - name: Create daily unload job from A360 
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
-      shell: |
-        source {{ a360_root }}/bin/env.sh
-        export PATH={{ a360_root }}/bin:$PATH
-        cd {{ a360_root }}/sand/abinitio/act/main/
-        act-admin lookups -e cip_customer -l unload create
-        ls -l $(air sandbox eval . ACT_API_SERIAL_LOOKUP)/cip_customer_unload*
-        air sandbox pset pset/calc_cip_customer_subset_unload.pset -prototype '$GENERATED_ARTIFACT_PSET/calc_cip_customer_unload_lookup.pset'
-        air sandbox parameter -path pset/calc_cip_customer_subset_unload.pset SUBSET_NAME subset_for_cip_outbound
-        act-admin lookups -e cip_customer -l unload -p $(pwd)/pset/calc_cip_customer_subset_unload.pset create
-      register: command_output
-      become_user: "{{ functional_user }}"
+    # - name: Create daily unload job from A360 
+    #   when: ab_host_alias == hostvars['a360'].ab_host_alias
+    #   shell: |
+    #     source {{ a360_root }}/bin/env.sh
+    #     export PATH={{ a360_root }}/bin:$PATH
+    #     cd {{ a360_root }}/sand/abinitio/act/main/
+    #     act-admin lookups -e cip_customer -l unload create
+    #     ls -l $(air sandbox eval . ACT_API_SERIAL_LOOKUP)/cip_customer_unload*
+    #     air sandbox pset pset/calc_cip_customer_subset_unload.pset -prototype '$GENERATED_ARTIFACT_PSET/calc_cip_customer_unload_lookup.pset'
+    #     air sandbox parameter -path pset/calc_cip_customer_subset_unload.pset SUBSET_NAME subset_for_cip_outbound
+    #     act-admin lookups -e cip_customer -l unload -p $(pwd)/pset/calc_cip_customer_subset_unload.pset create
+    #   register: command_output
+    #   become_user: "{{ functional_user }}"
 
-    - name: Check Daily unload job creation output
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
-      debug:
-        var: command_output.stdout_lines
+    # - name: Check Daily unload job creation output
+    #   when: ab_host_alias == hostvars['a360'].ab_host_alias
+    #   debug:
+    #     var: command_output.stdout_lines
 
     - name: Copy Generted Lookups from Act360 to CIP
       when: ab_host_alias == hostvars['a360'].ab_host_alias
