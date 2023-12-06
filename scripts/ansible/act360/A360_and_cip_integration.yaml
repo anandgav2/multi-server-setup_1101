@@ -357,7 +357,7 @@
           - name: print logs
             debug:
                var: command_output
-        when: ab_host_alias != hostvars['nbos_adapter'].ab_host_alias
+        when: ab_host_alias == hostvars['nbos_adapter'].ab_host_alias
 
     - name: Check CIP All Subsystem Status
       when: ab_host_alias != hostvars['a360'].ab_host_alias
