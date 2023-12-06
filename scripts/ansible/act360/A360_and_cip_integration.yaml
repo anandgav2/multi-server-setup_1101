@@ -86,6 +86,7 @@
       when: ab_host_alias ==  hostvars['a360'].ab_host_alias
       shell: |
         cp {{ installer_path }}/host_alias_file.dat {{ a360_root }}/config/ab_host_alias_file
+        echo "admin {{ ansible_hostname }}" >> {{ a360_root }}/config/ab_host_alias_file
         cat {{ act_api_message_bus_properties_file }}
       register: command_output
       become_user: "{{ functional_user }}"
@@ -127,7 +128,7 @@
       shell: |
         source /etc/profile
         cd {{ cip_base_path }}/private_internal
-        air sandbox export . -files dev.pset
+        air sandbox export . -files dev.pset -force
       become_user: "{{ functional_user }}"
 
     - name: Set A360 Sandbox Parameters
