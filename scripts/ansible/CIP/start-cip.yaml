@@ -15,16 +15,7 @@
         - "{{ installer_path }}/cip_setup_automation.yml"  
         - "{{ comm_config_file }}"
         - "{{ installer_path }}/cip_setup_server_config.yml"
-
-    # - name: Log step
-    #   lineinfile:
-    #     path: "{{ log_file }}"
-    #     line: |
-    #       => Running Environment and DB setup Jobs
-    #     state: present
-    #   delegate_to: localhost
-    #   no_log: true
-    #   become: false 
+        - "{{ installer_path }}/installer-versions.yml"
 
     - name: Log step
       lineinfile:
@@ -122,16 +113,6 @@
          var: command_output
       when: "'nbos_data' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
 
-    # - name: Start NBOS Subsystem
-    #   shell:
-    #     source /etc/profile
-    #     dir_pset={{ cip_base_path }}/private_internal/pset/inbound_channel
-    #     cd {{ cip_base_path }}/private_internal/run        
-    #     nohup air sandbox run $dir_pset/nbos_start_services.pset -CREATE_ADC_QUEUE True > 2&1 &
-    #   register: command_output
-    #   become_user: "{{ functional_user }}"
-    #   when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
-
     - name: Set NBOS subsystem job parameter
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
       with_items:
@@ -143,59 +124,52 @@
         chdir: "{{ cip_base_path }}/private_internal/run"
       when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
 
-    - name: Run NBOS Subsystem job
-      ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
-      with_items:
-        - "{{ cip_base_path }}/private_internal/bin/cip-control.ksh start nbos"
-      register: command_output
-      become_user: "{{ functional_user }}"
-      args:
-        chdir: "{{ cip_base_path }}/private_internal/run"
-      when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
-
-    # - name: Run NBOS Subsystem job
-    #   ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
-    #   with_items:
-    #     - nohup air sandbox run ../pset/inbound_channel/nbos_start_services.pset -CREATE_ADC_QUEUE True &
-    #   register: command_output
-    #   become_user: "{{ functional_user }}"
-    #   args:
-    #     chdir: "{{ cip_base_path }}/private_internal/run"
-    #   when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
-
-    - name : print command_output
-      debug: 
-         var: command_output
-      when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
-
-    - name: Check if cluster is operational or not
-      ansible.builtin.command: '{{ installer_path }}/source_and_run.sh adc lobby status'
-      register: command_output
-      become_user: "{{ functional_user }}"
-      args:
-#       chdir: "{{ cip_base_path }}/private_internal/run/cip/{{ ab_host_alias }}.control"
-        chdir: "{{ cip_base_path }}/private_internal/run"
-      until: command_output.stdout == "operational"
-      retries: 10
-      delay: 10
-      when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
-
-    - name: adc authentication
-      shell: |
-          source /etc/profile
-          # cd {{ cip_base_path }}/private_internal/run/cip/{{ ab_host_alias }}.control
-          cd {{ cip_base_path }}/private_internal/run
-          adc auth create-user lobby admin -role adc-admin
-          adc auth encrypted-password lobby admin $(m_password -unrestricted -password admin)
-      register: command_output
-      become_user: "{{ functional_user }}"
-      ignore_errors: True
-      when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
+      - name: Run NBOS here for CIP 3
+        block:
+          - name: Run NBOS Subsystem job
+            ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
+            with_items:
+              - "{{ cip_base_path }}/private_internal/bin/cip-control.ksh start nbos"
+            register: command_output
+            become_user: "{{ functional_user }}"
+            args:
+              chdir: "{{ cip_base_path }}/private_internal/run"
+            when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
+  
+          - name : print command_output
+            debug: 
+               var: command_output
+            when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
+  
+          - name: Check if cluster is operational or not
+            ansible.builtin.command: '{{ installer_path }}/source_and_run.sh adc lobby status'
+            register: command_output
+            become_user: "{{ functional_user }}"
+            args:
+              #chdir: "{{ cip_base_path }}/private_internal/run/cip/{{ ab_host_alias }}.control"
+              chdir: "{{ cip_base_path }}/private_internal/run"
+            until: command_output.stdout == "operational"
+            retries: 10
+            delay: 10
+            when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
+  
+          - name: adc authentication
+            shell: |
+                source /etc/profile
+                # cd {{ cip_base_path }}/private_internal/run/cip/{{ ab_host_alias }}.control
+                cd {{ cip_base_path }}/private_internal/run
+                adc auth create-user lobby admin -role adc-admin
+                adc auth encrypted-password lobby admin $(m_password -unrestricted -password admin)
+            register: command_output
+            become_user: "{{ functional_user }}"
+            ignore_errors: True
+            when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
+  
+          - name: print logs
+            debug:
+               var: command_output
+        when: cip_version.split('-')[0] | int < 4
       
-    - name: print logs
-      debug:
-         var: command_output
-
     - name: Pause for 60 seconds
       pause:
         seconds: 60

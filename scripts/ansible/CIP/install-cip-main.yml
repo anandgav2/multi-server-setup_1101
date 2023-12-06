@@ -115,15 +115,6 @@
       no_log: true
       become: false  
 
-    # no need to read the config will get overwrriten that was set during COOP setup
-    # - name: Copy Config File
-    #   copy:
-    #     src: "../Coop/coop-config.ini"
-    #     dest: "{{ installer_path }}"
-    #     remote_src: false
-    #     group: abinitio
-    #   become_user: "{{ functional_user }}"
-
     - name: Read Coop Configuration File
       slurp:
         src: "{{ installer_path }}/coop-config.ini"
@@ -481,3 +472,24 @@
         - air project import /Projects/abinitio/stdenv -basedir {{ sandbox_root }}/{{ functional_user }}/stdenv -files dev.pset
       register: command_output
       become_user: "{{ functional_user }}"
+
+## This code is temp fix should be removed after CIP 4 patch fix arrives
+    - name: Temp NBOS same server fix for CIP4 remove when new patch arrives
+      block: 
+
+        - name: Copy files to remote host
+          copy:
+            src: "{{ installer_path }}/nbos_temp_fix/prepare_cluster_hosts.plan"
+            dest: "{{ cip_base_path }}/abinitio/cip/inbound_channel/plan"
+            remote_src: false
+            group: abinitio
+          become_user: "{{ functional_user }}"
+  
+        - name: checkin the plan
+          ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+          with_items:
+            - air project import /Projects/abinitio/cip/inbound_channel -basedir {{ cip_base_path }}/abinitio/cip/inbound_channel -files plan/prepare_cluster_hosts.plan
+          register: command_output
+          become_user: "{{ functional_user }}"
+          
+    when: cip_version.split('-')[0] | int > 3
