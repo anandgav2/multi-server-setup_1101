@@ -71,7 +71,7 @@
         cip_common_deploy_web_port: "{{ hostvars[control_inv]['control_out']['stdout_lines'][1] }}"
         cip_common_local_serial: "{{ hostvars[control_inv]['control_out']['stdout_lines'][2] }}"
         cip_common_serial_lookup: "{{ hostvars[control_inv]['control_out']['stdout_lines'][3] }}"
-        cip_common_private_dml: "{{ hostvars[control_inv]['control_out']['stdout_lines'][3] }}"
+        cip_common_private_dml: "{{ hostvars[control_inv]['control_out']['stdout_lines'][4] }}"
 
     - name: Create Hetro connection File
       lineinfile:
