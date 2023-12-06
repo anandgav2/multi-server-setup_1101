@@ -332,7 +332,7 @@ pipeline {
         // } 
 
         
-        stage('A360 + CIP Integration') 
+        stage('A360 and CIP Integration') 
         { 
             when {
                 expression {
