@@ -39,6 +39,7 @@
         air sandbox eval . CIP_COMMON_DEPLOY_WEB_PORT
         air sandbox eval . CIP_COMMON_LOCAL_SERIAL
         air sandbox eval . CIP_COMMON_SERIAL_LOOKUP
+        air sandbox eval . CIP_COMMON_PRIVATE_DML
       register: control_out
       become_user: "{{ functional_user }}"
 
@@ -70,6 +71,7 @@
         cip_common_deploy_web_port: "{{ hostvars[control_inv]['control_out']['stdout_lines'][1] }}"
         cip_common_local_serial: "{{ hostvars[control_inv]['control_out']['stdout_lines'][2] }}"
         cip_common_serial_lookup: "{{ hostvars[control_inv]['control_out']['stdout_lines'][3] }}"
+        cip_common_private_dml: "{{ hostvars[control_inv]['control_out']['stdout_lines'][3] }}"
 
     - name: Create Hetro connection File
       lineinfile:
@@ -335,6 +337,8 @@
       shell: |
         source /etc/profile
         cd {{ cip_base_path }}/private_internal/
+        m_cp //{{ hostvars['cipui'].ab_host_alias }}/{{ cip_common_local_serial }}/subscriber_profile.dat {{ cip_common_local_serial }}/subscriber_profile.dat
+        m_cp //{{ hostvars['cipui'].ab_host_alias }}/{{ cip_common_private_dml }}/subscriber/sample_subscriber_profile.dml {{ cip_common_private_dml }}/subscriber/sample_subscriber_profile.dml
         chmod 755 pset/subscriber_profile/create_a360_batch_ingest_data.pset
         air sandbox parameter -path pset/subscriber_profile/create_a360_batch_ingest_data.pset SUBSCRIBER_PROFILE_DATA_FILE '$CIP_COMMON_LOCAL_SERIAL/subscriber_profile.dat'
         air sandbox parameter -path pset/subscriber_profile/create_a360_batch_ingest_data.pset SUBSCRIBER_PROFILE_INPUT_DML '$CIP_COMMON_PRIVATE_DML/subscriber/sample_subscriber_profile.dml'
