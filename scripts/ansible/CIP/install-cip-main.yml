@@ -492,4 +492,4 @@
           register: command_output
           become_user: "{{ functional_user }}"
           
-    when: cip_version.split('-')[0] | int > 3
+      when: cip_version.split('-')[0] | int > 3
