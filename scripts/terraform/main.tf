@@ -39,7 +39,7 @@ resource "aws_instance" "cip" {
   vpc_security_group_ids = [aws_security_group.cip-multi-internal.id]  # Attach the security group here
 
   root_block_device {
-    volume_size = 30
+    volume_size = 100
   }
 
 }
