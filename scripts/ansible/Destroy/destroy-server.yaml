@@ -254,7 +254,7 @@
 
     - name: Delete root directories
       shell: |
-#        sudo rm -rf {{ installer_path }}
+        sudo rm -rf {{ installer_path }}
         sudo rm -rf {{ data_root_path }}/eme/cipeme
         sudo rm -rf {{ data_root_path }}/sand/appconfdir
         sudo rm -rf {{ data_root_path }}/cip
