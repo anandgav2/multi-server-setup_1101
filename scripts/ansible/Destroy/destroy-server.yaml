@@ -262,6 +262,7 @@
         sudo rm -rf {{ sandbox_root }}/{{functional_user}}
         sudo rm -rf /usr/local/abinitio
         sudo rm -rf /var/abinitio/*
+        sudo rm -rf /home/{{ functional_user }}/.abinitiorc
       loop:
         - "{{ functional_user }}"
       ignore_errors: true
