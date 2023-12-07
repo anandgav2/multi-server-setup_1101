@@ -1,11 +1,11 @@
 - name: Stop Apps
-  hosts: cip-instance
+  hosts: 
+    - server1
+    - server2
+    - server3
   become: yes # Run tasks with root privileges
 
   vars:
-    #log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
-    #comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
-    #installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
     installer_path: "/disk1/installer"
 
   tasks:
@@ -15,7 +15,7 @@
 
     - name: Load CIP Config parameters
       include_vars:
-        file: ../../cip_common_setup.yml
+        file: ../cip_common_setup.yml
 
     - name: Load Global config parameters
       include_vars:
@@ -245,7 +245,7 @@
         - ab-reporter stop
         - ab-reporter status
       register: command_output
-      become_user: abinitio
+      become_user: "{{ functional_user }}"
       ignore_errors: true
 
     - name: Print logs
@@ -254,10 +254,12 @@
 
     - name: Delete root directories
       shell: |
-        sudo rm -rf {{ installer_path }}
-        sudo rm -rf {{ data_root_path }}
+#        sudo rm -rf {{ installer_path }}
+        sudo rm -rf {{ data_root_path }}/eme/cipeme
+        sudo rm -rf {{ data_root_path }}/sand/appconfdir
+        sudo rm -rf {{ data_root_path }}/cip
         sudo rm -rf {{ apps_root_path }}
-        sudo rm -rf {{ sandbox_root }}
+        sudo rm -rf {{ sandbox_root }}/{{functional_user}}
         sudo rm -rf /usr/local/abinitio
         sudo rm -rf /var/abinitio/*
       loop:
