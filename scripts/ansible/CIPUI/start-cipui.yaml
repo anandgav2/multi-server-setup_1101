@@ -247,7 +247,7 @@
 
     - name: "update NBOSQueryService port"
       command: >
-        jq ".NBOSQueryService.port=\"9001\"" "{{json_file}}"
+        jq ".NBOSQueryService.port=\"{{cip_common_base_port + 78}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
