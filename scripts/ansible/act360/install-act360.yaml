@@ -31,14 +31,7 @@
         owner: "{{ functional_user }}"
         group: abinitio
 
-    # - name: Copy Config File
-    #   copy:
-    #     src: "../Coop/coop-config.ini"
-    #     dest: "{{ installer_path }}"
-    #     remote_src: false
-    #     group: abinitio
-    #   become_user: "{{ functional_user }}"
-  
+ 
     - name: Display Version
       ansible.builtin.debug:
         var: a360_version

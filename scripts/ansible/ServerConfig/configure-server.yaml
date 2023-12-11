@@ -55,6 +55,17 @@
       loop:
         - "{{ functional_user }}"
 
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          =>User Creation Completed on host {{ ansible_hostname }}
+             User : {{ functional_user }}
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+
     - name: Create directory hierarchy and set ownership
       shell: |
         sudo mkdir -p {{ apps_root_path }}
@@ -67,29 +78,19 @@
         sudo chown -R {{ item }}:abinitio {{ data_root_path }}/sand/appconfdir
       loop:
         - "{{ functional_user }}"    
-
-    # - name: Add localhost entry to /etc/hosts
-    #   lineinfile:
-    #     path: /etc/hosts
-    #     line: |
-    #       127.0.0.1 {{ ansible_hostname }}
-    #       ::1 {{ ansible_hostname }}
-    #     state: present
-           
+       
     - name: Add remote host and public ip entries to /etc/hosts
       lineinfile:
         path: /etc/hosts
         line: |
           {{ hostvars[item].ansible_default_ipv4.address + ' ' + hostvars[item].ansible_hostname }}
-#          {{ hostvars[item].ansible_host + ' ' + hostvars[item].ansible_hostname }}
       loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
-     
+
     - name: Log step
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          =>User Creation Completed on host {{ inventory_hostname }}
-             User : {{ functional_user }}
+          => Added {{ ansible_hostname }} entried on /etc/hosts
         state: present
       delegate_to: localhost
       no_log: true
@@ -106,14 +107,16 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          =>JDK 11 installed on All the Servers
+          => JDK 11 installed on -- {{ ansible_hostname }}
         state: present
       delegate_to: localhost
       no_log: true
       become: false
 
     - name: "Fetch JAVA_HOME"
-      shell: "ls -d /usr/lib/jvm/java-11-openjdk*"
+      shell: 
+        sudo update-alternatives --set java $(ls -d /usr/lib/jvm/java-11-openjdk*/bin/java)
+        dirname $(dirname $(readlink -f $(which java)))
       register: java_home
 
     - name: Set JAVA_HOME Environment Variable
