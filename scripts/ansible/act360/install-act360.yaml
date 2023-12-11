@@ -117,7 +117,9 @@
         app_hub_dest: "{{ coop_config_values | select('match', '^app_hub_dest=(.*)') | map('regex_replace', '^app_hub_dest=(.*)', '\\1') | first }}"
 
     - name: "Fetch JAVA_HOME"
-      shell: "echo $JAVA_HOME"
+      shell: |
+        sudo update-alternatives --set java $(ls -d /usr/lib/jvm/java-11-openjdk*/bin/java)
+        echo $JAVA_HOME
       register: java_home 
 
     - name: Get Python Path

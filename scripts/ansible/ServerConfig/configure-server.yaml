@@ -114,7 +114,7 @@
       become: false
 
     - name: "Fetch JAVA_HOME"
-      shell: 
+      shell: |
         sudo update-alternatives --set java $(ls -d /usr/lib/jvm/java-11-openjdk*/bin/java)
         dirname $(dirname $(readlink -f $(which java)))
       register: java_home
