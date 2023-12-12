@@ -144,7 +144,7 @@
           'Would you like to use Basic mode?' : 'y'
           'Please provide ansible-vault key for password encryption:': "{{ vault_key }}"
           'ab.aiuser_name:':  "{{ functional_user }}"
-          'ab.aiuser_group:':  "{{ ab_aiuser_group }}"
+          'ab.aiuser_group:':  "abinitio"
           'ab.key.host.source:': "{{ ab_key_host_source }}"
           'ab.key.client.host.urls:': "{{ ab_key_client_host_urls }}" 
           'ab.key.users.source:': "{{ ab_key_users_source }}"
