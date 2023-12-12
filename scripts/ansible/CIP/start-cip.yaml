@@ -123,12 +123,14 @@
       args:
         chdir: "{{ cip_base_path }}/private_internal/run"
       when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
-
+    
+    # temporary added job rm_adc_cluster_host_lookup_files.pset , need to remove it once permanent fix comes.
     - name: Run NBOS here for CIP 3
       block:
         - name: Run NBOS Subsystem job
           ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
           with_items:
+            - air sandbox run {{ cip_base_path }}/private_internal/pset/inbound_channel/rm_adc_cluster_host_lookup_files.pset KEEP_FILE_COUNT 1
             - "{{ cip_base_path }}/private_internal/bin/cip-control.ksh start nbos"
           register: command_output
           become_user: "{{ functional_user }}"
