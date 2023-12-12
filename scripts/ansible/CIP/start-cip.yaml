@@ -135,6 +135,7 @@
           args:
             chdir: "{{ cip_base_path }}/private_internal/run"
           when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
+          ignore_errors: True
 
         - name : print command_output
           debug: 
