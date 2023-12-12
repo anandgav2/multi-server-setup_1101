@@ -125,10 +125,31 @@
     # temporary added job rm_adc_cluster_host_lookup_files.pset , need to remove it once permanent fix comes.
     - name: Run NBOS here for CIP 3
       block:
+        - name : Remove subscriber_profile_format empty file
+          shell: |
+              source /etc/profile
+              cd {{ cip_base_path }}/private_internal/
+              cd $(air sandbox eval . CIP_COMMON_LOCAL_SERIAL_LOOKUP)
+              to_be_delete=$(ls subscriber_profile_format* | grep -v V2)
+              rm $to_be_delete
+          register: command_output
+          become_user: "{{ functional_user }}"
+          when: "'nbos_data' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
+
+        - name : Remove subscriber_profile_format empty file
+          shell: |
+              source /etc/profile
+              cd {{ cip_base_path }}/private_internal/
+              cd $(air sandbox eval . CIP_COMMON_LOCAL_SERIAL_LOOKUP)
+              to_be_delete=$(ls subscriber_profile_format* | grep -v V2)
+              rm $to_be_delete
+          register: command_output
+          become_user: "{{ functional_user }}"
+          when: "'nbos_adapter' in vars[ab_host_alias + '_config'].split(',') | map('trim') | list"
+
         - name: Run NBOS Subsystem job
           ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
           with_items:
-            - air sandbox run {{ cip_base_path }}/private_internal/pset/inbound_channel/rm_adc_cluster_host_lookup_files.pset -KEEP_FILE_COUNT 1
             - "{{ cip_base_path }}/private_internal/bin/cip-control.ksh start nbos"
           register: command_output
           become_user: "{{ functional_user }}"
