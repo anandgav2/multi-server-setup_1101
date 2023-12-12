@@ -380,6 +380,7 @@
               AI_REL_LOC:sandbox@ABENV||||/abinitio/cip/private_internal
               AI_TEST_FLAG@ABENV||||{{ functional_user }}
               AI_MFS_DEPTH@||||{{ data_mfs_depth }}
+              CIP_COMMON_BASE_PORT@||||{{ cip_common_base_port }}
               CIP_COMMON_CONTACT_POLICY_SERVER_MFS_DEPTH@||||{{ cp_data_mfs_depth }}
               Environment||||{{ sandbox_root }}/{{ functional_user }}/stdenv
               CIP_COMMON_THIS_SERVER@||||$(m_env -g AB_HOST_INTERFACE)
@@ -404,7 +405,6 @@
               CIP_COMMON_ENRICHMENT_SERVERS@||||{{ cip_common_enrichment_servers }}		
               CIP_COMMON_INBOUND_CHANNEL_QUEUE_SERVERS@||||{{ cip_common_inbound_channel_queue_servers }}		
               CIP_COMMON_NBOS_SERVER@||||{{ cip_common_nbos_server }}
-              CIP_COMMON_NBOS_PORT@||||9001
               INBOUND_CHANNEL_ADC_HOSTS_FOR_NBOS_ADC_ADAPTER_QUEUE@||||{{ inbound_channel_adc_hosts_for_nbos_adc_adapter_queue }}
               CIP_COMMON_REPORT_SERVER@||||{{ cip_common_audit_server }}		
               CIP_COMMON_CIPDB_HOST@||||{{ CIPDB_HOST }}

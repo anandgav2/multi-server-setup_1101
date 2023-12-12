@@ -236,7 +236,7 @@
 
     - name: "update HttpConfig port"
       command: >
-        jq ".HttpConfig.port=\"29096\"" "{{json_file}}"
+        jq ".HttpConfig.port=\"{{cip_common_base_port + 96}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -247,7 +247,7 @@
 
     - name: "update NBOSQueryService port"
       command: >
-        jq ".NBOSQueryService.port=\"9001\"" "{{json_file}}"
+        jq ".NBOSQueryService.port=\"{{cip_common_base_port + 78}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -269,7 +269,7 @@
 
     - name: "update SubscriberQueryService port"
       command: >
-        jq ".SubscriberQueryService.port=\"29093\"" "{{json_file}}"
+        jq ".SubscriberQueryService.port=\"{{cip_common_base_port + 93}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -280,7 +280,7 @@
 
     - name: "update DeployWebService port"
       command: >
-        jq ".DeployWebService.port=\"29095\"" "{{json_file}}"
+        jq ".DeployWebService.port=\"{{cip_common_base_port + 95}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -291,7 +291,7 @@
 
     - name: "update ParseWebService port"
       command: >
-        jq ".ParseWebService.port=\"29095\"" "{{json_file}}"
+        jq ".ParseWebService.port=\"{{cip_common_base_port + 95}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -302,7 +302,7 @@
 
     - name: "update GraphWebService port"
       command: >
-        jq ".GraphWebService.port=\"29095\"" "{{json_file}}"
+        jq ".GraphWebService.port=\"{{cip_common_base_port + 95}}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
