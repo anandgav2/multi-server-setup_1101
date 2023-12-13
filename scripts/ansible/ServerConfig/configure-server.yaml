@@ -242,6 +242,13 @@
         state: present
       when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' 
 
+    - name: Create Sym Link for Python modules
+      file:
+        src: /usr/bin
+        dest: /usr/sbin
+        state: link
+      when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'
+
     - name: Install net-tools
       yum:
         name: net-tools
