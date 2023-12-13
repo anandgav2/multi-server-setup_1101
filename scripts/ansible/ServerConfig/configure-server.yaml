@@ -242,7 +242,7 @@
         state: present
       when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' 
 
-    - name: Create Sym Link for Python modules
+    - name: Create Sym Link for lsof
       file:
         src: /usr/bin/lsof
         dest: /usr/sbin/lsof
