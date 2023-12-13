@@ -244,8 +244,8 @@
 
     - name: Create Sym Link for Python modules
       file:
-        src: /usr/bin
-        dest: /usr/sbin
+        src: /usr/bin/lsof
+        dest: /usr/sbin/lsof
         state: link
       when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'
 
