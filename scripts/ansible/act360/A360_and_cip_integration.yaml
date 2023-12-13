@@ -122,6 +122,8 @@
         air sandbox import . -files dev.pset
       become_user: "{{ functional_user }}"
 
+  ## Add ET_A360_NOTIFICATION for CIP_COMMON_INTERNAL_EVENT_OVERRIDE_TYPE_LIST version > 4.1.0.36
+
     - name: Export CIP base pset
       when: ab_host_alias != hostvars['a360'].ab_host_alias
       shell: |
@@ -430,7 +432,7 @@
             ls -ltr *nbos*
             cd {{ cip_base_path }}/private_internal/
             cd $(air sandbox eval . CIP_COMMON_LOCAL_SERIAL_LOOKUP)
-            m_rm subscriber_profile_format.[123456789]*.dat
+            m_rm subscriber_profile_format.[123456789]*.dat         
             ls -l subscriber_profile_format.*.dat
           register: command_output
           become_user: "{{ functional_user }}"
@@ -445,6 +447,7 @@
             - air sandbox lock {{ cip_base_path }}/private_internal/pset/inbound_channel/nbos_create_new_cluster.pset
             - air sandbox parameter -path {{ cip_base_path }}/private_internal/pset/inbound_channel/nbos_create_new_cluster.pset MANAGE_NBOS_START_SERVICES False
             - air sandbox run {{ cip_base_path }}/private_internal/pset/inbound_channel/nbos_create_new_cluster.pset
+            - air sandbox run {{ cip_base_path }}/private_internal/pset/control/create_offer_lookup.pset    #host fix 
           register: command_output
           become_user: "{{ functional_user }}"
           args:
