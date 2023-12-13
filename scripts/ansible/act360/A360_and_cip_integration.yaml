@@ -388,7 +388,7 @@
         cd run
         air sandbox run ../pset/subscriber_profile/a360_unload_to_subscriber_profile_lookup.pset
         cd ..
-        sleep 120
+        sleep 30
         ls -l $(air sandbox eval . CIP_COMMON_LOCAL_MFS_LOOKUP)/subscriber_profile*
       register: command_output
       become_user: "{{ functional_user }}"
