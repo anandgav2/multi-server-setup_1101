@@ -87,6 +87,8 @@
       with_items:
         - "{{ 'cip_common_all_target_servers: ' + cip_common_all_target_servers | split(',') | reject('match', '^$') | unique | join(',') }}"
         - "{{ 'cip_common_act_server: ' + cip_common_act_server | split(',') | reject('match', '^$') | unique | join(',') }}"
+        - "{{ 'cip_common_communication_server: ' + cip_common_communication_server | split(',') | reject('match', '^$') | unique | join(',') }}"
+        - "{{ 'cip_common_fulfillment_server: ' + cip_common_fulfillment_server | split(',') | reject('match', '^$') | unique | join(',') }}"
         - "{{ 'cip_common_audit_server: ' + cip_common_audit_server | split(',') | reject('match', '^$') | unique | join(',') }}"
         - "{{ 'cip_common_collect_server: ' + cip_common_collect_server | split(',') | reject('match', '^$') | unique | join(',') }}"
         - "{{ 'cip_common_contact_policy_server: ' + cip_common_contact_policy_server | split(',') | reject('match', '^$') | unique | join(',') }}"

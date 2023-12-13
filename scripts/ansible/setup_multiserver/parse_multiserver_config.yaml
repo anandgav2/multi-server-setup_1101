@@ -73,6 +73,16 @@
     cip_common_act_server: "{{ cip_common_act_server| default('') + ',' + host }}"
   when: '"control" in config'
 
+- name: set to cip_common_fulfillment_server
+  set_fact:
+    cip_common_fulfillment_server: "{{ cip_common_fulfillment_server| default('') + ',' + host }}"
+  when: '"fulfillment" in config'
+
+- name: set to cip_common_communication_server
+  set_fact:
+    cip_common_communication_server: "{{ cip_common_communication_server| default('') + ',' + host }}"
+  when: '"communication" in config'
+
 - name: set to cip_common_audit_server
   set_fact:
     cip_common_audit_server: "{{ cip_common_audit_server| default('') + ',' + host }}"
