@@ -447,7 +447,8 @@
             - air sandbox lock {{ cip_base_path }}/private_internal/pset/inbound_channel/nbos_create_new_cluster.pset
             - air sandbox parameter -path {{ cip_base_path }}/private_internal/pset/inbound_channel/nbos_create_new_cluster.pset MANAGE_NBOS_START_SERVICES False
             - air sandbox run {{ cip_base_path }}/private_internal/pset/inbound_channel/nbos_create_new_cluster.pset
-            - air sandbox run {{ cip_base_path }}/private_internal/pset/control/create_offer_lookup.pset    #host fix 
+            - air sandbox run {{ cip_base_path }}/private_internal/pset/control/create_offer_lookup.pset    #hot fix 
+            - air sandbox run "{{ cip_base_path }}/private_internal/pset/inbound_channel/build_nbos_lookup.pset" -USE_ALGO_OFFER False #hot fix
           register: command_output
           become_user: "{{ functional_user }}"
           args:
