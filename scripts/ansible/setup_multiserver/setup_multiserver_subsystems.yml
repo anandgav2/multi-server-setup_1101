@@ -7,6 +7,7 @@
     installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
     host_alias_content: "{{ lookup('file', '{{ installer_path }}/host_alias.txt').splitlines() }}"
     use_existing_servers: "{{ lookup('env', 'USE_EXISTING_SERVERS').split(',') | first}}"
+    log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
 
   tasks:
     - name: Load CIP Config parameters
@@ -35,6 +36,16 @@
               #msg: "{{ {{ item | split(' ') | first }}_config }}"
         msg: "{{ lookup('vars',item | split(' ') | first + '_config') }}"
       loop: "{{ host_alias_content }}"
+
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          => Creating Executables config and distributing on servers accordingly.......
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
 
     - name: write to inventory
       shell: echo -e "cip:\n  hosts:" > ./inventory.yml
