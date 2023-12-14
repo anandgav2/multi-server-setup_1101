@@ -38,7 +38,6 @@
       ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
       with_items:
         - "{{ cip_base_path }}/private_internal/bin/cip-control.ksh start control_subsystem"
-        - air sandbox run "{{ cip_base_path }}/private_internal/pset/inbound_channel/build_nbos_lookup.pset" -USE_ALGO_OFFER False
       register: command_output
       become_user: "{{ functional_user }}"
       args:
