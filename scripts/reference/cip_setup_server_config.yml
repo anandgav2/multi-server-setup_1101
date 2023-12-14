@@ -1,0 +1,25 @@
+cip01_config: enrichment_queue,detect,ag,fulfillment,control,communication,utility
+cip02_config: nbos_adapter,collect_event,queryit,cafe,cipui,segmentation,utility
+cip03_config: nbos_data,eme,audit,cipdb,enrichment,cc,contact_policy,utility
+cip04_config: a360
+cip01_private_key: "/tmp/rhel1.pem"
+cip02_private_key: "/tmp/rhel2.pem"
+cip03_private_key: "/tmp/tst2.pem"
+cip04_private_key: "/tmp/tst3.pem"
+##########################################################################################################
+## Note : 1. User can refer contents this file to prepare new cip_setup_server_config.yml and place it inside installer path.
+##        2. Host prefix should exactly match with the hosts alias in host_alias.txt file.
+##        3. Private key (i.e.pem file) not required if user choose to use new servers
+##        4. Verify file format and number of entries for new servers and its variables can be loaded in ansible
+##        5. Number of Config and private key lines should be matching with number of hosts on host alias file.
+##        6. Server config file should not have repeated entries for product installation
+##        7. Same Subsystem should not be repeated on one server
+##        8. Provide at least one entry for each subsystem and other required abinitio products in this config
+##        9. Number of Enrichment and enrichment queue should mach
+##        10. Nbos data and Adapter should be on seperate server
+##        11. Communication , Control, fulfillment should be on same server
+##        12. Audit, Control and Collect subsystem needs to be single instance on any server.
+##        13. Query IT, café, and CIPUI setup and segmentation needs to be on same server
+##        14. A360 need to be on dedicated server
+##        15. Utility needs to be on all servers except a360 and nbos data node
+##########################################################################################################
