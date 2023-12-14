@@ -3,10 +3,11 @@
     - server1
     - server2
     - server3
+    - server4
   become: yes # Run tasks with root privileges
 
   vars:
-    installer_path: "/disk1/installer"
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
 
   tasks:
     - name: Load CIP Config parameters
@@ -260,6 +261,7 @@
         sudo rm -rf {{ data_root_path }}/cip
         sudo rm -rf {{ apps_root_path }}
         sudo rm -rf {{ sandbox_root }}/{{functional_user}}
+        sudo rm -rf {{ a360_root }}
         sudo rm -rf /usr/local/abinitio
         sudo rm -rf /var/abinitio/*
         sudo rm -rf /home/{{ functional_user }}/.abinitiorc

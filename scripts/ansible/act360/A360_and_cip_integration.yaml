@@ -122,7 +122,7 @@
         air sandbox import . -files dev.pset
       become_user: "{{ functional_user }}"
 
-  ## Add ET_A360_NOTIFICATION for CIP_COMMON_INTERNAL_EVENT_OVERRIDE_TYPE_LIST version > 4.1.0.36
+## Add ET_A360_NOTIFICATION for CIP_COMMON_INTERNAL_EVENT_OVERRIDE_TYPE_LIST version > 4.1.0.36
 
     - name: Export CIP base pset
       when: ab_host_alias != hostvars['a360'].ab_host_alias
