@@ -8,12 +8,17 @@ pipeline {
         terraform 'Terraform'
         }
 
+        }
+
     environment {
-            LOG_FILE="${HOME}/demo_setup.log"
+            JOB_NAME = env.JOB_NAME
+            LOG_FILE = "${HOME}/${JOB_NAME}_log.log"
+            //LOG_FILE="${HOME}/demo_setup.log"
             CONFIG_FILE="${WORKSPACE}/scripts/ansible/cip_common_setup.yml"
             TIME_FORMAT = "yyyy-MM-dd HH:mm:ss"
         }
 
+        
     stages {
 
          stage('Initialize Log and common config') {
