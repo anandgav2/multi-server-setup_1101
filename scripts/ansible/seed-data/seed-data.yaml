@@ -24,7 +24,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Copying Seed Data Tar
+          => Copying Seed data tar ball
         state: present
       delegate_to: localhost
       no_log: true
@@ -43,7 +43,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Untar seed Data
+          => Untar seed data tar ball
         state: present
       delegate_to: localhost
       no_log: true
@@ -67,7 +67,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Importing Seed Data Sql in the CIP DB
+          => Importing Seed data Sql in the CIP DB
         state: present
       delegate_to: localhost
       no_log: true
