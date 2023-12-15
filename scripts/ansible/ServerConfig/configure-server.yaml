@@ -59,7 +59,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          =>User Creation Completed on host {{ ansible_hostname }}
+          =>Functional user Creation Completed on host {{ ansible_hostname }}
              User : {{ functional_user }}
         state: present
       delegate_to: localhost
@@ -79,7 +79,7 @@
       loop:
         - "{{ functional_user }}"    
        
-    - name: Add remote host and public ip entries to /etc/hosts
+    - name: Add remote host and public IP entries to /etc/hosts
       lineinfile:
         path: /etc/hosts
         line: |
@@ -90,7 +90,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Added {{ ansible_hostname }} entried on /etc/hosts
+          => Added {{ ansible_hostname }} host entry in /etc/hosts file
         state: present
       delegate_to: localhost
       no_log: true
@@ -107,7 +107,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => JDK 11 installed on -- {{ ansible_hostname }}
+          => Installed JDK 11 on host {{ ansible_hostname }}
         state: present
       delegate_to: localhost
       no_log: true
@@ -145,7 +145,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          =>Node.js successfully installed on {{ inventory_hostname }}
+          =>Node.js successfully installed on {{ ansible_hostname }}
         state: present
       delegate_to: localhost
       no_log: true
@@ -161,7 +161,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          =>npm successfully installed on {{ inventory_hostname }}
+          =>npm successfully installed on host {{ ansible_hostname }}
         state: present
       delegate_to: localhost
       no_log: true
@@ -177,7 +177,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          =>ksh shell successfully installed on {{ inventory_hostname }}
+          =>ksh shell successfully installed on host {{ ansible_hostname }}
         state: present
       delegate_to: localhost
       no_log: true
@@ -210,7 +210,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          =>pip3 successfully installed on {{ inventory_hostname }}. Python Version "{{ p_version.stdout }}"
+          =>pip3 successfully installed Python Version "{{ p_version.stdout }}" on host {{ ansible_hostname }}
         state: present
       delegate_to: localhost
       no_log: true
@@ -230,7 +230,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          =>jq successfully installed on {{ inventory_hostname }}. Jq Version "{{ jq_version.stdout }}"
+          =>jq successfully installed Jq Version "{{ jq_version.stdout }}" on {{ ansible_hostname }}
         state: present
       delegate_to: localhost
       no_log: true
