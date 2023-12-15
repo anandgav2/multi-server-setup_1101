@@ -1,5 +1,3 @@
-@Library('yaml') _
-
 pipeline {
 
     agent {
@@ -33,9 +31,7 @@ pipeline {
                     sh "touch ${env.CONFIG_FILE}"
 
                     //Read CIP Version
-                    def data = libraryResource "${env.INSTALLER_PATH}/installer-versions.yml"
-                    def yaml = new org.yaml.snakeyaml.Yaml().load(data)
-                    def cipVersion = yaml.cip_version.tokenize('-')[0]
+                    def cipVersion = sh(script: "awk '/cip_version:/ {print \$2}' ${env.INSTALLER_PATH}/installer-versions.yml", returnStdout: true).trim()
                     env.CIP_VERSION = cipVersion
                     echo "CIP_VERSION: ${env.CIP_VERSION}"
                 }
