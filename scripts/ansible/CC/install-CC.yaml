@@ -31,7 +31,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Updating CC Config File
+          => Updating Control>Center Config file
         state: present
       delegate_to: localhost
       no_log: true
@@ -60,7 +60,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => CC Version to e installed -> {{ cc_version }}
+          => Control>Center Version to be installed -> {{ cc_version }}
         state: present
       delegate_to: localhost
       no_log: true
@@ -80,7 +80,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Get CC Installer Tar
+          => Get Control>Center Installer tar file
         state: present
       delegate_to: localhost
       no_log: true
@@ -111,7 +111,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Installer File - {{ found_files.files[0].path }}
+          => Found Control>Center Installer in {{ found_files.files[0].path }}
         state: present
       delegate_to: localhost
       no_log: true
@@ -129,7 +129,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Untar File
+          => Untar Control>Center instaler tar ball
         state: present
       delegate_to: localhost
       no_log: true
@@ -180,7 +180,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Running CC Installation
+          => Starting Control>Center Installation
         state: present
       delegate_to: localhost
       no_log: true
@@ -222,7 +222,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Running CC Deployment
+          => Starting Control>Center Deployment
         state: present
       delegate_to: localhost
       no_log: true
@@ -257,7 +257,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Running --> ab-app start {{ deployment_name }}
+          => Starting Control>Center deployment --> ab-app start {{ deployment_name }}
         state: present
       delegate_to: localhost
       no_log: true
@@ -299,10 +299,10 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => CC is Up and running
-             CC URL -> http://{{ ansible_host }}:{{ http_port }}/{{ deployment_name }}
-             CC User -> admin
-             CC Password -> abIniti0
+          => Control>Center deployment is Up and running
+             Control>Center URL -> http://{{ ansible_host }}:{{ http_port }}/{{ deployment_name }}
+             Control>Center User -> admin
+             Control>Center Password -> abIniti0
         state: present
       delegate_to: localhost
       no_log: true

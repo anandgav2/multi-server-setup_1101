@@ -58,7 +58,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          =>EME started on {{ inventory_hostname }}. EME Status
+          =>EME started on {{ ansible_hostname }}. EME Status
              {{ command_output.results[0].stdout }}
         state: present
       delegate_to: localhost

@@ -37,7 +37,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Creating PG PASS File
+          => Creating .pgpass file
         state: present
       delegate_to: localhost
       no_log: true
@@ -109,7 +109,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Reading Co-op Config File
+          => Reading Co>Op Config file
         state: present
       delegate_to: localhost
       no_log: true
@@ -159,7 +159,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => CIP Version Tar File - {{ found_files.files[0].path }}
+          => Found CIP Version installer tar ball in - {{ found_files.files[0].path }}
         state: present
       delegate_to: localhost
       no_log: true
@@ -177,7 +177,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Untar CIP Version Tar File
+          => Untar CIP tar ball
         state: present
       delegate_to: localhost
       no_log: true
@@ -224,7 +224,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Setting Abinitio Environment
+          => Setting Ab Initio Environment
         state: present
       delegate_to: localhost
       no_log: true
@@ -234,7 +234,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Copying ab_python_lib and ui tar files to remote location and extracting them
+          => Copying ab_python_lib and ui tar balls to remote location and extracting them
         state: present
       delegate_to: localhost
       no_log: true
@@ -319,7 +319,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Loading CIP save file in EME
+          => Loading CIP save files in EME
         state: present
       delegate_to: localhost
       no_log: true
@@ -347,7 +347,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Check Out CIP
+          => Checkout CIP codes
         state: present
       delegate_to: localhost
       no_log: true

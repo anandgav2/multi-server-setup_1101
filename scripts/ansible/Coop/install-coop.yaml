@@ -60,7 +60,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          =>Searching for installer for Coop Version {{ coop_version }}
+          =>Searching for Co>Op installer Version {{ coop_version }}
         state: present
       delegate_to: localhost
       no_log: true
@@ -82,7 +82,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          =>Found Installer {{ found_files.files[0].path }}
+          =>Found Co>Op Installer in {{ found_files.files[0].path }}
         state: present
       delegate_to: localhost
       no_log: true
@@ -180,7 +180,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          =>ab-cinfo daemon started on {{ inventory_hostname }}.
+          =>ab-cinfod daemon started on {{ ansible_hostname }} host.
         state: present
       delegate_to: localhost
       no_log: true
@@ -251,7 +251,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          =>key client daemon started on {{ inventory_hostname }}. Key Details
+          =>key client daemon started on {{ ansible_hostname }} host.Key Details
              {{ command_output.stdout }}
         state: present
       delegate_to: localhost
@@ -279,7 +279,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          =>Bridge daemon started on {{ inventory_hostname }}. Bridge Details
+          =>Bridge started on {{ ansible_hostname }} host.Bridge status
              {{ command_output.stdout_lines }}
         state: present
       delegate_to: localhost
@@ -351,7 +351,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => User Abinitio RC created on {{ inventory_hostname }}
+          => User's abinitiorc created on {{ ansible_hostname }} host
         state: present
       delegate_to: localhost
       no_log: true
