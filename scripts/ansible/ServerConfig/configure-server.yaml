@@ -90,7 +90,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Added {{ ansible_hostname }} host entry in /etc/hosts file
+          => Added host entry for {{ ansible_hostname }} host in file /etc/hosts
         state: present
       delegate_to: localhost
       no_log: true
