@@ -118,6 +118,9 @@ pipeline {
             }
         }
 
+stage('Run A360 and Batch in Parallel') {
+parallel 
+{
         stage('Install A360') 
         { 
             when {
@@ -142,7 +145,8 @@ pipeline {
 
             }
         } 
-
+    stage('Run Batch Serially') {
+    stages {
         stage('Create EME')
         {
             steps
@@ -299,7 +303,10 @@ pipeline {
                 }
             }
         }
-
+    } /* close serial */
+    } /* close serial stage*/
+}/* close parallel */
+}/* close parallel stage*/
         stage('Start CIP Subsystem')
         {
             when {
