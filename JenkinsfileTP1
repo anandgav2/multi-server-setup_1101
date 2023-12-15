@@ -30,7 +30,7 @@ pipeline {
                     sh "touch ${env.CONFIG_FILE}"
 
                     //Read CIP Version
-                    def cipVersion = sh(script: "awk '/cip_version:/ {print \$2}' ${env.INSTALLER_PATH}/installer-versions.yml", returnStdout: true).trim()
+                    def cipVersion = sh(script: "awk '/cip_version:/ {print \$2}' ${INSTALLER_PATH}/installer-versions.yml | awk -F'-' '{print $1}' | cut -c2-", returnStdout: true).trim()
                     env.CIP_VERSION = "${cipVersion}"
                     echo "CIP_VERSION: ${env.CIP_VERSION}"
                 }
@@ -118,30 +118,30 @@ pipeline {
         //     }
         // }
 
-        // stage('Install A360') 
-        // { 
-        //     when {
-        //         expression {
-        //             return env.USE_EXISTING_A360 == "False" && env.CIP_VERSION.toInteger() > 3
-        //         }
-        //     }
+        stage('Install A360') 
+        { 
+            when {
+                expression {
+                    return env.USE_EXISTING_A360 == "False" && env.CIP_VERSION.toInteger() > 3
+                }
+            }
 
-        //     steps 
-        //     { 
-        //         script{
-        //             echo""
-        //             def sT = new Date()
-        //             def startTime = sT.format(TIME_FORMAT)
-        //             sh "echo ----------- A360 INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"        
-        //             sh 'cd "${WORKSPACE}/scripts/ansible/act360"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-act360.yaml' 
-        //             def eT = new Date()
-        //             def endTime = eT.format(TIME_FORMAT)
-        //             sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
-        //             sh "echo ------- A360 INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
-        //         }
+            steps 
+            { 
+                script{
+                    echo""
+                    def sT = new Date()
+                    def startTime = sT.format(TIME_FORMAT)
+                    sh "echo ----------- A360 INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"        
+                    //sh 'cd "${WORKSPACE}/scripts/ansible/act360"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-act360.yaml' 
+                    def eT = new Date()
+                    def endTime = eT.format(TIME_FORMAT)
+                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
+                    sh "echo ------- A360 INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
+                }
 
-        //     }
-        // } 
+            }
+        } 
 
         // stage('Create EME')
         // {
