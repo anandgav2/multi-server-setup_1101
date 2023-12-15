@@ -39,7 +39,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => A360 Version Installed --> {{ a360_version }}
+          => Active>360 Version --> {{ a360_version }}
         state: present
       delegate_to: localhost
       no_log: true
@@ -70,7 +70,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => A360 Tar File --> {{ found_files.files[0].path }}
+          => Found Active>360 tar ball in --> {{ found_files.files[0].path }}
         state: present
       delegate_to: localhost
       no_log: true
@@ -93,7 +93,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Untar A360 Tar File --> {{ found_files.files[0].path }}
+          => Untar Active>360 tar ball --> {{ found_files.files[0].path }}
         state: present
       delegate_to: localhost
       no_log: true
@@ -129,7 +129,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Running A360 Configurator
+          => Running Active>360 Configurator tool
         state: present
       delegate_to: localhost
       no_log: true
@@ -171,7 +171,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Creating A360 Directories
+          => Creating Active>360 directories
         state: present
       delegate_to: localhost
       no_log: true
@@ -214,7 +214,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Running A360 Installation
+          => Running Active>360 Installation
         state: present
       delegate_to: localhost
       no_log: true
