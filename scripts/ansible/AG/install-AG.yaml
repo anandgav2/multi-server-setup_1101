@@ -62,7 +62,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          =>Searching for installer for AG Version {{ ag_version }}
+          =>Searching for Authorization Gateway installer {{ ag_version }}
         state: present
       delegate_to: localhost
       no_log: true
@@ -80,7 +80,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          =>Found Installer {{ found_files.files[0].path }}
+          =>Found Authorization Gateway Installer in {{ found_files.files[0].path }}
         state: present
       delegate_to: localhost
       no_log: true
@@ -113,7 +113,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          =>Copied Installer {{ found_files.files[0].path }} to remote and extracted the tar
+          =>Copied Authorization Gateway Installer {{ found_files.files[0].path }} to remote host and extracted the tar file.
         state: present
       delegate_to: localhost
       no_log: true
@@ -140,7 +140,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Running AG installation Script
+          => Running Authorization Gateway installation Script
         state: present
       delegate_to: localhost
       no_log: true
@@ -170,7 +170,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Running AG Deployment
+          => Running Authorization Gateway deployment
         state: present
       delegate_to: localhost
       no_log: true
@@ -202,7 +202,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => AG URL - "http://{{ ansible_host }}:{{ port_number }}/{{ deployment_name }}"
+          => Authorization Gateway URL - "http://{{ ansible_host }}:{{ port_number }}/{{ deployment_name }}"
         state: present
       delegate_to: localhost
       no_log: true
@@ -270,7 +270,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Creating Webapp User in AG
+          => Creating Webapp User in Authorization Gateway
         state: present
       delegate_to: localhost
       no_log: true
@@ -325,7 +325,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Webapp User in AG created
+          => Webapp User is created in Authorization Gateway
              User - {{ web_app_user }}
              Password - {{ web_app_user }}
         state: present
