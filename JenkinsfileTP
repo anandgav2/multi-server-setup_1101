@@ -8,10 +8,8 @@ pipeline {
         terraform 'Terraform'
         }
 
-        }
-
     environment {
-            JOB_NAME = env.JOB_NAME
+            JOB_NAME = "${env.JOB_NAME}"
             LOG_FILE = "${HOME}/${JOB_NAME}.log"
             //LOG_FILE="${HOME}/demo_setup.log"
             CONFIG_FILE="${WORKSPACE}/scripts/ansible/cip_common_setup.yml"
@@ -23,12 +21,18 @@ pipeline {
 
          stage('Initialize Log and common config') {
             steps {
+
                 script {
                     echo "##### SUMMARY LOG FILE : ${env.LOG_FILE} #########"
                     sh "rm -f ${env.LOG_FILE}"
                     sh "touch ${env.LOG_FILE}"
                     sh "rm -f ${env.CONFIG_FILE}"
                     sh "touch ${env.CONFIG_FILE}"
+
+                    //Read CIP Version
+                    def cipVersion = sh(script: "awk '/cip_version:/ {print \$2}' ${INSTALLER_PATH}/installer-versions.yml | awk -F'-' '{print \$1}' | cut -c2-", returnStdout: true).trim()
+                    env.CIP_VERSION = "${cipVersion}"
+                    echo "CIP_VERSION: ${env.CIP_VERSION}"
                 }
             }
         }
@@ -113,6 +117,31 @@ pipeline {
                 }
             }
         }
+
+        stage('Install A360') 
+        { 
+            when {
+                expression {
+                    return env.USE_EXISTING_A360 == "False" && env.CIP_VERSION.toInteger() > 3
+                }
+            }
+
+            steps 
+            { 
+                script{
+                    echo""
+                    def sT = new Date()
+                    def startTime = sT.format(TIME_FORMAT)
+                    sh "echo ----------- A360 INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"        
+                    sh 'cd "${WORKSPACE}/scripts/ansible/act360"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-act360.yaml' 
+                    def eT = new Date()
+                    def endTime = eT.format(TIME_FORMAT)
+                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
+                    sh "echo ------- A360 INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
+                }
+
+            }
+        } 
 
         stage('Create EME')
         {
@@ -273,6 +302,12 @@ pipeline {
 
         stage('Start CIP Subsystem')
         {
+            when {
+                expression {
+                    env.CIP_VERSION.toInteger() == 3
+                }
+            }
+
             steps
             {
                 script{
@@ -291,57 +326,11 @@ pipeline {
             }
         }
 
-        stage('Start CIPUI')
-        {
-            steps
-            {
-                script{
-
-                    echo""
-                    def sT = new Date()
-                    def startTime = sT.format(TIME_FORMAT)
-                    sh "echo ----------- Installing CIP UI -----------  >> ${env.LOG_FILE}"
-                    sh 'cd "${WORKSPACE}/scripts/ansible/CIPUI"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key start-cipui.yaml'
-                    def eT = new Date()
-                    def endTime = eT.format(TIME_FORMAT)
-                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
-                    sh "echo ------- CIP UI Installation SUCCESSFUL ---------- >> ${env.LOG_FILE}"
-                }
-
-            }
-        } 
-
-        stage('Install A360') 
+        stage('A360 and CIP Integration, and Start CIP Subsystem') 
         { 
             when {
                 expression {
-                    return env.INSTALL_A360 == "True"
-                }
-            }
-
-            steps 
-            { 
-                script{
-                    echo""
-                    def sT = new Date()
-                    def startTime = sT.format(TIME_FORMAT)
-                    sh "echo ----------- A360 INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"        
-                    sh 'cd "${WORKSPACE}/scripts/ansible/act360"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-act360.yaml' 
-                    def eT = new Date()
-                    def endTime = eT.format(TIME_FORMAT)
-                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
-                    sh "echo ------- A360 INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
-                }
-
-            }
-        } 
-
-        
-        stage('A360 and CIP Integration') 
-        { 
-            when {
-                expression {
-                    return env.INSTALL_A360 == "True"
+                    env.CIP_VERSION.toInteger() > 3
                 }
             }
 
@@ -357,6 +346,26 @@ pipeline {
                     def endTime = eT.format(TIME_FORMAT)
                     sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
                     sh "echo ------- A360 Integration SUCCESSFUL ---------- >> ${env.LOG_FILE}"
+                }
+
+            }
+        } 
+
+        stage('Start CIPUI')
+        {
+            steps
+            {
+                script{
+
+                    echo""
+                    def sT = new Date()
+                    def startTime = sT.format(TIME_FORMAT)
+                    sh "echo ----------- Installing CIP UI -----------  >> ${env.LOG_FILE}"
+                    sh 'cd "${WORKSPACE}/scripts/ansible/CIPUI"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key start-cipui.yaml'
+                    def eT = new Date()
+                    def endTime = eT.format(TIME_FORMAT)
+                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
+                    sh "echo ------- CIP UI Installation SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                 }
 
             }
