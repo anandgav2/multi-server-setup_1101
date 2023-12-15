@@ -28,7 +28,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Updating Cafe Config File
+          => Updating Cafe Config file
         state: present
       delegate_to: localhost
       no_log: true
@@ -60,7 +60,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          =>Searching for installer for Cafe Version {{ cafe_version }}
+          =>Searching for Cafe installer Version {{ cafe_version }}
         state: present
       delegate_to: localhost
       no_log: true
@@ -78,7 +78,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Found Installer {{ found_files.files[0].path }}
+          => Found Cafe Installer in {{ found_files.files[0].path }}
         state: present
       delegate_to: localhost
       no_log: true
@@ -155,7 +155,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Creating Cafe setup.properties file And Deploying Cafe
+          => Creating setup.properties file for cafe installation and staring Cafe Deployment
         state: present
       delegate_to: localhost
       no_log: true
@@ -191,7 +191,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Running Cafe "ab-app start cipcafe"
+          => Starting Cafe "ab-app start cipcafe"
         state: present
       delegate_to: localhost
       no_log: true
@@ -242,7 +242,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Assigning Cafe Roles to Webapp User in AG
+          => Assigning Cafe Roles to Webapp User in Authorization Gateway
         state: present
       delegate_to: localhost
       no_log: true
