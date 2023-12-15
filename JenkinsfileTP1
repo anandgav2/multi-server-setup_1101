@@ -1,5 +1,3 @@
-import groovy.yaml.YamlSlurper
-
 pipeline {
 
     agent {
@@ -33,9 +31,7 @@ pipeline {
                     sh "touch ${env.CONFIG_FILE}"
 
                     //Read CIP Version
-                    def yamlContent = readFile("${env.INSTALLER_PATH}/installer-versions.yml")
-                    def yamlSlurper = new YamlSlurper()
-                    def data = yamlSlurper.parseText(yamlContent)
+                    def data = readYaml file: "${env.INSTALLER_PATH}/installer-versions.yml"
                     def cipVersion = data.cip_version.tokenize('-')[0]  
                     env.CIP_VERSION = cipVersion
                     echo "CIP_VERSION: ${env.CIP_VERSION}"
