@@ -14,7 +14,7 @@ pipeline {
             //LOG_FILE="${HOME}/demo_setup.log"
             CONFIG_FILE="${WORKSPACE}/scripts/ansible/cip_common_setup.yml"
             TIME_FORMAT = "yyyy-MM-dd HH:mm:ss"
-            CIP_VERSION = 3
+            env.CIP_VERSION = "3"
         }
 
         
