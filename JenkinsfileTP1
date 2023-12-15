@@ -14,7 +14,6 @@ pipeline {
             //LOG_FILE="${HOME}/demo_setup.log"
             CONFIG_FILE="${WORKSPACE}/scripts/ansible/cip_common_setup.yml"
             TIME_FORMAT = "yyyy-MM-dd HH:mm:ss"
-            env.CIP_VERSION = "3"
         }
 
         
@@ -32,7 +31,7 @@ pipeline {
 
                     //Read CIP Version
                     def cipVersion = sh(script: "awk '/cip_version:/ {print \$2}' ${env.INSTALLER_PATH}/installer-versions.yml", returnStdout: true).trim()
-                    env.CIP_VERSION = cipVersion
+                    env.CIP_VERSION = "${cipVersion}"
                     echo "CIP_VERSION: ${env.CIP_VERSION}"
                 }
             }
