@@ -30,7 +30,7 @@ pipeline {
                     sh "touch ${env.CONFIG_FILE}"
 
                     //Read CIP Version
-                    def cipVersion = sh(script: "awk '/cip_version:/ {print \$2}' ${INSTALLER_PATH}/installer-versions.yml | awk -F'-' '{print $1}' | cut -c2-", returnStdout: true).trim()
+                    def cipVersion = sh(script: "awk '/cip_version:/ {print \$2}' ${INSTALLER_PATH}/installer-versions.yml | awk -F'-' '{print \$1}' | cut -c2-", returnStdout: true).trim()
                     env.CIP_VERSION = "${cipVersion}"
                     echo "CIP_VERSION: ${env.CIP_VERSION}"
                 }
