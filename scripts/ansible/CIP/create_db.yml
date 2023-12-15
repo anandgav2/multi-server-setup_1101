@@ -23,7 +23,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Creating CIP DB instance
+          => Creating CIPDB instance
         state: present
       delegate_to: localhost
       no_log: true
