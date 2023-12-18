@@ -251,7 +251,7 @@
       shell: |
         source /etc/profile
         cd {{ cip_base_path }}/private_internal/bin
-        ./cip-control.ksh soft_stop all
+        ./cip-control.ksh forced_stop all
         sleep 180
         ./cip-control.ksh abandon all
         sleep 30
@@ -263,9 +263,9 @@
         source /etc/profile
         cd {{ cip_base_path }}/private_internal/bin
         ./cip-control.ksh start utility
-        sleep 30
+        sleep 60
         ./cip-control.ksh start control_subsystem
-        sleep 30
+        sleep 120
       become_user: "{{ functional_user }}"
     
     - name: Check CIP Utility and Control Subsystem Status
@@ -290,6 +290,8 @@
         touch $(air sandbox eval . CIP_COMMON_LOCAL_SERIAL_LANDING)/in.subscriber_profile_manual_update.$(date +'%Y%m%d%H%M%S%N' | sed 's/...$//')
         sleep 120
       become_user: "{{ functional_user }}"
+
+      #add user id and trigger id
 
     - name: Trigger a Campaign Redeployment
       when: ab_host_alias == hostvars['cipui'].ab_host_alias
