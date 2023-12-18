@@ -21,7 +21,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Starting CIP Subsystem
+          => Starting CIP Subsystems
         state: present
       delegate_to: localhost
       no_log: true
@@ -192,7 +192,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Verifying if the CIP Subsystem is UP -- {{ ansible_hostname }}
+          => Verifying if the CIP Subsystems are UP on {{ ansible_hostname }} host
         state: present
       delegate_to: localhost
       no_log: true

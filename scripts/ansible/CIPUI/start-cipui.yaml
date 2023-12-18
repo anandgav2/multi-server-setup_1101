@@ -29,7 +29,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Creating ez_autosave directory and giving it required permissions
+          => Creating ez_autosave directory and assigning it required permissions
         state: present
       delegate_to: localhost
       no_log: true
@@ -63,7 +63,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Updating CIP UI Json Config
+          => Updating CIPUI Json Config
         state: present
       delegate_to: localhost
       no_log: true
@@ -639,7 +639,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Runnig --> npm run modeB - To bring UP CIP UI
+          => Starting CIP UI --> npm run modeB
         state: present
       delegate_to: localhost
       no_log: true
@@ -667,7 +667,7 @@
                 cip_ui_user: {{ web_app_user }}
                 cip_ui_password: {{ web_app_user }}
 
-          => More Users Can be added to access CIPUI using AG
+          => More Users Can be added on Authorization Gateway with required roles to access CIP UI
         state: present
       delegate_to: localhost
       no_log: true
@@ -695,7 +695,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Assigning WEB_APP_USER to Access CIP UI, Using AG
+          => Assigning CIP roles to WEB_APP_USER on Authorization Gateway to access CIP UI
         state: present
       delegate_to: localhost
       no_log: true

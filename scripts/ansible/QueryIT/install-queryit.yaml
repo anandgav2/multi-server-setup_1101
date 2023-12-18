@@ -63,7 +63,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Installing ABSQL .......
+          => Configuring absql sandbox
         state: present
       delegate_to: localhost
       no_log: true
@@ -90,7 +90,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Installing Query>IT .......
+          => Installing Query>It
         state: present
       delegate_to: localhost
       no_log: true
@@ -108,7 +108,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Running Query>IT Service
+          => Starting Query>It Service
         state: present
       delegate_to: localhost
       no_log: true
@@ -198,7 +198,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Assing Query>it Roles to Web App user
+          => Assing Query>It instance roles to WebApp user
         state: present
       delegate_to: localhost
       no_log: true
@@ -261,7 +261,7 @@
       lineinfile:
         path: "{{ log_file }}"
         line: |
-          => Verifying AG connection with Query>it
+          => Verifying Authorization Gateway connection with Query>it instance
         state: present
       delegate_to: localhost
       no_log: true
