@@ -554,9 +554,9 @@
 
           set use_nbos_query "Y"
 
-          set nbos_user "{{ functional_user }}"
+          set nbos_user "admin"
           
-          set nbos_pass "{{ functional_user_password }}"
+          set nbos_pass "admin"
 
           cd "{{ cip_base_path }}/ui/web/"
 
