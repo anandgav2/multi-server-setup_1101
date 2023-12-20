@@ -262,8 +262,10 @@
         sudo rm -rf {{ apps_root_path }}
         sudo rm -rf {{ sandbox_root }}/{{functional_user}}
         sudo rm -rf {{ a360_root }}
-        sudo rm -rf /usr/local/abinitio
-        sudo rm -rf /var/abinitio/*
+        sudo rm -rf {{ ab_application_hub }}
+        sudo rm -rf {{ ab_home_dir }}
+        sudo rm -rf {{ ab_work_dir }}
+        sudo rm -rf {{ ab_data_dir }}
         sudo rm -rf /home/{{ functional_user }}/.abinitiorc
       loop:
         - "{{ functional_user }}"
