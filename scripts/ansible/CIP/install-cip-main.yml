@@ -76,7 +76,7 @@
     log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
     comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
     installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
-  
+
   tasks:
 
     - name: Load Global parameters
@@ -410,8 +410,40 @@
               CIP_COMMON_REPORT_SERVER@||||{{ cip_common_audit_server }}		
               CIP_COMMON_CIPDB_HOST@||||{{ CIPDB_HOST }}
               CIP_COMMON_PYTHONPATH@||||{{ cip_base_path }}/ui/ab_python_lib/modules
-              INBOUND_CHANNEL_NBOS_LOOKUP_FILE_SYSTEM_TYPE@||||local
-      become_user: "{{ functional_user }}"              
+      become_user: "{{ functional_user }}"
+
+    - name: check if lookup parameter override file present or not
+      set_fact: 
+           check_parameter_override_file: "{{ lookup('file', '{{ installer_path }}/parameter_override.txt', errors='ignore') }}"
+    
+    - name: read parameter override file contents
+      set_fact:
+          parameter_override_content: "{{  check_parameter_override_file.splitlines() if check_parameter_override_file!='' else ''}}"
+
+    - name: print check_parameter_override_file and parameter_override_content
+      debug:
+          var: check_parameter_override_file
+          var: parameter_override_content
+
+    - name : parse a360 parameters from parameter_override_content
+      set_fact:
+         a360_parameters: "{{ parameter_override_content | select('match', '^a360:(.*)') | map('regex_replace', '^a360:(.*)', '\\1') }}"
+         cip_parameter: "{{ parameter_override_content | select('match', '^cip:(.*)') | map('regex_replace', '^a360:(.*)', '\\1') }}"
+
+    - name: add user provided cip parameters into base pset
+      lineinfile:
+        path: "{{ cip_base_path }}/private_internal/dev.pset"
+        line: "{{ item | split(':') | first}}@||||{{ item | split(':') | last}}"
+        state: present
+      loop: "{{ cip_parameter }}"
+
+    - name: add user provided a360 parameters into base pset
+      lineinfile:
+        path: "{{ cip_base_path }}/private_internal/dev.pset"
+        line: "{{ item | split(':') | first}}@||||{{ item | split(':') | last}}"
+        state: present
+      loop: "{{ a360_parameters }}"
+      when: cip_version.split('-')[0] | int > 3
 
     - name: Write configuration pset dev for stdenv sandbox
       copy:
