@@ -113,9 +113,6 @@
         air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_USERNAME@ 'cafeuser'
         air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_PASSWORD_ENCRYPTED@ '2,,LH6OEsUEcn2S0PL8og2Sh9anwwDdN5uOjOWJforE59I'
         air sandbox parameter -path dev.pset CIP_COMMON_CUSTOMER_360_SUBSET@ 'subset_for_cip_outbound'
-        air sandbox parameter -path dev.pset CIP_COMMON_CUSTOMER_EVENT_OVERRIDE_TYPE_LIST@ 'ET_EVENT1,ET_EVENT2,ET_EVENT3'
-        air sandbox parameter -path dev.pset CIP_COMMON_INTERNAL_EVENT_OVERRIDE_TYPE_LIST@ 'ET_TIMER,ET_CAMPAIGN_EVENT,ET_CAMPAIGN_EVENT_CAMPAIGN_ENDED,ET_NBOS_FULFILLMENT_REQUEST,ET_OUTBOUND_CHANNEL_FULFILLMENT_REQUEST,ET_NBOS_OUTBOUND_EVENT'
-        air sandbox parameter -path dev.pset CIP_COMMON_NOTIFICATION_EVENT_TYPE_LIST@ ''
         air sandbox parameter -path dev.pset CIP_COMMON_A360_KAFKA_TOPIC_PROPERTIES@ 'acks=-1
         bootstrap.servers={{ a360_hostname }}:29092
         transaction.timeout.ms=9000'
