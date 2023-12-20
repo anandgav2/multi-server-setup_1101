@@ -428,7 +428,7 @@
     - name : parse a360 parameters from parameter_override_content
       set_fact:
          a360_parameters: "{{ parameter_override_content | select('match', '^a360:(.*)') | map('regex_replace', '^a360:(.*)', '\\1') }}"
-         cip_parameter: "{{ parameter_override_content | select('match', '^cip:(.*)') | map('regex_replace', '^a360:(.*)', '\\1') }}"
+         cip_parameter: "{{ parameter_override_content | select('match', '^cip:(.*)') | map('regex_replace', '^cip:(.*)', '\\1') }}"
 
     - name: add user provided cip parameters into base pset
       lineinfile:
