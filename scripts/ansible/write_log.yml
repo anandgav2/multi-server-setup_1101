@@ -1,0 +1,35 @@
+- name: Log Error
+  lineinfile:
+    path: "{{ log_file }}"
+    line: |
+      ERROR: {{ error_msg }}
+    state: present
+    create: yes
+  no_log: true
+  when: error_msg is defined
+
+- name: Log Warning
+  lineinfile:
+    path: "{{ log_file }}"
+    line: |
+      WARNING: {{ warning_msg }}
+    state: present
+    create: yes
+  no_log: true
+  when: warning_msg is defined
+
+- name: Log Info
+  lineinfile:
+    path: "{{ log_file }}"
+    line: |
+      INFO: {{ info_msg }}
+    state: present
+    create: yes
+  no_log: true
+  when: info_msg is defined
+
+- name: Set fail_validation - true
+  set_fact:
+    fail_validation: true
+  run_once: true
+  when: error_msg is defined
