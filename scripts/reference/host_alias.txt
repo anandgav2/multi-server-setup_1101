@@ -1,0 +1,20 @@
+###############################################################
+################## For Existing Servers #######################
+Format :
+VirtualHost IPAddress Hostname
+
+Example :
+cip01 10.226.102.14 rhel1
+cip02 10.226.102.13 rhel2
+cip03 10.226.102.15 tst2
+cip04 10.226.102.17 tst3
+###############################################################
+################## For New Servers ############################
+Format :
+VirtualHost Hostname
+
+Example :
+cip01 rhel1
+cip02 rhel2
+cip03 tst2
+cip04 tst3
