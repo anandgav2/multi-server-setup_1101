@@ -1,9 +1,0 @@
-cip:INBOUND_CHANNEL_NBOS_LOOKUP_FILE_SYSTEM_TYPE:local
-a360:CIP_COMMON_CUSTOMER_EVENT_OVERRIDE_TYPE_LIST:ET_EVENT1,ET_EVENT2,ET_EVENT3
-a360:CIP_COMMON_INTERNAL_EVENT_OVERRIDE_TYPE_LIST:ET_TIMER,ET_CAMPAIGN_EVENT,ET_CAMPAIGN_EVENT_CAMPAIGN_ENDED,ET_NBOS_FULFILLMENT_REQUEST,ET_OUTBOUND_CHANNEL_FULFILLMENT_REQUEST,ET_NBOS_OUTBOUND_EVENT
-a360:CIP_COMMON_NOTIFICATION_EVENT_TYPE_LIST:''
-##########################################################################################################
-## Note : 1. User can refer example of this file to prepare new base_config_parameter_overriding.yml and place it inside installer path.
-##        2. Verify file format as mentioned above
-##        3. 
-##########################################################################################################
