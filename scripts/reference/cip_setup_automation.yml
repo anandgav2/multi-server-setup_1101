@@ -1,21 +1,63 @@
-sandbox_root: "/disk1/data/sandbox"
+cip_common_base_port: 27000
+data_mfs_depth: 4
+cp_data_mfs_depth: 8
+sandbox_root: "/disk1/sandbox"
 apps_root_path: "/disk1/apps"
 data_root_path: "/disk1/data"
-cip_host: "10.226.102.14"
-cip_host_key_file: "/tmp/rhel1.pem"
-a360_host: "10.226.102.13"
-a360_host_key_file: "/tmp/rhel2.pem"
+ab_application_hub: "/usr/local/abinitio/abinitio-app-hub"
+ab_home_dir: "/usr/local/abinitio"
+ab_work_dir: "/var/abinitio"
+ab_data_dir: "/var/abinitio/data"
 ab_key_client_host_urls: "abks://keyserver1.str15914.gcp.abinitio.com:6150"
 ab_key_client_users_urls: "abks://keyserver1.str15914.gcp.abinitio.com:6151"
 ab_key_group: "CIPSK"
 functional_user: "abinitio"
 functional_user_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
-          35303639316561376437303934323764353836356232396630613765323231316539663462373537
-          3033613965633464613237616136373063616463646130630a666434316363393134613332633136
-          35323663326565643362633330393231393737366166646262393863613436613135626235323732
-          6638343935626637370a666162316135393266366132383362363336343737656138626231396635
-          3234
+          63313037323239306465393366636161316265363030383138383733366564383130306266396536
+          6138393666343332666262336233663364373566386131330a373537616465616332393330316466
+          61336162373234396633646633626530346464393130353731373430323365653366343038363637
+          3563666161373363380a616235353537356463383439313332306530663437313233656436303032
+          3939
 web_app_user: "rranjan"
-a360_hostname: "rhel2.str15914.gcp.abinitio.com"
-cip_hostname: "rhel1.str15914.gcp.abinitio.com"
+cip_db_name: "cip_db"
+nbos_adc_config_type: "FILE"   #options - EME|DEFAULT|FILE
+nbos_adc_config: "test.dev.props"
+###########################################################################################
+########################         Active360 User Inputs           ##########################
+###########################################################################################
+a360_root: "/disk1/act360"
+vault_key: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          63313037323239306465393366636161316265363030383138383733366564383130306266396536
+          6138393666343332666262336233663364373566386131330a373537616465616332393330316466
+          61336162373234396633646633626530346464393130353731373430323365653366343038363637
+          3563666161373363380a616235353537356463383439313332306530663437313233656436303032
+          3939
+ab_key_host_source: "server"
+ab_key_users_source: "server"
+act_base_port_prefix: "290"
+act_name: "act360"
+act_portal_scaled_binary_type_decimal_places: "2"
+act_runtime_messagebus_commit_topic_width: "1"
+act_runtime_messagebus_topic_width: "3"
+act_runtime_messagebus_log_entry_topic_width: "3"
+act_runtime_messagebus_log_accum_topic_width: "3"
+act_runtime_messagebus_service_reject_topic_width: "3"
+installer_cloud : "True"
+a360_ag_user: "cafeuser"
+a360_ag_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          35636466383436346464326132633161303932353932326565323736333435663063646163323466
+          6332383530623034623439306432613834333632613136330a363039333665373561303431353563
+          64336563643731346234363234613133623262656534303033393837613861623234356139356532
+          3663333638366330330a663664323364373932666438663630663365653738653564396263653565
+          3534
+active_data_user: "admin"
+active_data_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          31343734613363393631666636643064653733393864333030366139376465646236336461323132
+          6133343830333163666166643563373837373930623234340a363139613636326430386464623963
+          35623632316433626366616130643433316330393438633431383466353233663331656134313966
+          3237656262376565620a656133383361626331633166633934666461653536373434323461626433
+          6363
