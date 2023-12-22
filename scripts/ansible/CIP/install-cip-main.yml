@@ -483,20 +483,15 @@
     - name: write warning for the a360 parameters if parameter is not able to resolve
       include_tasks: ../write_log.yml
       vars:
-          warning_msg: "{{ parameter issue item.item }}"
+          warning_msg: "Found issue in parameter {{ item.item | split(':') | first }}"
       when: item.rc == 1
       loop: "{{ select_a360_params.results }}"
       when: cip_version.split('-')[0] | int > 3
 
-    - name: Test Mode
-      include_tasks: ../write_log.yml
-      vars:
-          warning_msg: "Found issue in parameter in test mode"
-
     - name: write warning for the cip parameters if parameter is not able to resolve
       include_tasks: ../write_log.yml
       vars:
-          warning_msg: "Found issue in parameter {{ item.item }}"
+          warning_msg: "Found issue in parameter {{ item.item | split(':') | first }}"
       when: item.rc == 1
       loop: "{{ select_cip_params.results }}"
 
