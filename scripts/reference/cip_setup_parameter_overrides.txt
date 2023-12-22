@@ -14,4 +14,5 @@ a360:CIP_COMMON_NOTIFICATION_EVENT_TYPE_LIST:''
 ##        5. Automation job expects either cip or a360 in first field. Entry with any other value in first field will be ignored.
 ##        6. User need to make sure that parameter name provided in config must belong to correct category otherwise system will ignore.
 ##        7. In case of User try to override incorrect parameter or its not present in project then it will be ignored and will be captured in error logs.
+          8. If category is set to a360 and CIP version < 4 then Job will ignore those a360 parameter overrrides
 ##########################################################################################################
