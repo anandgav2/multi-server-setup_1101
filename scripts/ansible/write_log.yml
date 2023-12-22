@@ -6,6 +6,7 @@
     state: present
     create: yes
   no_log: true
+  delegate_to: localhost
   when: error_msg is defined
 
 - name: Log Warning
@@ -16,6 +17,7 @@
     state: present
     create: yes
   #no_log: true
+  delegate_to: localhost
   when: warning_msg is defined
 
 - name: Log Info
@@ -26,6 +28,7 @@
     state: present
     create: yes
   no_log: true
+  delegate_to: localhost
   when: info_msg is defined
 
 - name: Set fail_validation - true
