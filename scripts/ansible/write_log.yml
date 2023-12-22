@@ -15,7 +15,7 @@
       WARNING: {{ warning_msg }}
     state: present
     create: yes
-  no_log: true
+  #no_log: true
   when: warning_msg is defined
 
 - name: Log Info
