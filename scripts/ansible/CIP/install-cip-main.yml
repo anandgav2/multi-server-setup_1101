@@ -495,21 +495,6 @@
       when: item.rc == 1
       loop: "{{ select_cip_params.results }}"
 
-    # - name: add user provided cip parameters into base pset
-    #   lineinfile:
-    #     path: "{{ cip_base_path }}/private_internal/dev.pset"
-    #     line: "{{ item | split(':') | first}}@||||{{ item | split(':') | last}}"
-    #     state: present
-    #   loop: "{{ cip_parameter }}"
-
-    # - name: add user provided a360 parameters into base pset
-    #   lineinfile:
-    #     path: "{{ cip_base_path }}/private_internal/dev.pset"
-    #     line: "{{ item | split(':') | first}}@||||{{ item | split(':') | last}}"
-    #     state: present
-    #   loop: "{{ a360_parameters }}"
-    #   when: cip_version.split('-')[0] | int > 3
-
     - name: Write configuration pset dev for stdenv sandbox
       copy:
         dest: "{{ sandbox_root }}/{{ functional_user }}/stdenv/dev.pset"
