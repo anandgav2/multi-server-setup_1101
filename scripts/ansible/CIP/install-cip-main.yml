@@ -414,7 +414,7 @@
 
     - name: check if lookup parameter override file present or not
       set_fact: 
-           check_parameter_override_file: "{{ lookup('file', '{{ installer_path }}/base_pset_parameter_overridation.yml', errors='ignore') }}"
+           check_parameter_override_file: "{{ lookup('file', '{{ installer_path }}/cip_setup_parameter_overrides.txt', errors='ignore') }}"
     
     - name: read parameter override file contents
       set_fact:
