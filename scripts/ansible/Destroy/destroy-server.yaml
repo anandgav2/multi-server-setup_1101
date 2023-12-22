@@ -1,9 +1,6 @@
 - name: Stop Apps
   hosts: 
-    - server1
-    - server2
-    - server3
-    - server4
+    - server*
   become: yes # Run tasks with root privileges
 
   vars:
@@ -182,7 +179,6 @@
          var: command_output
 
     - name: Shutdown  Repository
-      when: inventory_hostname != 'a360-instance'
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh air repository shutdown"
       register: "{{ functional_user }}"
       become_user: abinitio
