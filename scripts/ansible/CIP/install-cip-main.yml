@@ -430,20 +430,85 @@
          a360_parameters: "{{ parameter_override_content | select('match', '^a360:(.*)') | map('regex_replace', '^a360:(.*)', '\\1') }}"
          cip_parameter: "{{ parameter_override_content | select('match', '^cip:(.*)') | map('regex_replace', '^cip:(.*)', '\\1') }}"
 
-    - name: add user provided cip parameters into base pset
-      lineinfile:
-        path: "{{ cip_base_path }}/private_internal/dev.pset"
-        line: "{{ item | split(':') | first}}@||||{{ item | split(':') | last}}"
-        state: present
-      loop: "{{ cip_parameter }}"
+    - name: print a360_parameters and cip_parameter
+      debug:
+              var: a360_parameters
+              var: cip_parameter
 
-    - name: add user provided a360 parameters into base pset
+    - name: check a360 parameters
+      shell: |
+          source /etc/profile
+          cd "{{ cip_base_path }}/private_internal"
+          param=$(echo "{{ item }}" | awk -F':' '{print $1}')
+          echo $param
+          RC=$(air sandbox eval . $param)
+      register: select_a360_params
+      loop: "{{ a360_parameters }}"
+      ignore_errors: true
+      when: cip_version.split('-')[0] | int > 3
+
+    - name: check cip parameters
+      shell: |
+          source /etc/profile
+          cd "{{ cip_base_path }}/private_internal"
+          param=$(echo "{{ item }}" | awk -F':' '{print $1}')
+          echo $param
+          RC=$(air sandbox eval . $param)
+      register: select_cip_params
+      loop: "{{ cip_parameters }}"
+      ignore_errors: true
+
+    - name: print select_a360_params and select_cip_params
+      debug:
+              var: select_a360_params
+              var: select_cip_params
+
+    - name: a360 parameter add into base pset
       lineinfile:
         path: "{{ cip_base_path }}/private_internal/dev.pset"
-        line: "{{ item | split(':') | first}}@||||{{ item | split(':') | last}}"
+        line: "{{ item.item | split(':') | first}}@||||{{ item.item | split(':') | last }}"
         state: present
-      loop: "{{ a360_parameters }}"
+      when: item.rc == 0
+      loop: "{{ select_a360_params.results }}"
       when: cip_version.split('-')[0] | int > 3
+
+    - name: cip parameter add into base pset
+      lineinfile:
+        path: "{{ cip_base_path }}/private_internal/dev.pset"
+        line: "{{ item.item | split(':') | first}}@||||{{ item.item | split(':') | last }}"
+        state: present
+      when: item.rc == 0
+      loop: "{{ select_cip_params.results }}"
+
+    - name: write warning for the a360 parameters if parameter is not able to resolve
+      include_tasks: ../write_log.yml
+      vars:
+          warning_msg: "{{ parameter issue item.item }}"
+      when: item.rc == 1
+      loop: "{{ select_a360_params.results }}"
+      when: cip_version.split('-')[0] | int > 3
+
+    - name: write warning for the cip parameters if parameter is not able to resolve
+      include_tasks: ../write_log.yml
+      vars:
+          warning_msg: "{{ Found issue in parameter item.item }}"
+      when: item.rc == 1
+      loop: "{{ select_cip_params.results }}"
+
+    # - name: add user provided cip parameters into base pset
+    #   lineinfile:
+    #     path: "{{ cip_base_path }}/private_internal/dev.pset"
+    #     line: "{{ item | split(':') | first}}@||||{{ item | split(':') | last}}"
+    #     state: present
+    #   loop: "{{ cip_parameter }}"
+
+    # - name: add user provided a360 parameters into base pset
+    #   lineinfile:
+    #     path: "{{ cip_base_path }}/private_internal/dev.pset"
+    #     line: "{{ item | split(':') | first}}@||||{{ item | split(':') | last}}"
+    #     state: present
+    #   loop: "{{ a360_parameters }}"
+    #   when: cip_version.split('-')[0] | int > 3
 
     - name: Write configuration pset dev for stdenv sandbox
       copy:
