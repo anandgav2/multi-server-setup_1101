@@ -10,9 +10,9 @@ a360:CIP_COMMON_NOTIFICATION_EVENT_TYPE_LIST:''
 ## Note : 1. User can refer example of this file to prepare new cip_setup_parameter_overrides.txt and place it inside installer path.
 ##        2. If this file is missing or empty then Automation job will consider that there are no paramterer to override.
 ##        3. Verify file format as mentioned above.(i.e. colon seperated)
-##        4. Each line contains 3 fields
+##        4. Each line contains 3 fields seperated by colon (i.e. :)
 ##        5. Automation job expects either cip or a360 in first field. Entry with any other value in first field will be ignored.
 ##        6. User need to make sure that parameter name provided in config must belong to correct category otherwise system will ignore.
 ##        7. In case of User try to override incorrect parameter or its not present in project then it will be ignored and will be captured in error logs.
-          8. If category is set to a360 and CIP version < 4 then Job will ignore those a360 parameter overrrides
+##        8. If category is set to a360 and CIP version < 4 then Job will ignore those a360 parameter overrrides
 ##########################################################################################################
