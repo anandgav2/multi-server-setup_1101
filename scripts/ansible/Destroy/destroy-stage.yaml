@@ -8,6 +8,48 @@
     installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
 
   tasks:
+    - name: Destroying A360 work
+      block:
+        - name: Delete root directories
+          shell: |
+            sudo rm -rf {{ installer_path }}
+            sudo rm -rf {{ a360_root }}
+            sudo rm -rf {{ apps_root_path }}
+            sudo rm -rf {{ data_root_path }}/sand
+            sudo rm -rf /usr/local/abinitio
+            sudo rm -rf /var/abinitio/*
+          loop:
+            - "{{ functional_user }}"
+          ignore_errors: true
+
+        - name: Stop Bridge
+          ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+          with_items:
+            - ab-bridge stop
+            - ab-bridge status
+          register: command_output
+          become_user: abinitio
+          ignore_errors: true
+
+        - name: Print logs
+          debug:
+            var: command_output
+
+        - name: Stop Reporter
+          ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+          with_items:
+            - ab-reporter stop
+            - ab-reporter status
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+
+        - name: Print logs
+          debug:
+          var: command_output
+      
+      when: "stage=='a360' and ab_host_alias == hostvars['a360'].ab_host_alias"
+      
     - name: Destroying Co>op work
       block:
         - name: Shutdown  Daemon
