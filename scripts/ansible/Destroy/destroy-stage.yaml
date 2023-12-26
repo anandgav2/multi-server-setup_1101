@@ -1,0 +1,102 @@
+- name: Destroy Stage
+  hosts:
+    - server*
+  become: yes # Run tasks with root privileges
+
+  vars:
+    stage: "None"
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+
+  tasks:
+    - name: Destroying Co>op work
+      block:
+        - name: Shutdown  Daemon
+          ansible.builtin.command: "{{ installer_path }}/source_and_run.sh ab-cinfo-util shutdown"
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+
+        - name: Print logs
+          debug:
+            var: command_output
+
+        - name: Shutdown Abinitio client
+          ansible.builtin.command: "/var/abinitio/data/abkc/abkcd stop"
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+
+        - name: Print logs
+          debug:
+            var: command_output
+
+        - name: Stop Bridge
+          ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+          with_items:
+            - ab-bridge stop
+            - ab-bridge status
+          register: command_output
+          become_user: abinitio
+          ignore_errors: true
+
+        - name: Print logs
+          debug:
+            var: command_output
+
+        - name: Stop Reporter
+          ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+          with_items:
+            - ab-reporter stop
+            - ab-reporter status
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+
+        - name: Print logs
+          debug:
+            var: command_output
+
+        - name: Remove coop-config.ini file
+          ansible.builtin.file:
+            path: "{{ installer_path }}/coop-config.ini"
+            state: absent
+
+        - name: Remove coop-config.ini file
+          ansible.builtin.file:
+            path: "{{ installer_path }}/coop-config.ini"
+            state: absent
+
+        - name: Find the Installer Tar
+          find:
+            paths: "{{ installer_path }}"
+            patterns: "AbInitio*{{ coop_version }}*.*"
+          register: found_files
+          become: false
+
+        - name: Display  File List
+          ansible.builtin.debug:
+            var: found_files
+
+        - name: Remove coop tar file
+          ansible.builtin.file:
+            path: "{{ item.path }}"
+            state: absent
+          loop: "{{ found_files.files }}"
+          become_user: "{{ functional_user }}"
+
+        - name: print hello if stage=All
+          debug:
+            #msg: "{{ hostvars['cip_instance_1'].ab_host_alias }}"
+            msg: "{{ inventory_hostname + ': '+ ab_host_alias }}"
+      when: "stage=='coop' and ab_host_alias != hostvars['a360'].ab_host_alias"
+
+
+    - name: Stop CIP Subsystems and UI
+      block:
+        - name: print hello if stage=All
+          debug:
+            #msg: "{{ hostvars['cip_instance_1'].ab_host_alias }}"
+            msg: "{{ inventory_hostname + ': '+ ab_host_alias }}"
+      when: "stage=='All' and ab_host_alias| string in groups['cip_servers']| map('extract', hostvars) | map(attribute='ab_host_alias')"
+      #when: ab_host_alias in "{{groups['cip_servers']| map('extract', hostvars) | map(attribute='ab_host_alias')}}"
+      #when: stage in ["Test","All"]
