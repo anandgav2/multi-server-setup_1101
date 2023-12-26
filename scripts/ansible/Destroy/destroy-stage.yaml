@@ -10,6 +10,22 @@
   tasks:
     - name: Destroying A360 work
       block:
+        - name: Destroy DB's and Repo
+          ansible.builtin.command: "{{ a360_root }}/bin/env.sh {{ item }}"
+          with_items:
+            ab-db destroy act_mhub
+            ab-db destroy ag
+            air repository shutdown
+            air repository destroy
+            ab-cinfo-util shutdown
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+
+        - name: Print logs
+          debug:
+            var: command_output
+         
         - name: Delete root directories
           shell: |
             sudo rm -rf {{ installer_path }}
