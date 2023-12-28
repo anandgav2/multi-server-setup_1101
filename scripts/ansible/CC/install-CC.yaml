@@ -16,7 +16,7 @@
         - "{{ installer_path }}/installer-versions.yml"
         - "{{ comm_config_file }}"
 
-    - name: Create AG Installation and Deployment directories
+    - name: Create CC Installation and Deployment directories
       file:
         path: "{{ item }}"
         state: directory
