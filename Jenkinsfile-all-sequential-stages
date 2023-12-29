@@ -37,7 +37,7 @@ pipeline {
         {
             when {
                 expression {
-                    return env.USE_EXISTING_SERVERS == "False"
+                    env.USE_EXISTING_SERVERS == "False" && START_FROM_STAGE == "All Stages from pipeline"
                 }
             }
 
@@ -69,17 +69,30 @@ pipeline {
         }
 
         stage('Create Inventory File') {
+
+            when {
+                expression {
+                    START_FROM_STAGE == "All Stages from pipeline" || START_FROM_STAGE == "Create Inventory File"
+                }
+            }
+
             steps {
                 script {
                     sh "echo ------- Generate inventory file ---------- >> ${env.LOG_FILE}"
                     sh 'cd "${WORKSPACE}/scripts/ansible/ServerConfig"  ; ansible-playbook create-inventory.yaml'
                     sh "echo ------- Generated inventory file ---------- >> ${env.LOG_FILE}"
                 }
+                currentBuild.result = 'ABORTED'
             }
         }
 
         stage('Configure Server')
         {
+            when {
+                expression {
+                    START_FROM_STAGE == "All Stages from pipeline" || START_FROM_STAGE == "Configure Server"
+                }
+            }
             steps
             {
                 script{
