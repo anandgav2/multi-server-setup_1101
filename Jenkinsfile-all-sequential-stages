@@ -8,8 +8,6 @@ pipeline {
         terraform 'Terraform'
         }
 
-        }
-
     environment {
             JOB_NAME = env.JOB_NAME
             LOG_FILE = "${HOME}/${JOB_NAME}.log"
