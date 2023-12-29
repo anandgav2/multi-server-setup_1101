@@ -9,7 +9,7 @@ pipeline {
         }
 
     environment {
-            JOB_NAME = ${env.JOB_NAME}
+            JOB_NAME = "${env.JOB_NAME}"
             LOG_FILE = "${HOME}/${JOB_NAME}.log"
             //LOG_FILE="${HOME}/demo_setup.log"
             CONFIG_FILE="${WORKSPACE}/scripts/ansible/cip_common_setup.yml"
