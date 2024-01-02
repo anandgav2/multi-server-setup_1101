@@ -6,8 +6,17 @@
   vars:
     stage: "None"
     installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+    comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
 
   tasks:
+    - name: Load Global parameters
+      include_vars:
+        file: "{{ item }}"
+      with_items:
+        - "{{ installer_path }}/cip_setup_automation.yml"
+        - "{{ installer_path }}/installer-versions.yml"
+        - "{{ comm_config_file }}"
+        
     - name: Destroying A360 work
       block:
         - name: Destroy DB's and Repo
