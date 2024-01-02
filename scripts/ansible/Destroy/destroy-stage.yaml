@@ -161,9 +161,25 @@
 
     - name: Destroy ADC lobby
       block:
-        - name: print hello if stage=All
-          debug:
-            #msg: "{{ hostvars['cip_instance_1'].ab_host_alias }}"
-            msg: "{{ inventory_hostname + ': '+ ab_host_alias }}"
+        - name: stop and destroy adc lobby
+          shell: |
+              source /etc/profile
+              cd {{ cip_base_path }}/private_internal/run
+              adc lobby stop
+              adc lobby destroy
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: True
+
+        - name: Delete adc folder from CIP_COMMON_LOCAL_SERIAL_LOOKUP
+          shell: |
+              cd {{ cip_base_path }}/private_internal
+              ksh
+              . ./ab_project_setup.ksh .
+              cd $CIP_COMMON_LOCAL_SERIAL_LOOKUP
+              rm -r adc
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: True
       when: "stage=='All' and ab_host_alias| string in groups['nbos_adapter']| map('extract', hostvars) | map(attribute='ab_host_alias')"
       
