@@ -158,3 +158,12 @@
       when: "stage=='All' and ab_host_alias| string in groups['cip_servers']| map('extract', hostvars) | map(attribute='ab_host_alias')"
       #when: ab_host_alias in "{{groups['cip_servers']| map('extract', hostvars) | map(attribute='ab_host_alias')}}"
       #when: stage in ["Test","All"]
+
+    - name: Destroy ADC lobby
+      block:
+        - name: print hello if stage=All
+          debug:
+            #msg: "{{ hostvars['cip_instance_1'].ab_host_alias }}"
+            msg: "{{ inventory_hostname + ': '+ ab_host_alias }}"
+      when: "stage=='All' and ab_host_alias| string in groups['nbos_adapter']| map('extract', hostvars) | map(attribute='ab_host_alias')"
+      
