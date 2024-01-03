@@ -18,7 +18,7 @@ pipeline {
         
     stages {
 
-         stage('Initialize Log and common config') {
+         stage('Initialize Logs and run validation') {
             steps {
 
                 script {
@@ -27,6 +27,9 @@ pipeline {
                     // sh "touch ${env.LOG_FILE}"
                     // sh "rm -f ${env.CONFIG_FILE}"
                     // sh "touch ${env.CONFIG_FILE}"
+
+                    // Run Input Validation
+                    sh 'cd "${WORKSPACE}/scripts/ansible/Validation"  ; ansible-playbook input-validation.yml'
 
                     //Read CIP Version
                     def cipVersion = sh(script: "awk '/cip_version:/ {print \$2}' ${INSTALLER_PATH}/installer-versions.yml | awk -F'-' '{print \$1}' | cut -c2-", returnStdout: true).trim()

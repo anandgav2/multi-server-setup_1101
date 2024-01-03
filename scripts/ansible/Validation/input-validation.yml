@@ -1,0 +1,498 @@
+- name: Validate all the Automation Configs
+  hosts: localhost
+  vars:
+    log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+    use_existing_servers: "{{ lookup('env', 'USE_EXISTING_SERVERS').split(',') | first}}"
+    use_existing_a360: "{{ lookup('env', 'USE_EXISTING_A360').split(',') | first}}"
+    use_existing_ag: False
+    use_existing_cc: False
+    required_files:
+      - "{{ installer_path }}/installer-versions.yml"
+      - "{{ installer_path }}/host_alias.txt"
+      - "{{ installer_path }}/cip_setup_server_config.yml"
+      - "{{ installer_path }}/cip_setup_automation.yml"
+    fail_validation: false
+    inst_pattern_map:
+      a360_version: 'Active360'
+      ag_version: 'AuthorizationGateway'
+      cafe_version: 'Cafe'
+      cc_version: 'ControlCenter'
+      cip_version: 'CIP'
+      coop_version: 'AbInitio'
+    subsys_map:
+      standalone: 'a360'
+      single:
+        - ag
+        - audit
+        - cafe
+        - cc
+        - cipdb
+        - cipui
+        - collect_event
+        - communication
+        - contact_policy
+        - control
+        - eme
+        - fulfillment
+        - nbos_adapter
+        - queryit
+        - segmentation
+      multi:
+        - detect
+        - enrichment
+        - enrichment_queue
+        - nbos_data
+      all: 'utility'
+
+  tasks:
+
+  ## Basic Validation
+
+    - name: Check if INSTALLER_PATH is a valid path
+      stat:
+        path: "{{ installer_path }}"
+      register: path_info
+    
+    - name: Fail if INSTALLER_PATH is not a valid path
+      fail:
+        msg: "The specified INSTALLER_PATH '{{ installer_path }}' is not a valid path or does not exist."
+      when: not path_info.stat.exists
+
+    - name: Check if 4 Automation Configs are present in INSTALLER_PATH
+      stat:
+        path: "{{ item }}"
+      register: file_info
+      with_items: "{{ required_files }}"
+
+    - name: Generate a list of missing Configs
+      set_fact:
+        missing_files: "{{ missing_files | default([]) + [ item.item ] }}"
+      loop: "{{ file_info.results }}"
+      when: not item.stat.exists
+
+    - name: Call Log Error function
+      include_tasks: ../write_log.yml
+      vars:
+        error_msg: |
+          The following files are missing: 
+          {% for var in missing_files %}
+                 {{ var }}
+          {% endfor %}
+      when: missing_files is defined
+
+    - name: Fail if any Config file is missing
+      fail:
+        msg: "The following files are missing: {{ missing_files | join(', ') }}"
+      when: missing_files is defined
+
+  ## installer-versions.yml Validation
+
+    - name: Read Installer Version Config
+      include_vars:
+        file: "{{ installer_path }}/installer-versions.yml"
+      ignore_errors: true
+      register: cfg1_result
+
+    - name: Call Log Error function
+      include_tasks: ../write_log.yml
+      vars:
+        error_msg: "Invalid or Blank YML file - installer-versions.yml"
+      when: cfg1_result.failed or cfg1_result.ansible_facts == {}
+
+    - name: installer-versions.yml validation block
+      block:
+
+        - name: Check list of missing variables in installer-version.yml - Genral
+          assert:
+            that: "{{ item }} is defined"
+          loop:
+            - coop_version
+            - cip_version
+            - cafe_version
+          ignore_errors: true
+          register: var_result
+
+        - name: Generate a list of missing variables in installer-version.yml - Genral
+          set_fact:
+            missing_var: "{{ missing_var | default([]) | union([ item.item ]) }}"
+          loop: "{{ var_result.results }}"
+          when: item.failed
+
+        - name: Check list of missing variables in installer-version.yml - A360
+          assert:
+            that: "{{ item }} is defined"
+          loop:
+            - a360_version
+          when: cip_version.split('-')[0] | int > 3 and use_existing_a360 == False
+          ignore_errors: true
+          register: var_result1
+
+        - name: Generate a list of missing variables in installer-version.yml - A360
+          set_fact:
+            missing_var: "{{ missing_var | default([]) | union([ item.item ]) }}"
+          loop: "{{ var_result1.results }}"
+          when: not var_result1.skipped and item.failed
+
+        - name: Check list of missing variables in installer-version.yml - AG
+          assert:
+            that: "{{ item }} is defined"
+          loop:
+            - ag_version
+          when: use_existing_ag == False
+          ignore_errors: true
+          register: var_result2
+
+        - name: Generate a list of missing variables in installer-version.yml - AG
+          set_fact:
+            missing_var: "{{ missing_var | default([]) | union([ item.item ]) }}"
+          loop: "{{ var_result2.results }}"
+          when:  not var_result2.skipped and item.failed
+
+        - name: Check list of missing variables in installer-version.yml - CC
+          assert:
+            that: "{{ item }} is defined"
+          loop:
+            - cc_version
+          when: use_existing_cc == False
+          ignore_errors: true
+          register: var_result3
+
+        - name: Generate a list of missing variables in installer-version.yml - CC
+          set_fact:
+            missing_var: "{{ missing_var | default([]) | union([ item.item ]) }}"
+          loop: "{{ var_result3.results }}"
+          when: not var_result3.skipped and item.failed
+        
+        - name: Call Log Error function
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              The following entries are missing in installer-version.yml : 
+              {% for var in missing_var %}
+                     {{ var }}: "??"
+              {% endfor %}
+          when: missing_var is defined
+
+        - name: Remove unwanted keys from inst_pattern_map
+          set_fact:
+            inst_pattern_map: "{{ inst_pattern_map |
+              dict2items |
+              rejectattr('key', 'in', [
+                'a360_version' if cip_version.split('-')[0] | int == 3 or use_existing_a360 == True else '',
+                'ag_version' if use_existing_ag == True else '',
+                'cc_version' if use_existing_cc == True else ''
+              ] + (missing_var | default([]))) |
+              items2dict }}"
+
+        - name: Find the Installer Tar
+          find:
+            paths: "{{ installer_path }}"
+            patterns: "{{ item.value + '*' + hostvars['localhost'][item.key] + '*.*' }}"
+          register: found_files
+          loop: "{{ inst_pattern_map | dict2items }}"
+
+        - name: Generate a list of missing tar variables in 
+          set_fact:
+            missing_tar: "{{ missing_tar | default([]) | union([ item.invocation.module_args.patterns | join(', ') ]) }}"
+          loop: "{{ found_files.results }}"
+          when: item.matched == 0
+
+        - name: Call Log Error function for missing tar in installer path
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              The following Pattern Installer tar are missing in INSTALLER_PATH - {{ installer_path }} :
+              {% for var in missing_tar %}
+                     {{ var }}
+              {% endfor %}
+
+                  *** Kindly match the pattern of the installer tar in installer-version.yml / place the proper tar file in the INSTALLER_PATH ***
+          when: missing_tar is defined
+
+      when: not cfg1_result.failed and cfg1_result.ansible_facts != {}
+    
+  ## host_alias.txt Validation
+
+    - name: Read content of host_alias.txt
+      ansible.builtin.slurp:
+        path: "{{ installer_path}}/host_alias.txt"
+      register: host_alias_content
+
+    - name: Call Log Error function for missing tar in installer path
+      include_tasks: ../write_log.yml
+      vars:
+        error_msg: "File is Empty - host_alias.txt "
+      when: host_alias_content.content == ""
+
+    - name: host_alias.txt Validation Block
+      block: 
+
+        - name: Check for Duplicate entries in host_alias.txt
+          set_fact:
+            duplicates: "{{ duplicates | default([]) | union([item]) }}"
+          when: (host_alias_content.content | b64decode).split() | select('==', item) | list | length > 1
+          loop: "{{ (host_alias_content.content | b64decode).split() }}"
+    
+        - name: Call Log Error function for missing tar in installer path
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              The following entries are present more then once in host_alies.txt :
+              {% for var in duplicates %}
+                     {{ var }}
+              {% endfor %}
+
+                  *** All the host_aliases, server IP's and hostnames must be unique ***
+          when: duplicates is defined
+
+        - name: Validate entries - USE_EXISTING_SERVERS = False
+          assert:
+            that: "{{ item | regex_search('^[a-zA-Z0-9]+ [a-zA-Z0-9]+$') is not none}}"
+          loop: "{{ (host_alias_content.content | b64decode).split('\n') }}"
+          ignore_errors: true
+          when: use_existing_servers == False
+          register: ha_entry_result
+
+        - name: Call Log Error function for Validate entries - USE_EXISTING_SERVERS = False
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              The following entries are invalid host_alies.txt :
+              {% for var in ha_entry_result.results %}
+                {% if var.failed %}
+                     {{ var.item }}
+                {% endif %}
+              {% endfor %}
+              
+                  *** All the host_alias entris must be in the following format ***
+                      <<HOST_ALIAS>> <<HOSTNAME>>
+          when: use_existing_servers == False and ha_entry_result.failed is defined
+
+        - name: Validate entries - USE_EXISTING_SERVERS = True
+          assert:
+            that: "{{ item | regex_search('^[a-zA-Z0-9]+ [0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+ [a-zA-Z0-9]+$') is not none}}"
+          loop: "{{ (host_alias_content.content | b64decode).split('\n') }}"
+          ignore_errors: true
+          when: use_existing_servers == True
+          register: ha_entry_result
+
+        - name: Call Log Error function for Validate entries - USE_EXISTING_SERVERS = True
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              The following entries are invalid host_alies.txt :
+              {% for var in ha_entry_result.results %}
+                {% if var.failed %}
+                     {{ var.item }}
+                {% endif %}
+              {% endfor %}
+
+                  *** All the host_alias entris must be in the following format ***
+                      <<HOST_ALIAS>> <<IP>> <<HOSTNAME>>
+          when: use_existing_servers == True and ha_entry_result.failed is defined
+
+      when: host_alias_content.content != ""
+
+  ## cip_setup_server_config.yml Validation
+
+    - name: Read Server Distribution Config
+      include_vars:
+        file: "{{ installer_path }}/cip_setup_server_config.yml"
+      ignore_errors: true
+      register: cfg2_result
+
+    - name: Call Log Error function
+      include_tasks: ../write_log.yml
+      vars:
+        error_msg: "Invalid or Blank YML file - cip_setup_server_config.yml"
+      when: cfg2_result.failed or cfg2_result.ansible_facts == {}
+
+    - name: Host Alias present but Server Config Empty
+      block:
+
+        - name: Host Alias present but Server Config Empty
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              The following entries are missing in cip_setup_server_config.yml :
+              {% for var in (host_alias_content.content | b64decode).split('\n') %}
+                     {{ var | split(' ') | first }}_config: << ALL THE SUBSYSTEM DISTRIBUTION COMMA(,) SEPARATED >>
+                     {{ var | split(' ') | first }}_private_key: << PRIVATE KEY FILE PATH FOR {{ var.split(' ')[2] }} SERVER >>
+              {% endfor %}
+          when: use_existing_servers == True
+          
+        - name: Host Alias present but Server Config Empty
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              The following entries are missing in cip_setup_server_config.yml :
+              {% for var in (host_alias_content.content | b64decode).split('\n') %}
+                     {{ var | split(' ') | first }}_config: << ALL THE SUBSYSTEM DISTRIBUTION COMMA(,) SEPARATED >>
+              {% endfor %}
+          when: use_existing_servers == False
+
+      when: host_alias_content.content != "" and cfg2_result.ansible_facts == {}
+
+    - name: Host Alias Empty but Server Config present
+      block:
+
+        - name: Host Alias Empty but Server Config present
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              The following entries are missing in host_alias.txt :
+              {% for var in (hostvars[inventory_hostname].keys() | select('match', '^.*_config$') | list) %}
+                     {{ var | split('_') | first }} <<IP>> <<HOSTNAME>>
+              {% endfor %}
+          when: use_existing_servers == True
+        
+        - name: Host Alias Empty but Server Config present
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              The following entries are missing in host_alias.txt :
+              {% for var in (hostvars[inventory_hostname].keys() | select('match', '^.*_config$') | list) %}
+                     {{ var | split('_') | first }} <<HOSTNAME>>
+              {% endfor %}
+          when: use_existing_servers == False
+          
+      when: host_alias_content.content == "" and cfg2_result.ansible_facts != {}
+
+    - name: Host Alias and Server Config both present
+      block:
+
+        - name: Listing All Aliases in Host alias file
+          set_fact: 
+            alias_list: "{{ alias_list | default([]) | union( [ item | split(' ') | first ] ) | sort }}"
+          loop: "{{ (host_alias_content.content | b64decode).split('\n') }}" 
+
+        - name: Listing All Aliases in Server config file - _config
+          set_fact: 
+            alias_list: "{{ alias_list | default([]) | union( [ item | split('_') | first ] ) | sort }}"
+          loop: "{{ hostvars[inventory_hostname].keys() | select('match', '^.*_config$') | list }}" 
+
+        - name: Listing All Aliases in Server config  - _private_key
+          set_fact: 
+            alias_list: "{{ alias_list | default([]) | union( [ item | split('_') | first ] ) | sort }}"
+          loop: "{{ hostvars[inventory_hostname].keys() | select('match', '^.*_private_key$') | list }}" 
+          when: use_existing_servers == True
+
+        - name: Missing Aliases in Host alias file
+          set_fact: 
+            missing_alias: "{{ missing_alias | default([]) | union( [ item ] ) | sort }}"
+          when: (host_alias_content.content | b64decode).split('\n') | select('match', '^' + item + ' .*$') | count == 0
+          loop: "{{ alias_list }}" 
+
+        - name: Missing Aliases in Server config file - _config
+          set_fact: 
+            missing_cfg: "{{ missing_cfg | default([]) | union( [ item ] ) | sort }}"
+          when: hostvars[inventory_hostname].keys() | select('match', item + '_config') | count == 0
+          loop: "{{ alias_list }}" 
+
+        - name: Missing Aliases in Server config file - _private_key
+          set_fact: 
+            missing_pk: "{{ missing_pk | default([]) | union( [ item ] ) | sort }}"
+          when:  use_existing_servers == True and (hostvars[inventory_hostname].keys() | select('match', item + '_private_key') | count == 0)
+          loop: "{{ alias_list }}" 
+          
+        - name: Write Error for missing values
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              There are Mismstched entries in configs kindly sync the host_alias.txt and cip_setup_server_config.yml as per the requirement
+
+              {% if missing_alias is defined %}
+                     The following entries are missing in host_alias.txt :
+                {% for var in missing_alias %}
+                  {% if use_existing_servers == True %}
+                     {{ var }} <<IP>> <<HOSTNAME>>
+                  {% endif %}
+                  {% if use_existing_servers == False %}
+                     {{ var }} <<HOSTNAME>>
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+
+              {% if missing_cfg is defined %}
+                     The following entries are missing in cip_setup_server_config.yml (_config) :
+                {% for var in missing_cfg %}
+                     {{ var }}_config: << ALL THE SUBSYSTEM DISTRIBUTION COMMA(,) SEPARATED >>
+                {% endfor %}
+              {% endif %}
+
+              {% if use_existing_servers == True and missing_pk is defined %}
+                     The following entries are missing in cip_setup_server_config.yml (_private_key) :
+                {% for var in missing_pk %}
+                     {{ var }}_private_key: << PRIVATE KEY FILE PATH FOR {{ var }} SERVER >>
+                {% endfor %}
+              {% endif %}
+          when: missing_alias is defined or missing_cfg is defined or missing_pk is defined
+
+        - name: Get Sub System list
+          set_fact:
+            subsys_dist: "{{ subsys_dist | default([]) + [ hostvars[inventory_hostname][item] ] }}"
+            subsys_list: "{{ subsys_list | default([]) + (hostvars[inventory_hostname][item]).split(',') }}"
+          loop: "{{ hostvars[inventory_hostname].keys() | select('match', '^.*_config$') }}"
+
+        - name: Verify single occurance subsystems
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              {{ item }} occurs {{ subsys_list | select('match', item) | count }} times in the distribution
+              
+                  *** There should be 1 occurance of {{ item }} in the subsystem distribution ***
+          when: subsys_list | select('match', item) | count != 1
+          loop: "{{ subsys_map.single }}"
+
+        - name: Verify A360 stand alone
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              Either {{ subsys_map.standalone }} occurs 0 times / more than 1 times in subsystem distribution
+                     Or the {{ subsys_map.standalone }} is shared with other subsystems
+
+                 *** {{ subsys_map.standalone }} should be on a dedicated server and should occur only once ***
+          when: (cip_version.split('-')[0] | int > 3) and (
+            (subsys_list | select('match', subsys_map.standalone) | count == 0) or (subsys_list | select('match', subsys_map.standalone) | count > 1) or (
+              (subsys_list | select('match', subsys_map.standalone) | count == 1) and (
+                (subsys_dist | select('match', '.*' + subsys_map.standalone + '.*'))[0].split(',') | count > 1)))
+
+        - name: Verify multi occurance subsystems
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              {{ item }} occurs 0 times in the subsystem distribution or the {{ item }} entry is more than once on the same server.
+              
+                  *** There should be atleast 1 or more occurance of {{ item }} in the subsystem distribution *** 
+                  *** Multiple entries of {{ item }} should not be present on same server ***
+          when: (subsys_list | select('match', item) | count == 0) or 
+            ((subsys_list | select('match', item+'$') | count) != (subsys_dist | select('match', '.*' + item + '(,.*|$)' ) | count))
+          loop: "{{ subsys_map.multi }}"
+
+        - name: Verify Utility on all servers
+          set_fact:
+            utility_issue: 1
+          when: ((item.split(',') | select('match',subsys_map.standalone) | count == 1) and (item.split(',') | select('match',subsys_map.all) | count == 1)) or 
+            ((item.split(',') | select('match','nbos_data') | count > 0) and (item.split(',') | count == 2)) or
+            ((item.split(',') | select('match',subsys_map.all) | count == 0) and (item.split(',') | select('match',subsys_map.standalone) | count == 0))
+          loop: "{{ subsys_dist }}"
+
+        - name: Verify Utility on all servers
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              {{ subsys_map.all }} is not distributed as per requirement
+              
+                  *** {{ subsys_map.all }} should not be present on a360 server *** 
+                  *** If nbos_data is not sharing any other cip subsystem then {{ subsys_map.all }} is not required ***
+                  *** Apart from above 2 points {{ subsys_map.all }} is required on all the servers *** 
+          when: utility_issue is defined
+
+      when: host_alias_content.content != "" and cfg2_result.ansible_facts != {}
+
+    - name: Input Validation Failed
+      fail:
+        msg: "Input Validation failed - All the errors are listed in {{ log_file }}"
+      when: fail_validation 
+    
