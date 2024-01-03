@@ -44,6 +44,15 @@
         - enrichment_queue
         - nbos_data
       all: 'utility'
+      group1:
+        - cipui
+        - cafe
+        - queryit
+        - segmentation
+      group2:
+        - control
+        - fulfillment
+        - communication
 
   tasks:
 
@@ -474,8 +483,8 @@
           set_fact:
             utility_issue: 1
           when: ((item.split(',') | select('match',subsys_map.standalone) | count == 1) and (item.split(',') | select('match',subsys_map.all) | count == 1)) or 
-            ((item.split(',') | select('match','nbos_data') | count > 0) and (item.split(',') | count == 2)) or
-            ((item.split(',') | select('match',subsys_map.all) | count == 0) and (item.split(',') | select('match',subsys_map.standalone) | count == 0))
+            ((item.split(',') | select('match','nbos_data') | count == 1) and (item.split(',') | count == 2)) or
+            ((item.split(',') | select('match',subsys_map.all) | count == 0) and (item.split(',') | count > 1))
           loop: "{{ subsys_dist }}"
 
         - name: Verify Utility on all servers
@@ -488,6 +497,29 @@
                   *** If nbos_data is not sharing any other cip subsystem then {{ subsys_map.all }} is not required ***
                   *** Apart from above 2 points {{ subsys_map.all }} is required on all the servers *** 
           when: utility_issue is defined
+
+        - name: Validate CIP UI Server subsystems
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              {{ subsys_map.group1 | join(', ')}} - These {{ subsys_map.group1 | count }} subsystems should be on the same servers 
+          when: item.split(',') | select('match', subsys_map.group1[0]) and subsys_map.group1 | difference(item.split(',')) != []
+          loop: "{{ subsys_dist }}"
+
+        - name: Validate Control Server subsystems
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              {{ subsys_map.group2 | join(', ')}} - These {{ subsys_map.group2 | count }} subsystems should be on the same servers 
+          when: item.split(',') | select('match', subsys_map.group2[0]) and subsys_map.group2 | difference(item.split(',')) != []
+          loop: "{{ subsys_dist }}"
+
+        - name: Validate Enrichment Count
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              enrichment_queue entry should be less than / equal to enrichment
+          when: (subsys_list | select('match', 'enrichment$') | count) < (subsys_list | select('match', 'enrichment_queue$') | count)
 
       when: host_alias_content.content != "" and cfg2_result.ansible_facts != {}
 
