@@ -353,3 +353,13 @@
       ansible.builtin.debug:
         var: command_output
       when: ab_host_alias != hostvars['cc'].ab_host_alias
+
+    - name: Create System,Application and Runtime environment in control>center
+      ansible.builtin.command: 
+       cmd: sh -c "source /etc/profile && ops-admin import CIP-system.xml AGGREGATE_SUBSYSTEM-application.xml COLLECT_SUBSYSTEM-application.xml COMMUNICATION_SUBSYSTEM-application.xml   CONTACT_POLICY_SUBSYSTEM-application.xml CONTROL_SUBSYSTEM-application.xml DETECT_SUBSYSTEM-application.xml ENRICH_SUBSYSTEM_-application.xml FULFILLMENT_SUBSYSTEM-application.xml UTILITY-application.xml cip03-runtime.xml tst2-runtime.xml -username admin -password abIniti0"
+      register: command_output
+      become_user: "{{ functional_user }}"
+      args:
+        chdir: "{{ installer_path }}"
+      
+       
