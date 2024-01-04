@@ -223,4 +223,43 @@
             sudo rm -rf {{ data_root_path }}/eme/cipeme
           ignore_errors: true
       when: "stage=='eme' and ab_host_alias != hostvars['eme'].ab_host_alias"
-      
+
+    - name: Stop CIP UI
+      block:
+        - name: Create StopCIP Expect File
+          ansible.builtin.copy:
+            content: |
+              #!/usr/bin/expect -f
+	    
+              set timeout 20
+	    
+              set confirmation "Y"
+	    
+              cd "{{ cip_base_path }}/ui/web/"
+	    
+              spawn npm run stopcip
+	    
+              expect "Stop Y/N? :"
+	    
+              send  "$confirmation\r"
+	    
+              interact
+            dest: "{{ cip_base_path }}/ui/web/stop_cip.exp"
+            mode: "0755"
+            owner: "{{ functional_user }}"
+          ignore_errors: true
+	    
+        - name: StopCIP
+          shell: |
+            #! bin/bash
+            echo "Stopping CIP UI..."
+            source /etc/profile
+            expect {{ cip_base_path }}/ui/web/stop_cip.exp
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+	    
+        - name: Print logs
+          debug:
+             var: command_output
+	when: "stage=='cipui' and ab_host_alias != hostvars['cipui'].ab_host_alias"
