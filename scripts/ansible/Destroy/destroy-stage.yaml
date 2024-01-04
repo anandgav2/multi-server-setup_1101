@@ -190,5 +190,5 @@
           register: command_output
           become_user: "{{ functional_user }}"
           ignore_errors: True
-      when: "stage=='All' and ab_host_alias| string in groups['nbos_adapter']| map('extract', hostvars) | map(attribute='ab_host_alias')"
+      when: "stage=='coop' and ab_host_alias != hostvars['nbos_adapter'].ab_host_alias"
       
