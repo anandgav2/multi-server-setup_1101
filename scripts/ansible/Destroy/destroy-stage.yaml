@@ -262,4 +262,83 @@
         - name: Print logs
           debug:
              var: command_output
-	when: "stage=='cipui' and ab_host_alias != hostvars['cipui'].ab_host_alias"
+      when: "stage=='cipui' and ab_host_alias != hostvars['cipui'].ab_host_alias"
+
+    - name: Destroy Control Center
+      block:
+        - name: Destroy Control Center Application
+          expect:
+            command: sh -c "source /etc/profile && ab-app destroy controlcenter"
+            chdir: "{{ installer_path }}"
+            responses:
+              'Really destroy controlcenter\? \(yes\/no\) \[no\]:' : 'yes'
+            timeout: 60
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+	    
+        - name: Print logs
+          debug:
+             var: command_output
+	    
+        - name: Destroy Control Center DB
+          ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+          with_items:
+            - ab-db destroy OPDB
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+	    
+        - name: Print logs
+          debug:
+             var: command_output
+      when: "stage=='cc' and ab_host_alias != hostvars['cc'].ab_host_alias"
+
+    - name: Destroy Cafe
+      block:
+      - name: Destroy Cafe Application
+        expect:
+          command: sh -c "source /etc/profile && ab-app destroy cipcafe"
+          chdir: "{{ installer_path }}"
+          responses:
+            'Really destroy cipcafe\? \(yes\/no\) \[no\]:' : 'yes'
+          timeout: 120
+        register: command_output
+        become_user: "{{ functional_user }}"
+        ignore_errors: true
+	  
+      - name: Print logs
+        debug:
+           var: command_output
+      when: "stage=='cafe' and ab_host_alias != hostvars['cafe'].ab_host_alias"
+      
+    - name: Destroy AG
+      block:
+        - name: Destroy AG Application
+          expect:
+            command: sh -c "source /etc/profile && ab-app destroy authgateway"
+            chdir: "{{ installer_path }}"
+            responses:
+              'Really destroy authgateway\? \(yes\/no\) \[no\]:' : 'yes'
+            timeout: 120
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+	    
+        - name: Print logs
+          debug:
+             var: command_output
+	    
+        - name: Destroy AG DB
+          ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+          with_items:
+            - ab-db destroy authgateway
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+	    
+        - name: Print logs
+          debug:
+             var: command_output
+      when: "stage=='ag' and ab_host_alias != hostvars['ag'].ab_host_alias"  
+
