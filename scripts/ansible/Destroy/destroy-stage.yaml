@@ -168,7 +168,7 @@
       #when: ab_host_alias in "{{groups['cip_servers']| map('extract', hostvars) | map(attribute='ab_host_alias')}}"
       #when: stage in ["Test","All"]
 
-    - name: Destroy ADC lobby
+    - name: Destroy ADC cluster
       block:
         - name: stop and destroy adc lobby
           shell: |
@@ -190,5 +190,37 @@
           register: command_output
           become_user: "{{ functional_user }}"
           ignore_errors: True
-      when: "stage=='coop' and ab_host_alias != hostvars['nbos_adapter'].ab_host_alias"
+      when: "stage=='adc' and ab_host_alias != hostvars['nbos_adapter'].ab_host_alias"
+
+    - name: Destroy EME
+      block:
+        - name: Shutdown  Repository
+          ansible.builtin.command: "{{ installer_path }}/source_and_run.sh air repository shutdown"
+          register: "{{ functional_user }}"
+          become_user: abinitio
+          ignore_errors: true
+
+        - name: Print logs
+          debug:
+            var: command_output
+
+        - name: Destroy repository
+          expect:
+            command: sh -c "{{ installer_path }}/source_and_run.sh air repository destroy"
+              responses:
+                'Are you sure you want to do this \(yes\/no\)\?' : 'yes'
+          timeout: 30
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+	  
+	      - name: Print logs
+          debug:
+            var: command_output
+            
+	      - name: Delete root directories
+          shell: |
+            sudo rm -rf {{ data_root_path }}/eme/cipeme
+          ignore_errors: true
+      when: "stage=='eme' and ab_host_alias != hostvars['eme'].ab_host_alias"
       
