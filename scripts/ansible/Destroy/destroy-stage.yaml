@@ -341,4 +341,19 @@
           debug:
              var: command_output
       when: "stage=='ag' and ab_host_alias != hostvars['ag'].ab_host_alias"  
+      
+    - name: Destroy CIP DB
+      block:
+        - name: Destroy CIP DB
+          ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+          with_items:
+            - ab-db destroy cipdb
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+	    
+        - name: Print logs
+          debug:
+             var: command_output
+      when: "stage=='cip' and ab_host_alias != hostvars['cipdb'].ab_host_alias"  
 
