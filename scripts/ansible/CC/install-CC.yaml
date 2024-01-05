@@ -349,7 +349,7 @@
       become_user: "{{ functional_user }}"
       when: ab_host_alias != hostvars['cc'].ab_host_alias
 
-    - name: Display Bridge Status
+    - name: Display Reporter Status
       ansible.builtin.debug:
         var: command_output
       when: ab_host_alias != hostvars['cc'].ab_host_alias
