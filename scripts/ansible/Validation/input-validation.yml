@@ -461,6 +461,16 @@
                      Kindly remove the entry
           when: use_existing_ag == True and subsys_list | select('match', 'ag') | count >= 1
 
+        - name: USE_EXISTING_CC = True - remove cc from list
+          set_fact:
+            subsys_map.single: "{{ subsys_map.single | difference['cc'] }}"
+          when: use_existing_cc == True
+
+        - name: USE_EXISTING_AG = True - remove ag from list
+          set_fact:
+            subsys_map.single: "{{ subsys_map.single | difference['ag'] }}"
+          when: use_existing_ag == True
+
         - name: Verify single occurance subsystems
           include_tasks: ../write_log.yml
           vars:
