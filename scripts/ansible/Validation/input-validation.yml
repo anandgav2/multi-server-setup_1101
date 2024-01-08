@@ -478,8 +478,7 @@
               {{ item }} occurs {{ subsys_list | select('match', item) | count }} times in the distribution
               
                   *** There should be 1 occurance of {{ item }} in the subsystem distribution ***
-          when: subsys_list | select('match', item) | count != 1 and use_existing_ag == False
-          loop: "{{ subsys_map.ag }}"
+          when: subsys_list | select('match', subsys_map.ag) | count != 1 and use_existing_ag == False
 
         - name: Verify single cc occurance subsystems
           include_tasks: ../write_log.yml
@@ -488,8 +487,7 @@
               {{ item }} occurs {{ subsys_list | select('match', item) | count }} times in the distribution
               
                   *** There should be 1 occurance of {{ item }} in the subsystem distribution ***
-          when: subsys_list | select('match', item) | count != 1 and use_existing_cc == False
-          loop: "{{ subsys_map.cc }}"
+          when: subsys_list | select('match', subsys_map.cc) | count != 1 and use_existing_cc == False
 
         - name: Verify A360 stand alone
           include_tasks: ../write_log.yml
