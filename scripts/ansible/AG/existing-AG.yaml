@@ -13,9 +13,7 @@
       lineinfile:
         path: /etc/hosts
         line: |
-          {{ hostvars[item].ansible_default_ipv4.address + ' ' + hostvars[item].ansible_hostname }}
-      loop: "{{ hostvars.keys() | select('match', '^ag$') | list }}"      
-
+          {{ ag_web_host_ip + ' ' + ag_web_hostname }}
 
 - name: Existing AG Setup
   hosts: 
