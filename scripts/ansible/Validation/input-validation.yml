@@ -22,11 +22,11 @@
       coop_version: 'AbInitio'
     subsys_map:
       standalone: 'a360'
+      ag: 'ag'
+      cc: 'cc'
       single:
-        - ag
         - audit
         - cafe
-        - cc
         - cipdb
         - cipui
         - collect_event
@@ -451,7 +451,7 @@
             error_msg: |
               In Case of USE_EXISTING_CC = True, There is no need of 'cc' entry in cip_setup_server_config.yml
                      Kindly remove the entry
-          when: use_existing_cc == True and subsys_list | select('match', 'cc') | count >= 1
+          when: use_existing_cc == True and subsys_list | select('match', subsys_map.cc) | count >= 1
 
         - name: Verify USE_EXISTING_AG = True
           include_tasks: ../write_log.yml
@@ -459,17 +459,7 @@
             error_msg: |
               In Case of USE_EXISTING_AG = True, There is no need of 'ag' entry in cip_setup_server_config.yml
                      Kindly remove the entry
-          when: use_existing_ag == True and subsys_list | select('match', 'ag') | count >= 1
-
-        - name: USE_EXISTING_CC = True - remove cc from list
-          set_fact:
-            subsys_map['single']: "{{ subsys_map.single | difference(['cc']) }}"
-          when: use_existing_cc == True
-
-        - name: USE_EXISTING_AG = True - remove ag from list
-          set_fact:
-            subsys_map['single']: "{{ subsys_map.single | difference(['ag']) }}"
-          when: use_existing_ag == True
+          when: use_existing_ag == True and subsys_list | select('match', subsys_map.ag) | count >= 1
 
         - name: Verify single occurance subsystems
           include_tasks: ../write_log.yml
@@ -480,6 +470,26 @@
                   *** There should be 1 occurance of {{ item }} in the subsystem distribution ***
           when: subsys_list | select('match', item) | count != 1
           loop: "{{ subsys_map.single }}"
+
+        - name: Verify single ag occurance subsystems
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              {{ item }} occurs {{ subsys_list | select('match', item) | count }} times in the distribution
+              
+                  *** There should be 1 occurance of {{ item }} in the subsystem distribution ***
+          when: subsys_list | select('match', item) | count != 1 and use_existing_ag == False
+          loop: "{{ subsys_map.ag }}"
+
+        - name: Verify single cc occurance subsystems
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              {{ item }} occurs {{ subsys_list | select('match', item) | count }} times in the distribution
+              
+                  *** There should be 1 occurance of {{ item }} in the subsystem distribution ***
+          when: subsys_list | select('match', item) | count != 1 and use_existing_cc == False
+          loop: "{{ subsys_map.cc }}"
 
         - name: Verify A360 stand alone
           include_tasks: ../write_log.yml
