@@ -374,6 +374,7 @@
         - name: Listing All Aliases in Host alias file
           set_fact: 
             alias_list: "{{ alias_list | default([]) | union( [ item | split(' ') | first ] ) | sort }}"
+          when: item != ""
           loop: "{{ (host_alias_content.content | b64decode).split('\n') }}" 
 
         - name: Listing All Aliases in Server config file - _config
