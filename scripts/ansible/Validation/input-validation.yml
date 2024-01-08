@@ -255,6 +255,10 @@
                   *** All the host_aliases, server IP's and hostnames must be unique ***
           when: duplicates is defined
 
+        - name: debug
+          debug:
+            msg: "{{ (host_alias_content.content | b64decode).split('\n') }}"
+
         - name: Validate entries - USE_EXISTING_SERVERS = False
           assert:
             that: "{{ item | regex_search('^[a-zA-Z0-9]+ [a-zA-Z0-9]+$') is not none}}"
