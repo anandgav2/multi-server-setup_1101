@@ -233,7 +233,7 @@
     - name: Setup User
       shell: |
         source /etc/profile
-        source {{ ag_deployment_root_dir }}/config/import.profile
+        source {{ ag_deployment_root }}/config/import.profile
         export AB_AG_CONN_PARAMS="$AB_AG_CONN_PARAMS -u {{ ag_user }} -p {{ ag_password }}"
         ag-import feed save {{ apps_root_path }}/abinitio/ag_user_feeds/queryit/QueryitCreateUserGroup.feed
         ag-import run -feed "QueryitCreateUserGroup" -progress -approve

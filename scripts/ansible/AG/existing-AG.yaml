@@ -67,14 +67,14 @@
       lineinfile:
         path: "{{ comm_config_file }}"
         line: |
-          ag_host: "{{ ag_hostname }}"
+          ag_host: "{{ ag_web_hostname }}"
           ag_url: "{{ ag_url }}"
           ag_port: "{{ port_number }}"
           ag_user: "{{ ag_admin_user }}"
           ag_password: {{ enc_password.stdout }}
           ag_encrypted_password: "{{ encrypted_password.stdout }}"
           ag_root_path: "{{ deployment_name }}"
-          ag_deployment_root: "{{ ag_deployment_root_dir }}"
+          ag_deployment_root: "{{ ag_import_deployment_root_dir }}"
         state: present
       delegate_to: localhost
       no_log: true
@@ -129,8 +129,8 @@
     - name: Setup Web App User
       shell: |
         source /etc/profile
-        source {{ ag_deployment_root_dir }}/config/import.profile
-        export AB_AG_CONN_PARAMS="$AB_AG_CONN_PARAMS -u {{ ag_admin_user }} -p {{ password }}"
+        source {{ ag_import_deployment_root_dir }}/config/import.profile
+        export AB_AG_CONN_PARAMS="$AB_AG_CONN_PARAMS -u {{ ag_admin_user }} -p {{ ag_admin_password }}"
         ag-import feed save {{ apps_root_path }}/abinitio/ag_user_feeds/ag/AGCreateUserGroup.feed
         ag-import run -feed "AGCreateUserGroup" -progress -approve
       become_user: "{{ functional_user }}"
