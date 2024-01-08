@@ -4,6 +4,7 @@
   vars:
     installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
     use_existing_servers: "{{ lookup('env', 'USE_EXISTING_SERVERS').split(',') | first}}"
+    use_existing_ag: "{{ lookup('env', 'USE_EXISTING_AG').split(',') | first}}"
 
   tasks:
 
@@ -50,5 +51,18 @@
         path: ../../terraform/inventory.yml
         line: |
           {{ output.stdout }}
+
+    - name: Write Web Apps and Subsystems for USE_EXISTING_AG == True
+      lineinfile:
+        path: ../../terraform/inventory.yml
+        line: |
+              ag:
+                ansible_host: {{ ag_ip }}
+                ansible_user: {{ ag_ssh_user }}
+              {% if ag_ssh_password is defined %}
+                ansible_password: {{ ag_ssh_password}}
+              {% if ag_ssh_private_key_file_path is defined %}
+                ansible_ssh_private_key_file: {{ ag_ssh_private_key_file_path }}
+      when: use_existing_ag == True
 
     

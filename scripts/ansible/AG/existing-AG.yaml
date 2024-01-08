@@ -1,0 +1,152 @@
+- name: Add Existing AG Host entry in /etc/profile
+  hosts: 
+    - server*
+  become: yes 
+  vars:
+    log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
+    comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+
+  tasks:
+
+    - name: Add remote host and public IP entries to /etc/hosts
+      lineinfile:
+        path: /etc/hosts
+        line: |
+          {{ hostvars[item].ansible_default_ipv4.address + ' ' + hostvars[item].ansible_hostname }}
+      loop: "{{ hostvars.keys() | select('match', '^ag$') | list }}"      
+
+
+- name: Existing AG Setup
+  hosts: 
+    - ag
+  become: yes 
+  vars:
+    log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
+    comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+  
+  tasks:
+    
+    - name: Load Global parameters
+      include_vars:
+        file: "{{ item }}"
+      with_items:
+        - "{{ installer_path }}/cip_setup_automation.yml"
+        - "{{ comm_config_file }}"        
+        
+    - name: Create Encypted AG Password
+      ansible.builtin.command: 
+        cmd: sh -c "source /etc/profile && ag-admin encrypt -password {{ ag_admin_password }}"
+      register: encrypted_password
+      become_user: "{{ functional_user }}"
+
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          => Authorization Gateway URL - "{{ ag_url }}"
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+
+    - name: Enc AG admin Password
+      shell: | 
+        ansible-vault encrypt_string --vault-password-file ../vault_key "{{ ag_admin_password }}" 
+      delegate_to: localhost
+      register: enc_password
+      become: false
+
+    - name: Get inportant Values
+      set_fact:
+        port_number: "{{ ag_url | regex_search(':(\\d+)/', '\\1') | default('Not Found') }}"
+        deployment_name: "{{ ag_url | regex_search('.*/(.*)$', '\\1') | default('Not Found') }}"
+
+    - name: Write Common Config
+      lineinfile:
+        path: "{{ comm_config_file }}"
+        line: |
+          ag_host: "{{ ag_hostname }}"
+          ag_url: "{{ ag_url }}"
+          ag_port: "{{ port_number }}"
+          ag_user: "{{ ag_admin_user }}"
+          ag_password: {{ enc_password.stdout }}
+          ag_encrypted_password: "{{ encrypted_password.stdout }}"
+          ag_root_path: "{{ deployment_name }}"
+          ag_deployment_root: "{{ ag_deployment_root_dir }}"
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          => Creating Webapp User in Authorization Gateway
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+
+    - name: Create AG User Feeds Directory
+      ansible.builtin.file:
+        path: "{{ apps_root_path }}/abinitio/ag_user_feeds/ag"
+        state: directory
+        recurse: yes
+        group: abinitio
+      become_user: "{{ functional_user }}"
+
+    - name: Copy AG Feed File and User CSVs for AG
+      copy:
+        src: "{{ item }}"
+        dest: "{{ apps_root_path }}/abinitio/ag_user_feeds/ag"
+        remote_src: false
+        group: abinitio
+      with_items:
+        - ./AGPrincipal.csv
+        - ./AGPrincipalXref.csv
+        - ./AGPrincipalRole.csv
+        - ./AGCreateUserGroup.feed
+      become_user: "{{ functional_user }}"
+
+    - name: Update the CSV file with web_app_user
+      shell: |
+        cd {{ apps_root_path }}/abinitio/ag_user_feeds/ag/
+        sed -i 's/WEB_APP_USER/{{ web_app_user }}/g' AGPrincipal.csv
+        sed -i 's/WEB_APP_USER/{{ web_app_user }}/g' AGPrincipalXref.csv
+      become_user: "{{ functional_user }}"
+
+    - name: Update AGCreateUserGroup.feed
+      lineinfile:
+        path: "{{ apps_root_path }}/abinitio/ag_user_feeds/ag/AGCreateUserGroup.feed"
+        line: |
+          FILE_LIST: {{ apps_root_path }}/abinitio/ag_user_feeds/ag/*.csv
+        state: present
+      become_user: "{{ functional_user }}"
+
+    - name: Setup Web App User
+      shell: |
+        source /etc/profile
+        source {{ ag_deployment_root_dir }}/config/import.profile
+        export AB_AG_CONN_PARAMS="$AB_AG_CONN_PARAMS -u {{ ag_admin_user }} -p {{ password }}"
+        ag-import feed save {{ apps_root_path }}/abinitio/ag_user_feeds/ag/AGCreateUserGroup.feed
+        ag-import run -feed "AGCreateUserGroup" -progress -approve
+      become_user: "{{ functional_user }}"
+
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          => Webapp User is created in Authorization Gateway
+             User - {{ web_app_user }}
+             Password - {{ web_app_user }}
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+  
+  handlers:
+    - name: Reload Profile
+      shell: source /etc/profile  # Command to reload the profile

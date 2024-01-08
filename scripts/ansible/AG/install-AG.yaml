@@ -226,6 +226,7 @@
           ag_password: {{ enc_password.stdout }}
           ag_encrypted_password: "{{ encrypted_password.stdout }}"
           ag_root_path: "{{ deployment_name }}"
+          ag_deployment_root: "{{ deployment_root }}/{{ deployment_name }}"
         state: present
       delegate_to: localhost
       no_log: true

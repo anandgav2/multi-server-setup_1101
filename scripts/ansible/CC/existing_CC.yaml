@@ -1,0 +1,67 @@
+- name: Connect to existing CC
+  hosts:
+    - server*
+  become: yes # Run tasks with root privileges
+  vars:
+    log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
+    comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+
+  tasks:
+
+    - name: Load Global parameters
+      include_vars:
+        file: "{{ item }}"
+      with_items:
+        - "{{ comm_config_file }}"
+        - "{{ installer_path }}/cip_setup_automation.yml"
+
+    - name: Write Common Config
+      lineinfile:
+        path: "{{ comm_config_file }}"
+        line: |
+          cc_url: "{{ cc_url }}"
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+      when: inventory_hostname == 'server1'
+
+    - name: Add remote host and public IP entries to /etc/hosts
+      lineinfile:
+        path: /etc/hosts
+        line: |
+          {{ cc_ip + ' ' + cc_hostname }}
+
+    - name: Set params in global abinitiorc
+      lineinfile:
+        path: "{{ ab_home_dir }}/abinitio-V{{ coop_version }}/config/abinitiorc"
+        line: |
+          AB_OPS_CONSOLE_URL : {{ cc_url }}
+          AB_OPS_MONITOR : true
+        state: present
+
+    - name: Start Reporter
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+      with_items:
+        - ab-reporter start -wss-username ocagent -wss-password abIniti0
+        - ab-reporter status
+      register: command_output
+      become_user: "{{ functional_user }}"
+
+    - name: Display Reporter Status
+      ansible.builtin.debug:
+        var: command_output
+
+    - name: Log step
+      lineinfile:
+        path: "{{ log_file }}"
+        line: |
+          => Existing Control>Center Setup done
+             Control>Center URL -> {{ cc_url }}
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false  
+      when: inventory_hostname == 'server1'
+       

@@ -5,8 +5,8 @@
     installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
     use_existing_servers: "{{ lookup('env', 'USE_EXISTING_SERVERS').split(',') | first}}"
     use_existing_a360: "{{ lookup('env', 'USE_EXISTING_A360').split(',') | first}}"
-    use_existing_ag: False
-    use_existing_cc: False
+    use_existing_ag: "{{ lookup('env', 'USE_EXISTING_AG').split(',') | first}}"
+    use_existing_cc: "{{ lookup('env', 'USE_EXISTING_CC').split(',') | first}}"
     required_files:
       - "{{ installer_path }}/installer-versions.yml"
       - "{{ installer_path }}/host_alias.txt"
@@ -443,6 +443,22 @@
             subsys_dist: "{{ subsys_dist | default([]) + [ hostvars[inventory_hostname][item] ] }}"
             subsys_list: "{{ subsys_list | default([]) + (hostvars[inventory_hostname][item]).split(',') }}"
           loop: "{{ hostvars[inventory_hostname].keys() | select('match', '^.*_config$') }}"
+
+        - name: Verify USE_EXISTING_CC = True
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              In Case of USE_EXISTING_CC = True, There is no need of 'cc' entry in cip_setup_server_config.yml
+                     Kindly remove the entry
+          when: use_existing_cc == True and subsys_list | select('match', 'cc') | count >= 1
+
+        - name: Verify USE_EXISTING_AG = True
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              In Case of USE_EXISTING_AG = True, There is no need of 'ag' entry in cip_setup_server_config.yml
+                     Kindly remove the entry
+          when: use_existing_ag == True and subsys_list | select('match', 'ag') | count >= 1
 
         - name: Verify single occurance subsystems
           include_tasks: ../write_log.yml
