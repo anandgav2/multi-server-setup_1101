@@ -22,15 +22,22 @@ pipeline {
             steps {
 
                 script {
-                    // echo "##### SUMMARY LOG FILE : ${env.LOG_FILE} #########"
-                    // sh "rm -f ${env.LOG_FILE}"
-                    // sh "touch ${env.LOG_FILE}"
-                    // sh "rm -f ${env.CONFIG_FILE}"
-                    // sh "touch ${env.CONFIG_FILE}"
+                    echo "##### SUMMARY LOG FILE : ${env.LOG_FILE} #########"
+                    sh "rm -f ${env.LOG_FILE}"
+                    sh "touch ${env.LOG_FILE}"
+                    sh "rm -f ${env.CONFIG_FILE}"
+                    sh "touch ${env.CONFIG_FILE}"
 
                     // Run Input Validation
                     sh 'cd "${WORKSPACE}/scripts/ansible/Validation"  ; ansible-playbook input-validation.yml'
+                }
+            }
+        }
 
+        stage('Get CIP Version') {
+            steps {
+
+                script {
                     //Read CIP Version
                     def cipVersion = sh(script: "awk '/cip_version:/ {print \$2}' ${INSTALLER_PATH}/installer-versions.yml | awk -F'-' '{print \$1}' | cut -c2-", returnStdout: true).trim()
                     env.CIP_VERSION = "${cipVersion}"
