@@ -463,12 +463,12 @@
 
         - name: USE_EXISTING_CC = True - remove cc from list
           set_fact:
-            subsys_map.single: "{{ subsys_map.single | difference['cc'] }}"
+            subsys_map.single: "{{ subsys_map.single | difference(['cc']) }}"
           when: use_existing_cc == True
 
         - name: USE_EXISTING_AG = True - remove ag from list
           set_fact:
-            subsys_map.single: "{{ subsys_map.single | difference['ag'] }}"
+            subsys_map.single: "{{ subsys_map.single | difference(['ag']) }}"
           when: use_existing_ag == True
 
         - name: Verify single occurance subsystems
