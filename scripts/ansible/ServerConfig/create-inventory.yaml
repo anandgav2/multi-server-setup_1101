@@ -56,6 +56,7 @@
       lineinfile:
         path: ../../terraform/inventory.yml
         line: |
+          
               ag:
                 ansible_host: {{ ag_import_host_ip }}
                 ansible_user: {{ ag_import_ssh_user }}
