@@ -85,7 +85,7 @@ pipeline {
             steps {
                 script {
                     sh "echo ------- Generate inventory file ---------- >> ${env.LOG_FILE}"
-                    sh 'cd "${WORKSPACE}/scripts/ansible/ServerConfig"  ; ansible-playbook create-inventory.yaml'
+                    sh 'cd "${WORKSPACE}/scripts/ansible/ServerConfig"  ; ansible-playbook  --vault-password-file=../vault_key create-inventory.yaml'
                     sh "echo ------- Generated inventory file ---------- >> ${env.LOG_FILE}"
                 }
             }
