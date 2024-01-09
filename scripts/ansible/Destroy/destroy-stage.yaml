@@ -4,7 +4,7 @@
   become: yes # Run tasks with root privileges
 
   vars:
-    stage: "None"
+    Stage: "None"
     installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
     comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
 
@@ -91,7 +91,7 @@
           debug:
           var: command_output
       
-      when: "stage=='a360_install' and ab_host_alias == hostvars['a360'].ab_host_alias"
+      when: Stage in ["Install A360","All"] and ab_host_alias == hostvars['a360'].ab_host_alias
 
     - name: Destroy ADC cluster
       block:
@@ -115,7 +115,7 @@
           register: command_output
           become_user: "{{ functional_user }}"
           ignore_errors: True
-      when: "stage=='adc' and ab_host_alias != hostvars['nbos_adapter'].ab_host_alias"
+      when: Stage in ["A360 and CIP Integration","All"] and ab_host_alias == hostvars['nbos_adapter'].ab_host_alias
 
     - name: Stop CIP UI
       block:
@@ -155,7 +155,7 @@
         - name: Print logs
           debug:
              var: command_output
-      when: "stage=='Start CIPUI' and ab_host_alias != hostvars['cipui'].ab_host_alias"
+      when: Stage in ["Start CIPUI","All"] and ab_host_alias == hostvars['cipui'].ab_host_alias
       
     - name: Destroy CIP DB
       block:
@@ -170,7 +170,7 @@
         - name: Print logs
           debug:
              var: command_output
-      when: "stage=='Install CIP' and ab_host_alias != hostvars['cipdb'].ab_host_alias"  
+      when: Stage in ["Install CIP","All"]  and ab_host_alias == hostvars['cipdb'].ab_host_alias  
 
     - name: Destroy EME
       block:
@@ -202,7 +202,7 @@
           shell: |
             sudo rm -rf {{ data_root_path }}/eme/cipeme
           ignore_errors: true
-      when: "stage=='Create EME' and ab_host_alias != hostvars['eme'].ab_host_alias"
+      when: Stage in ["Create EME","All"] and ab_host_alias == hostvars['eme'].ab_host_alias
       
     - name: Destroy Cafe
       block:
@@ -220,7 +220,7 @@
       - name: Print logs
         debug:
            var: command_output
-      when: "stage=='cafe' and ab_host_alias != hostvars['cafe'].ab_host_alias"
+      when: Stage in ["Install Cafe","All"] and ab_host_alias == hostvars['cafe'].ab_host_alias
       
     - name: Destroying QueryIt
       block:
@@ -249,7 +249,7 @@
         - name: Print logs
           debug:
              var: command_output
-      when: "stage=='Install QueryIt' and ab_host_alias != hostvars['a360'].ab_host_alias"
+      when: Stage in ["Install QueryIt","All"] and ab_host_alias == hostvars['queryit'].ab_host_alias
       
 
     - name: Destroy Control Center
@@ -280,7 +280,7 @@
         - name: Print logs
           debug:
              var: command_output
-      when: "stage=='cc' and ab_host_alias != hostvars['cc'].ab_host_alias"
+      when: Stage in ["Install CC","All"] and ab_host_alias == hostvars['cc'].ab_host_alias
 
       
     - name: Destroy AG
@@ -311,7 +311,7 @@
         - name: Print logs
           debug:
              var: command_output
-      when: "stage=='ag' and ab_host_alias != hostvars['ag'].ab_host_alias"  
+      when: Stage in ["Install AG","All"] and ab_host_alias == hostvars['ag'].ab_host_alias 
       
     - name: Destroying Co>op work
       block:
@@ -388,5 +388,5 @@
             state: absent
           loop: "{{ found_files.files }}"
           become_user: "{{ functional_user }}"
-      when: "stage=='coop_install' and ab_host_alias != hostvars['a360'].ab_host_alias"
+      when: Install CoOp and ab_host_alias != hostvars['a360'].ab_host_alias
 
