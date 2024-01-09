@@ -20,7 +20,6 @@
       
     - name: get file list for all subsystem file
       shell: |
-        cd "{{ installer_path }}"
         ls -1 *-application.xml
       register: result 
       delegate_to: localhost   
@@ -83,7 +82,7 @@
       
       - name: get sample runtime xml path
         set_fact:
-          sample-runtime: "{{ installer_path }}/sample-runtime.xml"
+          sample-runtime: "./sample-runtime.xml"
       
       - name: print
         debug:
@@ -95,7 +94,7 @@
           dest: "{{ installer_path }}/{{ item }}-runtime.xml"
           remote_src: false
         loop: "{{ extracted_list }}"
-        register: aa
+       
 
       - name: Display the updated extracted_list
         debug:
