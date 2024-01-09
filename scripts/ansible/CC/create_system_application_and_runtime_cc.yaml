@@ -48,50 +48,50 @@
 
 
     - block:
-      - name: get ab_host_alias on which cc is running       
-        set_fact:
-          cc_hostnm: "{{ ab_host_alias }}"
+     # - name: get ab_host_alias on which cc is running       
+     #   set_fact:
+      #    cc_hostnm: "{{ ab_host_alias }}"
 
-      - name: print cc_hostnm
-        debug:
-          var: cc_hostnm
+     # - name: print cc_hostnm
+      #  debug:
+       #   var: cc_hostnm
 
-      - name: get cc host alias name
-        command: grep "{{ cc_hostnm }}" "{{ installer_path }}/host_alias.txt" 
-        register: grep_output
-        ignore_errors: true
-        delegate_to: localhost
+     # - name: get cc host alias name
+      #  command: grep "{{ cc_hostnm }}" "{{ installer_path }}/host_alias.txt" 
+       # register: grep_output
+       # ignore_errors: true
+       # delegate_to: localhost
 
       
-      - name: Display the output
-        set_fact:
-          grep_responce: "{{ grep_output.stdout_lines }}"
+     # - name: Display the output
+      #  set_fact:
+       #   grep_responce: "{{ grep_output.stdout_lines }}"
 
-      - name: Display the output
-        debug:
-          var: grep_responce
+     # - name: Display the output
+      #  debug:
+       #   var: grep_responce
     
-      - name: get physical hostname
-        set_fact:
-          physical_hostnm: "{{ item.split(' ') | last }}"
-        loop: "{{ grep_responce }}"
+     # - name: get physical hostname
+      #  set_fact:
+       #   physical_hostnm: "{{ item.split(' ') | last }}"
+       # loop: "{{ grep_responce }}"
 
-      - name: Display the output
-        debug:
-          var: physical_hostnm 
+     # - name: Display the output
+      #  debug:
+       #   var: physical_hostnm 
 
       
-      - name: get cc ab_host_alias
+      - name: get sample runtime xml path
         set_fact:
-          cc_ab_host_alias: "{{ installer_path }}/{{ physical_hostnm }}-runtime.xml"
+          sample-runtime: "{{ installer_path }}/sample-runtime.xml"
       
       - name: print
         debug:
-          var: cc_ab_host_alias
+          var: sample-runtime
       
       - name: Copy files in a loop
         copy:
-          src: "{{ cc_ab_host_alias }}"
+          src: "{{ sample-runtime }}"
           dest: "{{ installer_path }}/{{ item }}-runtime.xml"
           remote_src: false
         loop: "{{ extracted_list }}"
