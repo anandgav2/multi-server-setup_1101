@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<system xmlns="http://www.abinitio.com/opconsole/1.0" description="CIP " excludeJobColumns1X30="Job Definition,End,Host Cluster,Job Definition Group,Job GUID,AB_JOB_DERIVED_NAME" isBuiltinJobSet1X100="false" isBuiltinJobSetPerApp1X100="false" name="CIP" objectVersion="1.320" productionDayHHMM="00:00" systemGuid1X30="2a331950-1207-422f-8000-000000000000" timeZoneId="UTC">
+
+  <propertyTypes>
+    <customPropertyType columnSequence="10" customTypeEnum="STRING" description="Override for job's derived name" name="AB_JOB_DERIVED_NAME"/>
+  </propertyTypes>
+
+  <scheduleAutoGen1X202 dailyFrequency="1" isEnabled="true" offsetMinutes="30" rangeMinutes="1440"/>
+
+</system>
