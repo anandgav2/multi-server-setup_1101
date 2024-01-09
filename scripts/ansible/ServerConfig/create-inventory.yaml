@@ -5,6 +5,7 @@
     installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
     use_existing_servers: "{{ lookup('env', 'USE_EXISTING_SERVERS').split(',') | first}}"
     use_existing_ag: "{{ lookup('env', 'USE_EXISTING_AG').split(',') | first}}"
+    use_existing_a360: "{{ lookup('env', 'USE_EXISTING_A360').split(',') | first}}"
 
   tasks:
 
