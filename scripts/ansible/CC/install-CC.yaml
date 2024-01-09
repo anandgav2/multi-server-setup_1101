@@ -49,6 +49,8 @@
         path: "{{ installer_path }}/cc-config.ini"
         line: |
           install_root= {{ apps_root_path }}/abinitio/abinitio-install
+          pkg_installer_log4j_location={{ ab_application_hub }}/apps/controlcenter/log.txt
+          pkg_installer_log4j_issues_location={{ ab_application_hub }}/apps/controlcenter/log-issues.txt
         state: present
       become_user: "{{ functional_user }}"
       
