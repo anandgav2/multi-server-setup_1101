@@ -1,0 +1,338 @@
+---
+- name: post validation
+  hosts: 
+    - server*
+  become: yes # Run tasks with root privileges
+  
+  vars:
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+  
+  tasks:
+    - name: Load CIP Config parameters
+      include_vars:
+        file: "{{ item }}"
+      loop: 
+        - "{{ installer_path }}/cip_common_setup.yml"
+        - "{{ installer_path }}/cip_setup_automation.yml"
+    
+    - name: set cip_base_path
+      set_fact:
+        cip_base_path: "/disk1/sandbox/abinitio/cip-v4-1-0-36"
+        post_validation_log: "/disk1/installer/akshay_git/multi-server-cip-setup-automation/scripts/ansible/post_validation/log.log"
+    
+    - name: Delete existing file
+      file:
+        path: "{{ post_validation_log }}"
+        state: absent
+      ignore_errors: true
+      delegate_to: localhost
+
+    - name: Touch new file
+      command: touch "{{ post_validation_log }}"
+      delegate_to: localhost
+
+    - block:
+      - name: GET  CIP Subsystems STATUS
+        ansible.builtin.command: '{{ installer_path }}/source_and_run.sh {{ item }}'
+        with_items:
+          - "{{ cip_base_path }}/private_internal/bin/cip-control.ksh  status "
+        become_user: "{{ functional_user }}"
+        ignore_errors: true
+        register: cip_status           
+        args:
+          chdir: "{{ cip_base_path }}/private_internal/run"
+    
+          #  - name: showing logs 
+          #debug:
+          #var: cip_status
+
+      - name: store Json content in variable
+        set_fact:
+          cip_stdout_lines: "{{ cip_status.results[0].stdout_lines }}"
+    
+      - name: Access stdout_lines
+        debug:
+          var: cip_stdout_lines
+
+     
+      
+          #- name: Create a new list excluding lines with running
+          #set_fact:
+          #cip_filtered_list: "{{ cip_stdout_lines | select('match', '.*not running.*|.*failed.*') | list }}"
+          #register: cip_not_running
+
+        #- name: filter_out
+        #debug:
+        # var: cip_not_running 
+    
+      - name: write to logs for cip-subsystem
+        lineinfile:
+          path: "{{ post_validation_log }}"
+          line: |
+             => Status for Cip-Subsystem 
+                 "{{ item.split(' : ')[1] | regex_replace(' +', ' ')  }} subsystem {{ item.split(' : ')[2] | regex_replace(' +', ' ')  }} {{ item.split(' : ')[3] | regex_replace(' +', ' ')   }} on {{ ansible_hostname }} "
+        with_items: "{{ cip_stdout_lines }}"      
+        delegate_to: localhost 
+      when: "ab_host_alias| string in groups['cip_servers']| map('extract', hostvars) | map(attribute='ab_host_alias')"
+        
+    - block:    
+        
+      - name: check ag db up or not
+        ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+        with_items:
+          - "ab-db status"
+        ignore_errors: true
+        register: ab_db_status
+        become_user: " {{ functional_user }}"
+
+      - name: debug for ag-db-status
+        debug:
+          var:  ab_db_status
+
+      - name: store Json content in variable for ag_db_status
+        set_fact:
+          stdout_lines_db_status: "{{ ab_db_status.results[0].stdout_lines[3:] |  regex_replace(' +', ' ')  }}"
+
+          #- name: access stdoutlines
+          #debug:
+          #var: stdout_lines_db_status
+       
+          #- name: Create a new list excluding lines with running
+          #set_fact:
+          #filtered_list_db_status: "{{ stdout_lines_db_status | select('match', '.*not running.*|.*Stopped.*') | list }}"
+      
+      - name: write logs of db status
+        lineinfile:
+          path: "{{ post_validation_log }}"
+          line: |
+            => Db Status
+                  " {{ item.split(' ')[0] }}  is {{ item.split(' ')[2] }} on port  {{ item.split(' ')[1] }} on  host {{ ansible_hostname }} " 
+        with_items: "{{ stdout_lines_db_status }}"
+        ignore_errors: true
+        delegate_to: localhost
+
+      when: "ab_host_alias in [hostvars['ag'].ab_host_alias , hostvars['cc'].ab_host_alias]"    
+
+    - block:  
+      
+      - name: Query>It instance status
+        ansible.builtin.command: 
+          cmd: sh -c "source /etc/profile && ab-qi service status"
+        become_user: "{{ functional_user }}"
+        ignore_errors: true
+        register: query_it
+        args:  
+          chdir: "{{ cip_base_path }}/queryit"
+
+      - name: show status for queryit
+        debug:
+          var: query_it
+
+      - name: store json content in variable for queryIt
+        set_fact: 
+          queryit_stdout: "{{ query_it.stdout_lines }}"
+
+          #- name: filterout not running queryit_stdout elements
+          #set_fact:
+          #filterout_queryit_stdout: "{{ queryit_stdout | reject('search', 'is running') | list }}"
+
+      - name: write logs of queryIt status
+        lineinfile:
+          path: "{{ post_validation_log }}"
+          line: |
+            => Query>It status            
+                  " {{ item.split('.')[0] }} on host {{ ab_host_alias }} "
+        with_items: "{{ queryit_stdout }}"
+        ignore_errors: true
+        delegate_to: localhost
+
+      when: ab_host_alias == hostvars['queryit'].ab_host_alias    
+
+    - block:  
+      - name: checking the control center status
+        ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+        with_items:
+          - "ab-bridge status"
+        ignore_errors: true
+        register: cc_status
+
+      - name: print cc logs
+        debug:
+          var: cc_status
+ 
+      - name: store json content in variable for cc status
+        set_fact:
+           cc_stdout: "{{ cc_status.results[0].stdout_lines }}"
+      
+           #  - name: filterout not running  for cc status
+           #set_fact:
+           #filterout_cc_stdout: "{{ cc_stdout | reject('search', 'is running and listening') | list }}"
+
+      - name: write logs to cc status
+        lineinfile:
+           path: "{{ post_validation_log }}"
+           line: |
+             => Control Center Status
+                   "{{ cc_stdout[0] }} on host {{ ab_host_alias }}" 
+        ignore_errors: true
+        delegate_to: localhost
+        #when: filterout_cc_stdout != []
+
+      - name: checking the reporter status
+        ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+        with_items:
+          - "ab-reporter status"
+        ignore_errors: true
+        register: ab_reporter
+
+      
+      - name: print  reporter status
+        debug:
+          var: ab_reporter
+
+      - name: store json content in variable for reporter status
+        set_fact:
+           reporter_stdout: "{{ ab_reporter.results[0].stdout_lines }}"
+
+      - name: write logs for reporter status
+        lineinfile:
+           path: "{{ post_validation_log }}"
+           line: |
+             => ab-reporter Status
+                   "{{ reporter_stdout[0] }} on host {{ ab_host_alias }}"
+        ignore_errors: true
+        delegate_to: localhost
+       
+      when: ab_host_alias != hostvars['a360'].ab_host_alias
+
+
+    - block:
+      - name: checking webservices status
+        ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+        with_items:
+          - "ab-app status"
+        become_user: "{{ functional_user }}" 
+        ignore_errors: true
+        register: web_status
+
+      - name: debug for web-app
+        debug:
+          var: web_status
+
+      - name: store json content in variable for web-app status
+        set_fact:
+           web_stdout: "{{ web_status.results[0].stdout_lines }}"
+
+           #- name: show messaage on screen
+           #debug:
+           #var: web_stdout
+
+           #      - name: filterout not running  for web-app status
+           #        set_fact:
+           #filterout_web_stdout: "{{ web_stdout | reject('search', 'is running') | list }}"
+
+           #- name: debug for webapp
+           #debug:
+           #var: filterout_web_stdout
+
+      - name: write logs for web-app status
+        lineinfile:
+           path: "{{ post_validation_log }}"
+           line: |
+             => Web-App Status
+                " {{ item.split(',')[0] }}  {{ item.split(',')[2] }}  {{ item.split(',')[1] }} on  host {{ ansible_hostname }} "
+        with_items: "{{ web_stdout }}"
+        ignore_errors: true
+        delegate_to: localhost
+
+      when: "ab_host_alias in ( [hostvars['ag'].ab_host_alias , hostvars['cc'].ab_host_alias,hostvars['cafe'].ab_host_alias] )"
+
+
+      #    - name: Get log file size
+      #stat:
+      # path: "{{ post_validation_log }}"
+      #register: post_validation_log_file_info
+      #delegate_to: localhost
+
+      #- name: debug
+      #debug:
+      # var: post_validation_log_file_info
+
+      #    - name: Fail if log file is not empty
+      #fail:
+      # msg: "post is not empty. Please check and resolve."
+      #delegate_to: localhost
+      #when: post_validation_log_file_info.stat.size > 0
+    - block:
+      - name: a360 status
+        shell: |
+          source /disk1/act360/bin/env.sh
+          ab-app status
+        ignore_errors: true
+        register: a360_app_status
+
+      - name: print a360 status
+        debug:
+          var: a360_app_status
+
+          ##- name: set variable for stdout
+          #    set_fact: 
+          #a360_app_stdout: "{{ a360_app_status.stdout_lines }}"
+     
+      
+      - name: set variable for stdout
+        set_fact:
+           a360_app_stdout: "{{ a360_app_status.stdout_lines }}"
+      
+      
+      - name: print status
+        debug:
+           var: a360_app_stdout
+
+
+      - name: write logs of web-app status
+        lineinfile:
+           path: "{{ post_validation_log }}"
+           line: |
+             => Web-App Status for a360
+                   " {{ item.split('.')[0] }} on host {{ ab_host_alias }}"
+        with_items: "{{  a360_app_stdout }}"
+        delegate_to: localhost
+
+
+      - name: ab-db status for a360
+        shell: |
+          source /disk1/act360/bin/env.sh
+          ab-db status
+        ignore_errors: true
+        register: a360_db_status
+
+      - name: print a360 db status
+        debug:
+          var: a360_db_status
+
+      - name: set variable for stdout
+        set_fact:
+                a360_db_stdout: "{{ a360_db_status.stdout_lines[3:] | regex_replace(' +', ' ') }}"
+
+
+      - name: set variable for stdout
+        set_fact:
+           a360_db_stdout: "{{ a360_db_stdout }}"       
+
+      - name: print state
+        debug:
+           var: a360_db_stdout
+
+
+      - name: write logs of db status
+        lineinfile:
+          path: "{{ post_validation_log }}"
+          line: |
+            => a360 Db Status
+                  " {{ item.split(' ')[0] }}  is {{ item.split(' ')[2] }} on port  {{ item.split(' ')[1] }} on  host {{ ansible_hostname }} "
+        with_items: "{{ a360_db_stdout }}"
+        ignore_errors: true
+        delegate_to: localhost   
+      
+      when: ab_host_alias == hostvars['a360'].ab_host_alias
