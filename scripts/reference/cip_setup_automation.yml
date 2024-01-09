@@ -111,7 +111,7 @@ act_portal_password: !vault |
           38316431663630336361626532326631326332663239336137363436353039613861393636613532
           3662396361396536390a663333333839316537366666353136313335323836383134633261656362
           3337          
-a360_kafka_boostrap_server: "tst3"
+a360_kafka_boostrap_server: "tst3"    #Assuming this will be single bootstrap server
 a360_kafka_boostrap_ip: "10.226.102.17"
 a360_adc_server: "tst3"
 a360_adc_ip: "10.226.102.17"
