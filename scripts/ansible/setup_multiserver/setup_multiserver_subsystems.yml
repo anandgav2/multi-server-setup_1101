@@ -48,7 +48,7 @@
       become: false
 
     - name: write to inventory
-      shell: echo -e "cip:\n  hosts:" > ../../terraform/inventory.yml
+      shell: echo -e "cip:\n  hosts:" >> ../../terraform/inventory.yml
       
     - name: call yaml if aws servers
       include_tasks: parse_multiserver_config.yaml
