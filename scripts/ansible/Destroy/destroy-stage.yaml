@@ -168,14 +168,37 @@
             state: absent
           loop: "{{ found_files.files }}"
           become_user: "{{ functional_user }}"
-
-        - name: print hello if stage=All
-          debug:
-            #msg: "{{ hostvars['cip_instance_1'].ab_host_alias }}"
-            msg: "{{ inventory_hostname + ': '+ ab_host_alias }}"
       when: "stage=='coop_install' and ab_host_alias != hostvars['a360'].ab_host_alias"
 
+    - name: Destroying QueryIt
+      block:
+        - name: Kill a360 processes
+          shell: |
+            sudo rm -rf {{ cip_base_path }}/queryit
+            sudo sudo rm -rf {{ data_root_path }}/cip/serial/abinitio/queryitdata/
+          register: command_output
+	  loop:
+            - "{{ functional_user }}"
+          ignore_errors: true
 
+        - name: Print logs
+          debug:
+            var: command_output
+
+        - name: Stop QueryIt Instance
+          ansible.builtin.command:
+            cmd: sh -c "source /etc/profile && ab-qi service stop"
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+          args:
+            chdir: "{{ cip_base_path }}/queryit"
+	    
+        - name: Print logs
+          debug:
+             var: command_output
+      when: "stage=='Install QueryIt' and ab_host_alias != hostvars['a360'].ab_host_alias"
+      
     - name: Destroy ADC cluster
       block:
         - name: stop and destroy adc lobby
