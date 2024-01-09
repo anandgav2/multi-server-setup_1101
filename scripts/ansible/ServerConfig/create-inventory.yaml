@@ -78,9 +78,9 @@
         line: |
           # Default value
               a360:
-                ansible_host: localhost
+                ansible_host: NULL
                 ab_host_alias: 'none'
-      when: (cip_version.split('-')[0] | int == 3)
+      when: (cip_version.split('-')[0] | int == 3) or (use_existing_a360 == True)
 
     - name: Write Web Apps and Subsystems for USE_EXISTING_AG == True
       lineinfile:
