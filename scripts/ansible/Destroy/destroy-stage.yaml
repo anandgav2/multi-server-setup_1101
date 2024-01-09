@@ -34,7 +34,20 @@
         - name: Print logs
           debug:
             var: command_output
-         
+
+	- name: Kill a360 processes
+          shell: |
+            sudo lsof -i -P -n | grep LISTEN | grep {{ act_base_port_prefix }} | awk '{ print $2 }' | sort | uniq | sudo xargs kill
+            sudo ps -Af | grep {{ a360_root }} | grep -v "grep" | awk '{ print $2 }' | sort | uniq | sudo xargs kill
+          register: command_output
+	  loop:
+            - "{{ functional_user }}"
+          ignore_errors: true
+
+        - name: Print logs
+          debug:
+            var: command_output
+	    
         - name: Delete root directories
           shell: |
             sudo rm -rf {{ installer_path }}
@@ -43,10 +56,15 @@
             sudo rm -rf {{ data_root_path }}/sand
             sudo rm -rf /usr/local/abinitio
             sudo rm -rf /var/abinitio/*
-          loop:
+          register: command_output
+	  loop:
             - "{{ functional_user }}"
           ignore_errors: true
 
+	- name: Print logs
+          debug:
+            var: command_output
+	    
         - name: Stop Bridge
           ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
           with_items:
@@ -73,7 +91,7 @@
           debug:
           var: command_output
       
-      when: "stage=='a360' and ab_host_alias == hostvars['a360'].ab_host_alias"
+      when: "stage=='a360_install' and ab_host_alias == hostvars['a360'].ab_host_alias"
       
     - name: Destroying Co>op work
       block:
@@ -155,18 +173,8 @@
           debug:
             #msg: "{{ hostvars['cip_instance_1'].ab_host_alias }}"
             msg: "{{ inventory_hostname + ': '+ ab_host_alias }}"
-      when: "stage=='coop' and ab_host_alias != hostvars['a360'].ab_host_alias"
+      when: "stage=='coop_install' and ab_host_alias != hostvars['a360'].ab_host_alias"
 
-
-    - name: Stop CIP Subsystems and UI
-      block:
-        - name: print hello if stage=All
-          debug:
-            #msg: "{{ hostvars['cip_instance_1'].ab_host_alias }}"
-            msg: "{{ inventory_hostname + ': '+ ab_host_alias }}"
-      when: "stage=='All' and ab_host_alias| string in groups['cip_servers']| map('extract', hostvars) | map(attribute='ab_host_alias')"
-      #when: ab_host_alias in "{{groups['cip_servers']| map('extract', hostvars) | map(attribute='ab_host_alias')}}"
-      #when: stage in ["Test","All"]
 
     - name: Destroy ADC cluster
       block:
@@ -186,7 +194,7 @@
               ksh
               . ./ab_project_setup.ksh .
               cd $CIP_COMMON_LOCAL_SERIAL_LOOKUP
-              rm -r adc
+              rm -rf adc
           register: command_output
           become_user: "{{ functional_user }}"
           ignore_errors: True
