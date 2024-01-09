@@ -7,6 +7,11 @@
     Stage: "None"
     installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
     comm_config_file: "{{ lookup('env', 'CONFIG_FILE').split(',') | first}}"
+    use_existing_ag: "{{ lookup('env', 'USE_EXISTING_AG').split(',') | first}}"
+    use_existing_a360: "{{ lookup('env', 'USE_EXISTING_A360').split(',') | first}}"
+    use_existing_cc: "{{ lookup('env', 'USE_EXISTING_CC').split(',') | first}}"
+    use_existing_queryit: "{{ lookup('env', 'USE_EXISTING_QueryIt').split(',') | first}}"
+    use_existing_cipdb: "{{ lookup('env', 'USE_EXISTING_CIPDB').split(',') | first}}"
 
   tasks:
     - name: Load Global parameters
@@ -91,7 +96,7 @@
           debug:
           var: command_output
       
-      when: Stage in ["Install A360","All"] and ab_host_alias == hostvars['a360'].ab_host_alias
+      when: Stage in ["Install A360","All"] and ab_host_alias == hostvars['a360'].ab_host_alias and use_existing_a360 == "False"
 
     - name: Destroy ADC cluster
       block:
@@ -170,7 +175,7 @@
         - name: Print logs
           debug:
              var: command_output
-      when: Stage in ["Install CIP","All"]  and ab_host_alias == hostvars['cipdb'].ab_host_alias  
+      when: Stage in ["Install CIP","All"]  and ab_host_alias == hostvars['cipdb'].ab_host_alias  and use_existing_cipdb == "False"
 
     - name: Destroy EME
       block:
@@ -249,7 +254,7 @@
         - name: Print logs
           debug:
              var: command_output
-      when: Stage in ["Install QueryIt","All"] and ab_host_alias == hostvars['queryit'].ab_host_alias
+      when: Stage in ["Install QueryIt","All"] and ab_host_alias == hostvars['queryit'].ab_host_alias and use_existing_queryit == "False"
       
 
     - name: Destroy Control Center
@@ -280,7 +285,7 @@
         - name: Print logs
           debug:
              var: command_output
-      when: Stage in ["Install CC","All"] and ab_host_alias == hostvars['cc'].ab_host_alias
+      when: Stage in ["Install CC","All"] and ab_host_alias == hostvars['cc'].ab_host_alias and use_existing_cc == "False"
 
       
     - name: Destroy AG
@@ -311,7 +316,7 @@
         - name: Print logs
           debug:
              var: command_output
-      when: Stage in ["Install AG","All"] and ab_host_alias == hostvars['ag'].ab_host_alias 
+      when: Stage in ["Install AG","All"] and ab_host_alias == hostvars['ag'].ab_host_alias and use_existing_ag == "False"
       
     - name: Destroying Co>op work
       block:
@@ -388,5 +393,5 @@
             state: absent
           loop: "{{ found_files.files }}"
           become_user: "{{ functional_user }}"
-      when: Install CoOp and ab_host_alias != hostvars['a360'].ab_host_alias
+      when: Stage in ["Install CoOp","All"] and ab_host_alias != hostvars['a360'].ab_host_alias 
 
