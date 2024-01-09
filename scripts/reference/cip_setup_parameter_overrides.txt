@@ -15,4 +15,6 @@ cip_gte_4:CIP_COMMON_NOTIFICATION_EVENT_TYPE_LIST:''
 ##        6. User need to make sure that parameter name provided in config must belong to correct category otherwise system will ignore.
 ##        7. In case of User try to override incorrect parameter or its not present in project then it will be ignored and will be captured in error logs.
 ##        8. If category is set to a360 and CIP version < 4 then Job will ignore those a360 parameter overrrides
+##        9. CIP_COMMON_CUSTOMER_EVENT_OVERRIDE_TYPE_LIST, CIP_COMMON_INTERNAL_EVENT_OVERRIDE_TYPE_LIST, CIP_COMMON_NOTIFICATION_EVENT_TYPE_LIST are mandatory got CIP >= 4
+##        10. All the paramereter will be overriden in CIP base pset
 ##########################################################################################################
