@@ -109,23 +109,23 @@ pipeline {
             }
         }
 
-        // stage('Install Co>Operating System')
-        // {
-        //     steps
-        //     {
-        //         script{
-        //             echo""
-        //             def sT = new Date()
-        //             def startTime = sT.format(TIME_FORMAT)
-        //             sh "echo ----------- COOP INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"
-        //             sh 'cd "${WORKSPACE}/scripts/ansible/Coop"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key install-coop.yaml'
-        //             def eT = new Date()
-        //             def endTime = eT.format(TIME_FORMAT)
-        //             sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
-        //             sh "echo ------- COOP INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
-        //         }
-        //     }
-        // }
+        stage('Install Co>Operating System')
+        {
+            steps
+            {
+                script{
+                    echo""
+                    def sT = new Date()
+                    def startTime = sT.format(TIME_FORMAT)
+                    sh "echo ----------- COOP INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"
+                    sh 'cd "${WORKSPACE}/scripts/ansible/Coop"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key install-coop.yaml'
+                    def eT = new Date()
+                    def endTime = eT.format(TIME_FORMAT)
+                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
+                    sh "echo ------- COOP INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
+                }
+            }
+        }
 
         // stage('Run Batch#1, Batch#2 and Batch#3 in Parallel') {
         //     parallel 
@@ -158,28 +158,28 @@ pipeline {
         //         stage('Batch#2- AG,Cafe,CC & QueryIt ') {
         //             stages {
                         
-        //                 stage('Install AG')
-        //                 {
-        //                     when {
-        //                         expression {
-        //                             return env.USE_EXISTING_AG == "False" 
-        //                         }
-        //                     }
-        //                     steps
-        //                     {
-        //                         script{
-        //                             echo""
-        //                             def sT = new Date()
-        //                             def startTime = sT.format(TIME_FORMAT)
-        //                             sh "echo ----------- AG INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"
-        //                             sh 'cd "${WORKSPACE}/scripts/ansible/AG"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key install-AG.yaml'
-        //                             def eT = new Date()
-        //                             def endTime = eT.format(TIME_FORMAT)
-        //                             sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
-        //                             sh "echo ------- AG INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
-        //                         }
-        //                     }
-        //                 }
+                        stage('Install AG')
+                        {
+                            when {
+                                expression {
+                                    return env.USE_EXISTING_AG == "False" 
+                                }
+                            }
+                            steps
+                            {
+                                script{
+                                    echo""
+                                    def sT = new Date()
+                                    def startTime = sT.format(TIME_FORMAT)
+                                    sh "echo ----------- AG INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"
+                                    sh 'cd "${WORKSPACE}/scripts/ansible/AG"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key install-AG.yaml'
+                                    def eT = new Date()
+                                    def endTime = eT.format(TIME_FORMAT)
+                                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
+                                    sh "echo ------- AG INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
+                                }
+                            }
+                        }
 
         //                 stage('Use Existing AG')
         //                 {
@@ -222,28 +222,28 @@ pipeline {
         //                     }
         //                 }
 
-        //                 stage('Install CC')
-        //                 {
-        //                     when {
-        //                         expression {
-        //                             return env.USE_EXISTING_CC == "False" 
-        //                         }
-        //                     }
-        //                     steps
-        //                     {
-        //                         script{        
-        //                             echo""
-        //                             def sT = new Date()
-        //                             def startTime = sT.format(TIME_FORMAT)
-        //                             sh "echo ----------- Control Center INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"
-        //                             sh 'cd "${WORKSPACE}/scripts/ansible/CC"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key install-CC.yaml'
-        //                             def eT = new Date()
-        //                             def endTime = eT.format(TIME_FORMAT)
-        //                             sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
-        //                             sh "echo ------- Control Center INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
-        //                         }
-        //                     }
-        //                 }
+                        stage('Install CC')
+                        {
+                            when {
+                                expression {
+                                    return env.USE_EXISTING_CC == "False" 
+                                }
+                            }
+                            steps
+                            {
+                                script{        
+                                    echo""
+                                    def sT = new Date()
+                                    def startTime = sT.format(TIME_FORMAT)
+                                    sh "echo ----------- Control Center INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"
+                                    sh 'cd "${WORKSPACE}/scripts/ansible/CC"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key install-CC.yaml'
+                                    def eT = new Date()
+                                    def endTime = eT.format(TIME_FORMAT)
+                                    sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
+                                    sh "echo ------- Control Center INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
+                                }
+                            }
+                        }
 
         //                 stage('Use Existing CC')
         //                 {
