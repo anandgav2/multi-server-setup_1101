@@ -9,6 +9,13 @@
 
   tasks:
 
+    - name: Load Global parameters
+      include_vars:
+        file: "{{ item }}"
+      with_items:
+        - "{{ installer_path }}/cip_setup_automation.yml"
+        - "{{ comm_config_file }}"    
+
     - name: Add remote host and public IP entries to /etc/hosts
       lineinfile:
         path: /etc/hosts
