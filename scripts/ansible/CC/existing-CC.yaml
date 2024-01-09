@@ -15,6 +15,7 @@
       with_items:
         - "{{ comm_config_file }}"
         - "{{ installer_path }}/cip_setup_automation.yml"
+        - "{{ installer_path }}/installer-versions.yml"
 
     - name: Write Common Config
       lineinfile:

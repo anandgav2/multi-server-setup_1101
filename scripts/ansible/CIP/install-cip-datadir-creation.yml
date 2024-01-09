@@ -30,7 +30,6 @@
         - air sandbox pset "{{ sandbox_root }}/{{ functional_user }}/stdenv/.sandbox.pset" -base "{{ sandbox_root }}/{{ functional_user }}/stdenv/dev.pset"
         - define-directories -basedir {{ sandbox_root }}/{{ functional_user }}/stdenv -type both -mfs-depth {{ data_mfs_depth }} -subdir default
         - build-mfs -basedir {{ sandbox_root }}/{{ functional_user }}/stdenv -mfs-depth {{ data_mfs_depth }} -data-areas {{ data_root_path }}/cip/data-areas
-        - build-mfs -basedir {{ sandbox_root }}/{{ functional_user }}/stdenv -mfs-depth {{ cp_data_mfs_depth }} -data-areas {{ data_root_path }}/cip/data-areas
       register: command_output
       become_user: "{{ functional_user }}"
       args:
