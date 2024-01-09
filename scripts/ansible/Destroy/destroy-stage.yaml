@@ -92,6 +92,226 @@
           var: command_output
       
       when: "stage=='a360_install' and ab_host_alias == hostvars['a360'].ab_host_alias"
+
+    - name: Destroy ADC cluster
+      block:
+        - name: stop and destroy adc lobby
+          shell: |
+              source /etc/profile
+              cd {{ cip_base_path }}/private_internal/run
+              adc lobby stop
+              adc lobby destroy
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: True
+
+        - name: Delete adc folder from CIP_COMMON_LOCAL_SERIAL_LOOKUP
+          shell: |
+              cd {{ cip_base_path }}/private_internal
+              ksh
+              . ./ab_project_setup.ksh .
+              cd $CIP_COMMON_LOCAL_SERIAL_LOOKUP
+              rm -rf adc
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: True
+      when: "stage=='adc' and ab_host_alias != hostvars['nbos_adapter'].ab_host_alias"
+
+    - name: Stop CIP UI
+      block:
+        - name: Create StopCIP Expect File
+          ansible.builtin.copy:
+            content: |
+              #!/usr/bin/expect -f
+	    
+              set timeout 20
+	    
+              set confirmation "Y"
+	    
+              cd "{{ cip_base_path }}/ui/web/"
+	    
+              spawn npm run stopcip
+	    
+              expect "Stop Y/N? :"
+	    
+              send  "$confirmation\r"
+	    
+              interact
+            dest: "{{ cip_base_path }}/ui/web/stop_cip.exp"
+            mode: "0755"
+            owner: "{{ functional_user }}"
+          ignore_errors: true
+	    
+        - name: StopCIP
+          shell: |
+            #! bin/bash
+            echo "Stopping CIP UI..."
+            source /etc/profile
+            expect {{ cip_base_path }}/ui/web/stop_cip.exp
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+	    
+        - name: Print logs
+          debug:
+             var: command_output
+      when: "stage=='Start CIPUI' and ab_host_alias != hostvars['cipui'].ab_host_alias"
+      
+    - name: Destroy CIP DB
+      block:
+        - name: Destroy CIP DB
+          ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+          with_items:
+            - ab-db destroy cipdb
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+	    
+        - name: Print logs
+          debug:
+             var: command_output
+      when: "stage=='Install CIP' and ab_host_alias != hostvars['cipdb'].ab_host_alias"  
+
+    - name: Destroy EME
+      block:
+        - name: Shutdown  Repository
+          ansible.builtin.command: "{{ installer_path }}/source_and_run.sh air repository shutdown"
+          register: "{{ functional_user }}"
+          become_user: abinitio
+          ignore_errors: true
+
+        - name: Print logs
+          debug:
+            var: command_output
+
+        - name: Destroy repository
+          expect:
+            command: sh -c "{{ installer_path }}/source_and_run.sh air repository destroy"
+              responses:
+                'Are you sure you want to do this \(yes\/no\)\?' : 'yes'
+          timeout: 30
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+	  
+	      - name: Print logs
+          debug:
+            var: command_output
+            
+	      - name: Delete root directories
+          shell: |
+            sudo rm -rf {{ data_root_path }}/eme/cipeme
+          ignore_errors: true
+      when: "stage=='Create EME' and ab_host_alias != hostvars['eme'].ab_host_alias"
+      
+    - name: Destroy Cafe
+      block:
+      - name: Destroy Cafe Application
+        expect:
+          command: sh -c "source /etc/profile && ab-app destroy cipcafe"
+          chdir: "{{ installer_path }}"
+          responses:
+            'Really destroy cipcafe\? \(yes\/no\) \[no\]:' : 'yes'
+          timeout: 120
+        register: command_output
+        become_user: "{{ functional_user }}"
+        ignore_errors: true
+	  
+      - name: Print logs
+        debug:
+           var: command_output
+      when: "stage=='cafe' and ab_host_alias != hostvars['cafe'].ab_host_alias"
+      
+    - name: Destroying QueryIt
+      block:
+        - name: Kill a360 processes
+          shell: |
+            sudo rm -rf {{ cip_base_path }}/queryit
+            sudo sudo rm -rf {{ data_root_path }}/cip/serial/abinitio/queryitdata/
+          register: command_output
+	  loop:
+            - "{{ functional_user }}"
+          ignore_errors: true
+
+        - name: Print logs
+          debug:
+            var: command_output
+
+        - name: Stop QueryIt Instance
+          ansible.builtin.command:
+            cmd: sh -c "source /etc/profile && ab-qi service stop"
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+          args:
+            chdir: "{{ cip_base_path }}/queryit"
+	    
+        - name: Print logs
+          debug:
+             var: command_output
+      when: "stage=='Install QueryIt' and ab_host_alias != hostvars['a360'].ab_host_alias"
+      
+
+    - name: Destroy Control Center
+      block:
+        - name: Destroy Control Center Application
+          expect:
+            command: sh -c "source /etc/profile && ab-app destroy controlcenter"
+            chdir: "{{ installer_path }}"
+            responses:
+              'Really destroy controlcenter\? \(yes\/no\) \[no\]:' : 'yes'
+            timeout: 60
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+	    
+        - name: Print logs
+          debug:
+             var: command_output
+	    
+        - name: Destroy Control Center DB
+          ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+          with_items:
+            - ab-db destroy OPDB
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+	    
+        - name: Print logs
+          debug:
+             var: command_output
+      when: "stage=='cc' and ab_host_alias != hostvars['cc'].ab_host_alias"
+
+      
+    - name: Destroy AG
+      block:
+        - name: Destroy AG Application
+          expect:
+            command: sh -c "source /etc/profile && ab-app destroy authgateway"
+            chdir: "{{ installer_path }}"
+            responses:
+              'Really destroy authgateway\? \(yes\/no\) \[no\]:' : 'yes'
+            timeout: 120
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+	    
+        - name: Print logs
+          debug:
+             var: command_output
+	    
+        - name: Destroy AG DB
+          ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
+          with_items:
+            - ab-db destroy authgateway
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+	    
+        - name: Print logs
+          debug:
+             var: command_output
+      when: "stage=='ag' and ab_host_alias != hostvars['ag'].ab_host_alias"  
       
     - name: Destroying Co>op work
       block:
@@ -169,222 +389,4 @@
           loop: "{{ found_files.files }}"
           become_user: "{{ functional_user }}"
       when: "stage=='coop_install' and ab_host_alias != hostvars['a360'].ab_host_alias"
-
-    - name: Destroying QueryIt
-      block:
-        - name: Kill a360 processes
-          shell: |
-            sudo rm -rf {{ cip_base_path }}/queryit
-            sudo sudo rm -rf {{ data_root_path }}/cip/serial/abinitio/queryitdata/
-          register: command_output
-	  loop:
-            - "{{ functional_user }}"
-          ignore_errors: true
-
-        - name: Print logs
-          debug:
-            var: command_output
-
-        - name: Stop QueryIt Instance
-          ansible.builtin.command:
-            cmd: sh -c "source /etc/profile && ab-qi service stop"
-          register: command_output
-          become_user: "{{ functional_user }}"
-          ignore_errors: true
-          args:
-            chdir: "{{ cip_base_path }}/queryit"
-	    
-        - name: Print logs
-          debug:
-             var: command_output
-      when: "stage=='Install QueryIt' and ab_host_alias != hostvars['a360'].ab_host_alias"
-      
-    - name: Destroy ADC cluster
-      block:
-        - name: stop and destroy adc lobby
-          shell: |
-              source /etc/profile
-              cd {{ cip_base_path }}/private_internal/run
-              adc lobby stop
-              adc lobby destroy
-          register: command_output
-          become_user: "{{ functional_user }}"
-          ignore_errors: True
-
-        - name: Delete adc folder from CIP_COMMON_LOCAL_SERIAL_LOOKUP
-          shell: |
-              cd {{ cip_base_path }}/private_internal
-              ksh
-              . ./ab_project_setup.ksh .
-              cd $CIP_COMMON_LOCAL_SERIAL_LOOKUP
-              rm -rf adc
-          register: command_output
-          become_user: "{{ functional_user }}"
-          ignore_errors: True
-      when: "stage=='adc' and ab_host_alias != hostvars['nbos_adapter'].ab_host_alias"
-
-    - name: Destroy EME
-      block:
-        - name: Shutdown  Repository
-          ansible.builtin.command: "{{ installer_path }}/source_and_run.sh air repository shutdown"
-          register: "{{ functional_user }}"
-          become_user: abinitio
-          ignore_errors: true
-
-        - name: Print logs
-          debug:
-            var: command_output
-
-        - name: Destroy repository
-          expect:
-            command: sh -c "{{ installer_path }}/source_and_run.sh air repository destroy"
-              responses:
-                'Are you sure you want to do this \(yes\/no\)\?' : 'yes'
-          timeout: 30
-          register: command_output
-          become_user: "{{ functional_user }}"
-          ignore_errors: true
-	  
-	      - name: Print logs
-          debug:
-            var: command_output
-            
-	      - name: Delete root directories
-          shell: |
-            sudo rm -rf {{ data_root_path }}/eme/cipeme
-          ignore_errors: true
-      when: "stage=='eme' and ab_host_alias != hostvars['eme'].ab_host_alias"
-
-    - name: Stop CIP UI
-      block:
-        - name: Create StopCIP Expect File
-          ansible.builtin.copy:
-            content: |
-              #!/usr/bin/expect -f
-	    
-              set timeout 20
-	    
-              set confirmation "Y"
-	    
-              cd "{{ cip_base_path }}/ui/web/"
-	    
-              spawn npm run stopcip
-	    
-              expect "Stop Y/N? :"
-	    
-              send  "$confirmation\r"
-	    
-              interact
-            dest: "{{ cip_base_path }}/ui/web/stop_cip.exp"
-            mode: "0755"
-            owner: "{{ functional_user }}"
-          ignore_errors: true
-	    
-        - name: StopCIP
-          shell: |
-            #! bin/bash
-            echo "Stopping CIP UI..."
-            source /etc/profile
-            expect {{ cip_base_path }}/ui/web/stop_cip.exp
-          register: command_output
-          become_user: "{{ functional_user }}"
-          ignore_errors: true
-	    
-        - name: Print logs
-          debug:
-             var: command_output
-      when: "stage=='cipui' and ab_host_alias != hostvars['cipui'].ab_host_alias"
-
-    - name: Destroy Control Center
-      block:
-        - name: Destroy Control Center Application
-          expect:
-            command: sh -c "source /etc/profile && ab-app destroy controlcenter"
-            chdir: "{{ installer_path }}"
-            responses:
-              'Really destroy controlcenter\? \(yes\/no\) \[no\]:' : 'yes'
-            timeout: 60
-          register: command_output
-          become_user: "{{ functional_user }}"
-          ignore_errors: true
-	    
-        - name: Print logs
-          debug:
-             var: command_output
-	    
-        - name: Destroy Control Center DB
-          ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
-          with_items:
-            - ab-db destroy OPDB
-          register: command_output
-          become_user: "{{ functional_user }}"
-          ignore_errors: true
-	    
-        - name: Print logs
-          debug:
-             var: command_output
-      when: "stage=='cc' and ab_host_alias != hostvars['cc'].ab_host_alias"
-
-    - name: Destroy Cafe
-      block:
-      - name: Destroy Cafe Application
-        expect:
-          command: sh -c "source /etc/profile && ab-app destroy cipcafe"
-          chdir: "{{ installer_path }}"
-          responses:
-            'Really destroy cipcafe\? \(yes\/no\) \[no\]:' : 'yes'
-          timeout: 120
-        register: command_output
-        become_user: "{{ functional_user }}"
-        ignore_errors: true
-	  
-      - name: Print logs
-        debug:
-           var: command_output
-      when: "stage=='cafe' and ab_host_alias != hostvars['cafe'].ab_host_alias"
-      
-    - name: Destroy AG
-      block:
-        - name: Destroy AG Application
-          expect:
-            command: sh -c "source /etc/profile && ab-app destroy authgateway"
-            chdir: "{{ installer_path }}"
-            responses:
-              'Really destroy authgateway\? \(yes\/no\) \[no\]:' : 'yes'
-            timeout: 120
-          register: command_output
-          become_user: "{{ functional_user }}"
-          ignore_errors: true
-	    
-        - name: Print logs
-          debug:
-             var: command_output
-	    
-        - name: Destroy AG DB
-          ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
-          with_items:
-            - ab-db destroy authgateway
-          register: command_output
-          become_user: "{{ functional_user }}"
-          ignore_errors: true
-	    
-        - name: Print logs
-          debug:
-             var: command_output
-      when: "stage=='ag' and ab_host_alias != hostvars['ag'].ab_host_alias"  
-      
-    - name: Destroy CIP DB
-      block:
-        - name: Destroy CIP DB
-          ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
-          with_items:
-            - ab-db destroy cipdb
-          register: command_output
-          become_user: "{{ functional_user }}"
-          ignore_errors: true
-	    
-        - name: Print logs
-          debug:
-             var: command_output
-      when: "stage=='cip' and ab_host_alias != hostvars['cipdb'].ab_host_alias"  
 
