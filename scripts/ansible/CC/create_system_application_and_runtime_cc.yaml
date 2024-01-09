@@ -1,0 +1,150 @@
+---
+- name: create system ,applications and runtime environment on cc
+  hosts: 
+    - server*
+  become: yes # Run tasks with root privileges
+  
+  vars:
+    installer_path: "{{ lookup('env', 'INSTALLER_PATH').split(',') | first}}"
+
+  
+  tasks:
+
+    - name: Load Global parameters
+      include_vars:
+        file: "{{ item }}"
+      with_items:
+        - "{{ installer_path }}/cip_setup_automation.yml"
+        - "{{ installer_path }}/installer-versions.yml"
+
+      
+    - name: get file list for all subsystem file
+      shell: |
+        cd "{{ installer_path }}"
+        ls -1 *-application.xml
+      register: result 
+      delegate_to: localhost   
+
+   
+    - name: Append a new element to the list
+      set_fact:
+        final_list: "{{ result.stdout_lines + ['CIP-system.xml'] }}"
+ 
+    - name: Display the result
+      debug:
+        var: final_list
+
+    - name: Read file and extract values
+      shell: "awk '{print $3}' {{ installer_path }}/host_alias.txt"
+      register: extracted_values
+
+    - name: Convert output to list
+      set_fact:
+        extracted_list: "{{ extracted_values.stdout_lines }}"
+
+    - name: Display the result
+      debug:
+        var: extracted_list
+
+
+    - block:
+      - name: get ab_host_alias on which cc is running       
+        set_fact:
+          cc_hostnm: "{{ ab_host_alias }}"
+
+      - name: print cc_hostnm
+        debug:
+          var: cc_hostnm
+
+      - name: get cc host alias name
+        command: grep "{{ cc_hostnm }}" "{{ installer_path }}/host_alias.txt" 
+        register: grep_output
+        ignore_errors: true
+        delegate_to: localhost
+
+      
+      - name: Display the output
+        set_fact:
+          grep_responce: "{{ grep_output.stdout_lines }}"
+
+      - name: Display the output
+        debug:
+          var: grep_responce
+    
+      - name: get physical hostname
+        set_fact:
+          physical_hostnm: "{{ item.split(' ') | last }}"
+        loop: "{{ grep_responce }}"
+
+      - name: Display the output
+        debug:
+          var: physical_hostnm 
+
+      
+      - name: get cc ab_host_alias
+        set_fact:
+          cc_ab_host_alias: "{{ installer_path }}/{{ physical_hostnm }}-runtime.xml"
+      
+      - name: print
+        debug:
+          var: cc_ab_host_alias
+      
+      - name: Copy files in a loop
+        copy:
+          src: "{{ cc_ab_host_alias }}"
+          dest: "{{ installer_path }}/{{ item }}-runtime.xml"
+          remote_src: false
+        loop: "{{ extracted_list }}"
+        register: aa
+
+      - name: Display the updated extracted_list
+        debug:
+          var: extracted_list
+
+      - name: Add suffix to each element
+        set_fact:
+          extracted_list_xml: "{{ extracted_list | map('regex_replace', '(.+)', '\\1-runtime.xml') | list }}"
+
+      - name: Display the updated list
+        debug:
+          var: extracted_list_xml 
+
+      - name: cip subsystem files copy in loop
+        copy:
+          src: "{{ installer_path }}/{{ item }}"
+          dest: "{{ installer_path }}"
+          remote_src: false
+        loop: "{{ final_list }}"
+     
+      - name: Replace content in a file using regex for the runtime_host
+        replace:
+          path: "{{ installer_path }}/{{ item }}-runtime.xml"
+          regexp: runtime_host 
+          replace: "{{ item }}"
+        loop: "{{ extracted_list }}"
+
+      - name: Replace content in a file using regex for the ab_home_pattern
+        replace:
+          path: "{{ installer_path }}/{{ item }}-runtime.xml"
+          regexp: ab_home_pattern
+          replace: "{{ ab_home_dir }}"
+        loop: "{{ extracted_list }}"
+
+      - name: Concatenate the extracted_list and final_list
+        set_fact:
+          combined_list: "{{ final_list + extracted_list_xml }}"
+
+      - name: Join the elements into a single string
+        set_fact:
+          result_string: "{{ combined_list | join(' ') }}"
+
+
+      - name: Create System,Application and Runtime environment in control>center
+        shell: sh -c 'source /etc/profile && ops-admin import {{ result_string }} -username admin -password abIniti0'
+        register: command_output
+        become_user: "{{ functional_user }}"
+        args:
+          chdir: "{{ installer_path }}"
+            
+ 
+      when: ab_host_alias == hostvars['cc'].ab_host_alias
