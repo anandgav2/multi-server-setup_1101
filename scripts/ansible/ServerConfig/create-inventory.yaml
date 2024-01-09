@@ -70,7 +70,17 @@
                 ansible_host: {{ a360_kafka_boostrap_ip }}
                 ansible_user: {{ a360_ssh_user }}
                 ansible_password: {{ a360_ssh_password}}
-      when: use_existing_a360 == True
+      when: (cip_version.split('-')[0] | int > 3) and (use_existing_a360 == True)
+
+    - name: Write Web Apps and Subsystems for USE_EXISTING_A360 == True
+      lineinfile:
+        path: ../../terraform/inventory.yml
+        line: |
+          # Default value
+              a360:
+                ansible_host: localhost
+                ab_host_alias: 'none'
+      when: (cip_version.split('-')[0] | int == 3)
 
     - name: Write Web Apps and Subsystems for USE_EXISTING_AG == True
       lineinfile:
