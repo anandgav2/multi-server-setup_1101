@@ -31,7 +31,12 @@
           echo -e "    cip_instance_{{ counter }}:\n        ansible_host: {{ host_ip }}\n        ansible_ssh_private_key_file: {{ pem_file }}\n        ansible_user: {{ user }}\n        ab_host_alias: '{{ host }}'" >> ../../terraform/inventory.yml
   when: '"a360" not in config'
 
-  
+- name: delete executable for each host if already exist
+  file:
+    path: "{{ host_ip + '.executables.csv' }}"
+    state: absent
+  ignore_errors: true
+      
 - name: write executable for each host
   lineinfile: 
     #path: "{{ host | split(' ') | first + '.executables.csv' }}"
