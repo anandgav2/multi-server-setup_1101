@@ -180,8 +180,8 @@
 
     - name: Shutdown  Repository
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh air repository shutdown"
-      register: "{{ functional_user }}"
-      become_user: abinitio
+      register: command_output
+      become_user: "{{ functional_user }}"
       ignore_errors: true
 
     - name: Print logs
@@ -229,7 +229,7 @@
         - ab-bridge stop
         - ab-bridge status
       register: command_output
-      become_user: abinitio
+      become_user: "{{ functional_user }}"
       ignore_errors: true
 
     - name: Print logs
