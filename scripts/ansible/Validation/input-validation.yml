@@ -489,6 +489,15 @@
                   *** There should be 1 occurance of {{ item }} in the subsystem distribution ***
           when: subsys_list | select('match', subsys_map.cc) | count != 1 and use_existing_cc == False
 
+        - name: Verify USE_EXISTING_A360 = True
+          include_tasks: ../write_log.yml
+          vars:
+            error_msg: |
+              In Case of USE_EXISTING_A360 = True, There is no need of 'a360' entry in cip_setup_server_config.yml
+                     Kindly remove the entry
+          when: (cip_version.split('-')[0] | int > 3) and (use_existing_a360 == True) and 
+            (subsys_list | select('match', subsys_map.standalone) | count >= 1)
+
         - name: Verify A360 stand alone
           include_tasks: ../write_log.yml
           vars:
@@ -497,7 +506,7 @@
                      Or the {{ subsys_map.standalone }} is shared with other subsystems
 
                  *** {{ subsys_map.standalone }} should be on a dedicated server and should occur only once ***
-          when: (cip_version.split('-')[0] | int > 3) and (
+          when: (cip_version.split('-')[0] | int > 3) and (use_existing_a360 == False) and (
             (subsys_list | select('match', subsys_map.standalone) | count == 0) or (subsys_list | select('match', subsys_map.standalone) | count > 1) or (
               (subsys_list | select('match', subsys_map.standalone) | count == 1) and (
                 (subsys_dist | select('match', '.*' + subsys_map.standalone + '.*'))[0].split(',') | count > 1)))

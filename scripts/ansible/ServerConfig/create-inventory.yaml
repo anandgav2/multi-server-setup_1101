@@ -52,6 +52,25 @@
         line: |
           {{ output.stdout }}
 
+    - name: Write Web Apps and Subsystems for USE_EXISTING_A360 == True
+      lineinfile:
+        path: ../../terraform/inventory.yml
+        line: |
+          # Use existing A360
+              a360_web:
+                ansible_host: {{ a360_webapp_ip }}
+                ansible_user: {{ a360_ssh_user }}
+                ansible_password: {{ a360_ssh_password}}
+              a360_adc:
+                ansible_host: {{ a360_adc_ip }}
+                ansible_user: {{ a360_ssh_user }}
+                ansible_password: {{ a360_ssh_password}}
+              a360_kafka:
+                ansible_host: {{ a360_kafka_boostrap_ip }}
+                ansible_user: {{ a360_ssh_user }}
+                ansible_password: {{ a360_ssh_password}}
+      when: use_existing_a360 == True
+
     - name: Write Web Apps and Subsystems for USE_EXISTING_AG == True
       lineinfile:
         path: ../../terraform/inventory.yml
@@ -60,12 +79,7 @@
               ag:
                 ansible_host: {{ ag_import_host_ip }}
                 ansible_user: {{ ag_import_ssh_user }}
-          {% if ag_import_ssh_password is defined %}
                 ansible_password: {{ ag_import_ssh_password}}
-          {% endif %}
-          {% if ag_import_ssh_private_key_file_path is defined %}
-                ansible_ssh_private_key_file: {{ ag_import_ssh_private_key_file_path }}
-          {% endif %}
       when: use_existing_ag == True
 
     

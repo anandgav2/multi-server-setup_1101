@@ -100,7 +100,7 @@ pipeline {
         //             def startTime = sT.format(TIME_FORMAT)
         //             sh "echo ----------- SERVER CONFIGURATION STARTED -----------  >> ${env.LOG_FILE}"
         //             sh "echo Start Time ::  ${startTime} >> ${env.LOG_FILE}"
-        //             sh 'cd "${WORKSPACE}/scripts/ansible/ServerConfig"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key configure-server.yaml'
+        //             sh 'cd "${WORKSPACE}/scripts/ansible/ServerConfig"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key configure-server.yaml'
         //             def eT = new Date()
         //             def endTime = eT.format(TIME_FORMAT)
         //             sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
@@ -118,7 +118,7 @@ pipeline {
         //             def sT = new Date()
         //             def startTime = sT.format(TIME_FORMAT)
         //             sh "echo ----------- COOP INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"
-        //             sh 'cd "${WORKSPACE}/scripts/ansible/Coop"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-coop.yaml'
+        //             sh 'cd "${WORKSPACE}/scripts/ansible/Coop"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key install-coop.yaml'
         //             def eT = new Date()
         //             def endTime = eT.format(TIME_FORMAT)
         //             sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
@@ -145,7 +145,7 @@ pipeline {
                             def sT = new Date()
                             def startTime = sT.format(TIME_FORMAT)
                             sh "echo ----------- A360 INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"        
-                            sh 'cd "${WORKSPACE}/scripts/ansible/act360"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-act360.yaml' 
+                            sh 'cd "${WORKSPACE}/scripts/ansible/act360"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key install-act360.yaml' 
                             def eT = new Date()
                             def endTime = eT.format(TIME_FORMAT)
                             sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
@@ -167,7 +167,7 @@ pipeline {
                 //                     def sT = new Date()
                 //                     def startTime = sT.format(TIME_FORMAT)
                 //                     sh "echo ----------- AG INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"
-                //                     sh 'cd "${WORKSPACE}/scripts/ansible/AG"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-AG.yaml'
+                //                     sh 'cd "${WORKSPACE}/scripts/ansible/AG"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key install-AG.yaml'
                 //                     def eT = new Date()
                 //                     def endTime = eT.format(TIME_FORMAT)
                 //                     sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
@@ -185,7 +185,7 @@ pipeline {
                 //                     def sT = new Date()
                 //                     def startTime = sT.format(TIME_FORMAT)
                 //                     sh "echo ----------- CAFE INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"
-                //                     sh 'cd "${WORKSPACE}/scripts/ansible/Cafe"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-cafe.yaml'
+                //                     sh 'cd "${WORKSPACE}/scripts/ansible/Cafe"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key install-cafe.yaml'
                 //                     def eT = new Date()
                 //                     def endTime = eT.format(TIME_FORMAT)
                 //                     sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
@@ -203,7 +203,7 @@ pipeline {
                         //             def sT = new Date()
                         //             def startTime = sT.format(TIME_FORMAT)
                         //             sh "echo ----------- Control Center INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"
-                        //             sh 'cd "${WORKSPACE}/scripts/ansible/CC"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-CC.yaml'
+                        //             sh 'cd "${WORKSPACE}/scripts/ansible/CC"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key install-CC.yaml'
                         //             def eT = new Date()
                         //             def endTime = eT.format(TIME_FORMAT)
                         //             sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
@@ -221,7 +221,7 @@ pipeline {
                         //             def sT = new Date()
                         //             def startTime = sT.format(TIME_FORMAT)
                         //             sh "echo -----------Install Query>IT STARTED -----------  >> ${env.LOG_FILE}"
-                        //             sh 'cd "${WORKSPACE}/scripts/ansible/QueryIT"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-queryit.yaml'
+                        //             sh 'cd "${WORKSPACE}/scripts/ansible/QueryIT"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key install-queryit.yaml'
                         //             def eT = new Date()
                         //             def endTime = eT.format(TIME_FORMAT)
                         //             sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
@@ -245,7 +245,7 @@ pipeline {
                 //                     def sT = new Date()
                 //                     def startTime = sT.format(TIME_FORMAT)
                 //                     sh "echo ----------- Create EME STARTED -----------  >> ${env.LOG_FILE}"
-                //                     sh 'cd "${WORKSPACE}/scripts/ansible/EME"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-eme.yaml'
+                //                     sh 'cd "${WORKSPACE}/scripts/ansible/EME"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key install-eme.yaml'
                 //                     def eT = new Date()
                 //                     def endTime = eT.format(TIME_FORMAT)
                 //                     sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
@@ -263,7 +263,7 @@ pipeline {
                 //                     def sT = new Date()
                 //                     def startTime = sT.format(TIME_FORMAT)
                 //                     sh "echo ----------- Generating Execuatbles and CIP Inventory file -----------  >> ${env.LOG_FILE}"
-                //                     sh 'cd "${WORKSPACE}/scripts/ansible/setup_multiserver"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key setup_multiserver_subsystems.yml'                    
+                //                     sh 'cd "${WORKSPACE}/scripts/ansible/setup_multiserver"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key setup_multiserver_subsystems.yml'                    
                 //                     def eT = new Date()
                 //                     def endTime = eT.format(TIME_FORMAT)
                 //                     sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
@@ -281,10 +281,10 @@ pipeline {
                 //                     def sT = new Date()
                 //                     def startTime = sT.format(TIME_FORMAT)
                 //                     sh "echo ----------- CIP INSTALLATION STARTED -----------  >> ${env.LOG_FILE}"
-                //                     sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-cip-main.yml'
-                //                     sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key install-cip-datadir-creation.yml'
-                //                     sh 'cd "${WORKSPACE}/scripts/ansible/setup_multiserver"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key copy_executables.yml'
-                //                     sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key create_db.yml'
+                //                     sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key install-cip-main.yml'
+                //                     sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key install-cip-datadir-creation.yml'
+                //                     sh 'cd "${WORKSPACE}/scripts/ansible/setup_multiserver"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key copy_executables.yml'
+                //                     sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key create_db.yml'
                 //                     def eT = new Date()
                 //                     def endTime = eT.format(TIME_FORMAT)
                 //                     sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
@@ -302,9 +302,9 @@ pipeline {
                 //                     def sT = new Date()
                 //                     def startTime = sT.format(TIME_FORMAT)
                 //                     sh "echo ----------- Setup Seed Data STARTED -----------  >> ${env.LOG_FILE}"
-                //                     sh 'cd "${WORKSPACE}/scripts/ansible/seed-data"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key seed-data.yaml'
-                //                     sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key start-create-env.yml'
-                //                     sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key load-subscriber-profile.yml'
+                //                     sh 'cd "${WORKSPACE}/scripts/ansible/seed-data"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key seed-data.yaml'
+                //                     sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key start-create-env.yml'
+                //                     sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key load-subscriber-profile.yml'
                 //                     def eT = new Date()
                 //                     def endTime = eT.format(TIME_FORMAT)
                 //                     sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
@@ -332,7 +332,7 @@ pipeline {
                     def sT = new Date()
                     def startTime = sT.format(TIME_FORMAT)
                     sh "echo ----------- Bringing UP CIP Subsystems -----------  >> ${env.LOG_FILE}"
-                    sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key start-cip.yaml'
+                    sh 'cd "${WORKSPACE}/scripts/ansible/CIP"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key start-cip.yaml'
                     def eT = new Date()
                     def endTime = eT.format(TIME_FORMAT)
                     sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"
@@ -355,7 +355,7 @@ pipeline {
                     def sT = new Date()
                     def startTime = sT.format(TIME_FORMAT)
                     sh "echo ----------- A360 Integration STARTED -----------  >> ${env.LOG_FILE}"        
-                    sh 'cd "${WORKSPACE}/scripts/ansible/act360"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key A360_and_cip_integration.yaml' 
+                    sh 'cd "${WORKSPACE}/scripts/ansible/act360"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key A360_and_cip_integration.yaml' 
                     def eT = new Date()
                     def endTime = eT.format(TIME_FORMAT)
                     sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}" 
@@ -373,7 +373,7 @@ pipeline {
         //             def sT = new Date()
         //             def startTime = sT.format(TIME_FORMAT)
         //             sh "echo ----------- Installing CIP UI -----------  >> ${env.LOG_FILE}"
-        //             sh 'cd "${WORKSPACE}/scripts/ansible/CIPUI"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../vault_key start-cipui.yaml'
+        //             sh 'cd "${WORKSPACE}/scripts/ansible/CIPUI"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key start-cipui.yaml'
         //             def eT = new Date()
         //             def endTime = eT.format(TIME_FORMAT)
         //             sh "echo End Time ::  ${endTime} >> ${env.LOG_FILE}"

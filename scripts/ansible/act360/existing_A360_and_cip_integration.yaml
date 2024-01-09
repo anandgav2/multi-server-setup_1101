@@ -1,6 +1,7 @@
 - name: A360 - CIP Integration
   hosts: 
     - server*
+    - a360*
   become: yes # Run tasks with root privileges
   vars:
     log_file: "{{ lookup('env', 'LOG_FILE').split(',') | first}}"
@@ -16,17 +17,22 @@
         - "{{ installer_path }}/cip_setup_automation.yml"
         - "{{ comm_config_file }}"
         
-    - name: Get Control inventory hostnames
+    - name: Get Important Hosts
       set_fact:
-        control_inv: "{{ item }}"
-      loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
-      when: hostvars[item].ab_host_alias == hostvars['control'].ab_host_alias
+        control_inv: "control"
+        a360_inv: "a360_web"
+        a360_servers:
+          - "{{ a360_webapp_server }}"
+          - "{{ a360_webapp_ip }}"
+          - "{{ a360_kafka_boostrap_server }}"
+          - "{{ a360_kafka_boostrap_ip }}"
+          - "{{ a360_adc_server }}"
+          - "{{ a360_adc_ip }}"
 
-    - name: Get Control inventory hostnames
+    - name: Get CIP hosts
       set_fact:
-        a360_inv: "{{ item }}"
+        cip_servers: "{{ cip_servers | default([]) + [ hostvars[item].ansible_hostname, hostvars[item].ansible_host ] }}"
       loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
-      when: hostvars[item].ab_host_alias == hostvars['a360'].ab_host_alias
 
     - name: Get IMP variables from control server
       when: ab_host_alias == hostvars['control'].ab_host_alias
@@ -38,14 +44,15 @@
         air sandbox eval . CIP_COMMON_LOCAL_SERIAL
         air sandbox eval . CIP_COMMON_SERIAL_LOOKUP
         air sandbox eval . CIP_COMMON_PRIVATE_DML
+        echo $AB_HOME
       register: control_out
       become_user: "{{ functional_user }}"
 
     - name: Get IMP variables from A360 server
-      when: ab_host_alias ==  hostvars['a360'].ab_host_alias
+      when: inventory_hostname == 'a360_web'
       shell: |
-        source {{ a360_root }}/bin/env.sh
-        cd {{ a360_root }}/sand/abinitio/act/main
+        source {{ exist_a360_root }}/bin/env.sh
+        cd {{ exist_a360_root }}/sand/abinitio/act/main
         echo $AB_HOME
         air sandbox eval . ACT_API_MESSAGE_BUS_PROPERTIES_FILE
         echo {{ ansible_hostname }}
@@ -56,6 +63,7 @@
         air sandbox eval . ACT_API_BASE_PORT
         air sandbox eval . ACT_API_HTTP_CONTEXT_ROOT
         air sandbox eval . KAFKA_BOOTSTRAP_SERVERS
+        ab-app status | grep $(air sandbox eval . ACT_API_BASE_PORT) | awk -F ', ' '{print $1}' | awk -F ': ' '{print $2}'
       register: a360_out
       become_user: "{{ functional_user }}"
 
@@ -71,6 +79,7 @@
         act_api_base_port: "{{ hostvars[a360_inv]['a360_out']['stdout_lines'][7] }}"
         act_api_http_context_root: "{{ hostvars[a360_inv]['a360_out']['stdout_lines'][8] }}"
         kafka_bootstrap_servers: "{{ hostvars[a360_inv]['a360_out']['stdout_lines'][9] }}"
+        a360_web_root: "{{ hostvars[a360_inv]['a360_out']['stdout_lines'][10] }}"
 
     - name: Get required Parameter values from CIP Server
       set_fact:
@@ -79,29 +88,105 @@
         cip_common_local_serial: "{{ hostvars[control_inv]['control_out']['stdout_lines'][2] }}"
         cip_common_serial_lookup: "{{ hostvars[control_inv]['control_out']['stdout_lines'][3] }}"
         cip_common_private_dml: "{{ hostvars[control_inv]['control_out']['stdout_lines'][4] }}"
+        cip_ab_home: "{{ hostvars[control_inv]['control_out']['stdout_lines'][5] }}"
 
-    - name: Create Hetro connection File
+    - name: Add A360 remote host and public IP entries to /etc/hosts - on CIP Servers
       lineinfile:
-        path: "/home/{{ functional_user }}/.abinitiorc"
-        line: |     
-          AB_HOME @ A360 : {{ a360_ab_home }}
-        state: present
-        create: yes
-      become_user: "{{ functional_user }}"
+        path: /etc/hosts
+        line: |
+          {{ a360_webapp_ip + ' ' + a360_webapp_server }}
+          {{ a360_kafka_boostrap_ip + ' ' + a360_kafka_boostrap_server }}
+          {{ a360_adc_ip + ' ' + a360_adc_server }}
+      when: inventory_hostname | match('^server')
 
-    - name: Get A360 Sandbox Parameters - ACT_API_MESSAGE_BUS_PROPERTIES_FILE
-      when: ab_host_alias ==  hostvars['a360'].ab_host_alias
-      shell: |
-        cp {{ installer_path }}/host_alias_file.dat {{ a360_root }}/config/ab_host_alias_file
-        echo "admin {{ ansible_hostname }}" >> {{ a360_root }}/config/ab_host_alias_file
-        cat {{ act_api_message_bus_properties_file }}
+    - name: Add CIP remote host and public IP entries to /etc/hosts - on A360 Servers
+      lineinfile:
+        path: /etc/hosts
+        line: |
+          {{ hostvars[item].ansible_default_ipv4.address + ' ' + hostvars[item].ansible_hostname }}
+      loop: "{{ hostvars.keys() | select('match', '^server.*') | list }}"
+      when: inventory_hostname | match('^a360')
+
+    - name: Generate ENC Password A360 Servers
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh m_password -password {{ a360_ssh_password }} -unrestricted"
       register: command_output
       become_user: "{{ functional_user }}"
+      when: inventory_hostname | match('^server')
 
-    - name: Kafka Bootstrap server
-      when: ab_host_alias ==  hostvars['a360'].ab_host_alias
+    - name: Create A360 Hetro connection File - on CIP Servers
+      lineinfile:
+        path: "/home/{{ functional_user }}/.abinitiorc"
+        line: | 
+          AB_NODES @ A360 : {{ a360_servers | unique | join(' ') }}
+          AB_USERNAME @ A360 : {{ a360_ssh_user }}
+          AB_CONNECTION @ A360 : ssh
+          AB_SSH_NEEDS_PASSWORD @ A360 : ture
+          AB_ENCRYPTED_PASSWORD @ A360 : {{ command_output.stdout }}
+          AB_HOME @ A360 : {{ a360_ab_home }}
+        state: present
+      become_user: "{{ functional_user }}"
+      when: inventory_hostname | match('^server')
+
+    - name: SSH into the server and accept key fingerprint for hetro connection
+      expect:
+        command: ssh {{ item }}
+        responses:
+          'Are you sure you want to continue connecting (yes/no/[fingerprint])?': "yes"
+        timeout: 10
+      become_user: "{{ functional_user }}"
+      loop: "{{ a360_servers }}"
+      ignore_errors: yes
+      when: inventory_hostname | match('^server')
+
+    - name: Generate ENC Password CIP Servers
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh m_password -password {{ functional_user_password }} -unrestricted"
+      register: command_output
+      become_user: "{{ functional_user }}"
+      when: inventory_hostname | match('^server')
+
+    - name: Create CIP Hetro connection File - on A360 Server
+      lineinfile:
+        path: "/home/{{ a360_ssh_user }}/.abinitiorc"
+        line: | 
+          AB_NODES @ CIP : {{ cip_servers | join(' ') }}
+          AB_USERNAME @ CIP : {{ functional_user }}
+          AB_CONNECTION @ CIP : ssh
+          AB_SSH_NEEDS_PASSWORD @ CIP : ture
+          AB_ENCRYPTED_PASSWORD @ CIP : {{ command_output.stdout }}
+          AB_HOME @ CIP : {{ cip_ab_home }}
+        state: present
+        create: yes
+      become_user: "{{ a360_ssh_user }}"
+      when: inventory_hostname | match('^a360')
+
+    - name: SSH into the server and accept key fingerprint for hetro connection
+      expect:
+        command: ssh {{ item }}
+        responses:
+          'Are you sure you want to continue connecting (yes/no/[fingerprint])?': "yes"
+        timeout: 10
+      become_user: "{{ a360_ssh_user }}"
+      loop: "{{ cip_servers }}"
+      ignore_errors: yes
+      when: inventory_hostname | match('^a360')
+
+    - name: Get A360 Sandbox Parameters - ACT_API_MESSAGE_BUS_PROPERTIES_FILE
+      when: inventory_hostname == 'a360_web'
+      shell: |
+        cat {{ act_api_message_bus_properties_file }}
+      register: command_output
+      become_user: "{{ a360_ssh_user }}"
+
+    - name: Kafka Bootstrap server properties
+      when: inventory_hostname == 'a360_web'
       debug:
         var: command_output.stdout_lines
+
+    - name: Generate ENC Password Act Portal
+      ansible.builtin.command: "{{ installer_path }}/source_and_run.sh m_password -password {{ act_portal_password }} -unrestricted"
+      register: command_output
+      become_user: "{{ functional_user }}"
+      when: ab_host_alias == hostvars['control'].ab_host_alias
 
     - name: Set A360 Parameters in CIP base pset
       when: ab_host_alias == hostvars['control'].ab_host_alias
@@ -117,12 +202,12 @@
         air sandbox parameter -path dev.pset ACT_API_CUSTOMER360_SUBSET_NAME@ 'subset_for_cip_inbound'
         air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_HTTP_HOST@ {{ a360_hostname }}
         air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_HTTP_PORT@ '{{ act_api_base_port }}'
-        air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_API_URLROOT@ '/activeportal/api/act'
-        air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_USERNAME@ 'cafeuser'
-        air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_PASSWORD_ENCRYPTED@ '2,,LH6OEsUEcn2S0PL8og2Sh9anwwDdN5uOjOWJforE59I'
+        air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_API_URLROOT@ '/{{ a360_web_root }}/api/act'
+        air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_USERNAME@ '{{ act_portal_username }}'
+        air sandbox parameter -path dev.pset CIP_COMMON_ACT_PORTAL_PASSWORD_ENCRYPTED@ '{{ act_portal_password }}'
         air sandbox parameter -path dev.pset CIP_COMMON_CUSTOMER_360_SUBSET@ 'subset_for_cip_outbound'
         air sandbox parameter -path dev.pset CIP_COMMON_A360_KAFKA_TOPIC_PROPERTIES@ 'acks=-1
-        bootstrap.servers={{ a360_hostname }}:{{ kafka_bootstrap_servers.split(':')[1] }}
+        bootstrap.servers={{ a360_kafka_boostrap_server }}:{{ kafka_bootstrap_servers.split(':')[1] }}
         transaction.timeout.ms=9000'
         air sandbox import . -files dev.pset
       become_user: "{{ functional_user }}"
@@ -130,7 +215,7 @@
 ## Add ET_A360_NOTIFICATION for CIP_COMMON_INTERNAL_EVENT_OVERRIDE_TYPE_LIST version > 4.1.0.36
 
     - name: Export CIP base pset
-      when: ab_host_alias != hostvars['a360'].ab_host_alias
+      when: inventory_hostname | match('^server')
       shell: |
         source /etc/profile
         cd {{ cip_base_path }}/private_internal
@@ -138,15 +223,30 @@
       become_user: "{{ functional_user }}"
 
     - name: Set A360 Sandbox Parameters
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
+      when: inventory_hostname  | match('^a360')
       shell: |
-        source {{ a360_root }}/bin/env.sh
-        cd {{ a360_root }}/sand/abinitio/act/main
+        source {{ exist_a360_root }}/bin/env.sh
+        cd {{ exist_a360_root }}/sand/abinitio/act/main
         air sandbox parameter -path .sandbox.pset REJECT_MESSAGES_MORE_THAN_N_MINUTES_IN_FUTURE 5256000
+      become_user: "{{ a360_ssh_user }}"
+
+    - name: Relaunch ADC Cluster
+      when: inventory_hostname == 'a360_adc'
+      shell: |
+        source {{ exist_a360_root }}/bin/env.sh
+        cd {{ exist_a360_root }}/sand/abinitio/act/main
         cd run/
         air sandbox run ../pset/shutdown_cluster.pset
         air sandbox run ../pset/launch_cluster.pset
-      become_user: "{{ functional_user }}"
+      become_user: "{{ a360_ssh_user }}"
+
+    - name: Create extractors directory and set ownership
+      when: inventory_hostname == 'a360_web'
+      file:
+        path: "{{ exist_a360_root }}/ab-deployments/act_mhub/extractors/"
+        state: directory
+        recurse: yes
+      become_user: "{{ a360_ssh_user }}"
 
     - name: Extract Metadata of Entity and Events
       when: ab_host_alias == hostvars['control'].ab_host_alias
@@ -161,98 +261,89 @@
       shell: |
         source /etc/profile
         cd {{ cip_base_path }}/private_internal/
-        m_cp {{ cip_common_serial }}/extracted_dml/extracted_dmls.tar.gz //{{ hostvars['a360'].ab_host_alias }}/{{ installer_path }}
-      become_user: "{{ functional_user }}"
-
-    - name: Create extractors directory and set ownership
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
-      file:
-        path: "{{ a360_root }}/ab-deployments/act_mhub/extractors/"
-        state: directory
-        group: abinitio
-        recurse: yes
+        m_cp {{ cip_common_serial }}/extracted_dml/extracted_dmls.tar.gz //{{ hostvars['a360_web'].ansible_hostname }}/{{ exist_a360_root }}/ab-deployments/act_mhub/extractors/
       become_user: "{{ functional_user }}"
 
     - name: Copy CipCustomer_Setup to extractors directory
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
+      when: inventory_hostname == 'a360_web'
       copy:
-        src: "{{ a360_root }}/release_pkg/application/extractors/CipCustomer_Setup"  
-        dest: "{{ a360_root }}/ab-deployments/act_mhub/extractors/"
+        src: "{{ exist_a360_root }}/release_pkg/application/extractors/CipCustomer_Setup"  
+        dest: "{{ exist_a360_root }}/ab-deployments/act_mhub/extractors/"
         mode: "0755" 
         remote_src: yes
-      become_user: "{{ functional_user }}"
+      become_user: "{{ a360_ssh_user }}"
 
     - name: Register A360 Extractors
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
+      when: inventory_hostname == 'a360_web'
       shell: |
-        source {{ a360_root }}/bin/env.sh
-        source {{ a360_root }}/ab-deployments/act_mhub/config/import.profile
-        cd {{ a360_root }}/ab-deployments/act_mhub/extractors/
+        source {{ exist_a360_root }}/bin/env.sh
+        source {{ exist_a360_root }}/ab-deployments/act_mhub/config/import.profile
+        cd {{ exist_a360_root }}/ab-deployments/act_mhub/extractors/
         mh-import register extractors
       register: command_output
-      become_user: "{{ functional_user }}"
+      become_user: "{{ a360_ssh_user }}"
 
     - name: Check A360 Extractors are Registered Output
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
+      when: inventory_hostname == 'a360_web'
       debug:
         var: command_output.stdout_lines
 
     - name: Import the Extracted Metadata to A360
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
+      when: inventory_hostname == 'a360_web'
       shell: |
-        source {{ a360_root }}/bin/env.sh
-        source {{ a360_root }}/ab-deployments/act_mhub/config/import.profile
-        export AB_MHUB_CONN_PARAMS="$AB_MHUB_CONN_PARAMS -u {{ a360_ag_user }} -p {{ a360_ag_password }}"
-        cd {{ a360_root }}/ab-deployments/act_mhub/extractors/CipCustomer_Setup
-        sed -i "s#METADATA_TAR_FILE:.*#METADATA_TAR_FILE: {{ installer_path }}/extracted_dmls.tar.gz#g" CIP-Metadata-Import.feed
+        source {{ exist_a360_root }}/bin/env.sh
+        source {{ exist_a360_root }}/ab-deployments/act_mhub/config/import.profile
+        export AB_MHUB_CONN_PARAMS="$AB_MHUB_CONN_PARAMS -u {{ act_portal_username }} -p {{ act_portal_password }}"
+        cd {{ exist_a360_root }}/ab-deployments/act_mhub/extractors/CipCustomer_Setup
+        sed -i "s#METADATA_TAR_FILE:.*#METADATA_TAR_FILE: {{ exist_a360_root }}/ab-deployments/act_mhub/extractors/extracted_dmls.tar.gz#g" CIP-Metadata-Import.feed
         mh-import feed save CIP-Metadata-Import.feed
         mh-import run -feed "CIP Metadata Import" -progress -approve
       register: command_output
-      become_user: "{{ functional_user }}"
+      become_user: "{{ a360_ssh_user }}"
 
     - name: Check MH Import Feed Output
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
+      when: inventory_hostname == 'a360_web'
       debug:
         var: command_output.stdout_lines
 
     - name: Run an A360 deployment
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
+      when: inventory_hostname == 'a360_web'
       shell: |
-        source {{ a360_root }}/bin/env.sh
-        curl -X POST "http://{{ a360_hostname }}:{{ act_api_base_port }}/activeportal/api/act/deploy/start" -H "Content-Type: application/json" -d "{}" -u {{ web_app_user }}:{{ web_app_user }}
+        source {{ exist_a360_root }}/bin/env.sh
+        curl -X POST "http://{{ a360_hostname }}:{{ act_api_base_port }}/{{ a360_web_root }}/api/act/deploy/start" -H "Content-Type: application/json" -d "{}" -u {{ act_portal_username }}:{{ act_portal_password }}
         sleep 30
       register: response
-      become_user: "{{ functional_user }}"
+      become_user: "{{ a360_ssh_user }}"
 
     - name: Check A360 deployment Output
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
+      when: inventory_hostname == 'a360_web'
       debug:
         var: response.stdout_lines
 
     - name: Clean Up Unwanted Lookups
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
+      when: inventory_hostname  | match('^a360')
       shell: |
         cd {{ act_api_adc_lookups_staging_dir }}
         rm -rf act_customer*
-      become_user: "{{ functional_user }}"
+      become_user: "{{ a360_ssh_user }}"
 
     - name: Run Lookup Reload
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
+      when: inventory_hostname == 'a360_adc'
       shell: |
-        source {{ a360_root }}/bin/env.sh
-        cd {{ a360_root }}/sand/abinitio/act/main/run
+        source {{ exist_a360_root }}/bin/env.sh
+        cd {{ exist_a360_root }}/sand/abinitio/act/main/run
         air sandbox run ../pset/reload_lookups.pset
         adc lobby lookups state
       register: command_output
-      become_user: "{{ functional_user }}"
+      become_user: "{{ a360_ssh_user }}"
 
     - name: Display ADC status
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
+      when: inventory_hostname == 'a360_adc'
       debug:
         var: command_output.stdout_lines
 
     - name: Stop CIP Subsystems
-      when: ab_host_alias != hostvars['a360'].ab_host_alias
+      when: inventory_hostname  | match('^server')
       shell: |
         source /etc/profile
         cd {{ cip_base_path }}/private_internal/bin
@@ -263,7 +354,7 @@
       become_user: "{{ functional_user }}"
 
     - name: Start CIP Utility and Control Subsystem
-      when: ab_host_alias != hostvars['a360'].ab_host_alias
+      when: inventory_hostname  | match('^server')
       shell: |
         source /etc/profile
         cd {{ cip_base_path }}/private_internal/bin
@@ -274,7 +365,7 @@
       become_user: "{{ functional_user }}"
     
     - name: Check CIP Utility and Control Subsystem Status
-      when: ab_host_alias != hostvars['a360'].ab_host_alias
+      when: inventory_hostname  | match('^server')
       shell: |
         source /etc/profile
         cd {{ cip_base_path }}/private_internal/bin
@@ -283,7 +374,7 @@
       become_user: "{{ functional_user }}"
 
     - name: Check if Utility and Control are running
-      when: ab_host_alias != hostvars['a360'].ab_host_alias
+      when: inventory_hostname  | match('^server')
       debug:
         var: command_output.stdout_lines
     
@@ -331,60 +422,60 @@
       shell: |
         source /etc/profile
         cd {{ cip_base_path }}/private_internal/
-        m_cp {{ cip_common_local_serial }}/cip_customer_lookup_data.dat //{{ hostvars['a360'].ab_host_alias }}/{{ a360_ai_serial }}
-        m_cp {{ cip_common_local_serial }}/cip_customer_lookup_type.dml //{{ hostvars['a360'].ab_host_alias }}/{{ a360_ai_serial }}
+        m_cp {{ cip_common_local_serial }}/cip_customer_lookup_data.dat //{{ hostvars['a360_web'].ansible_hostname }}/{{ a360_ai_serial }}
+        m_cp {{ cip_common_local_serial }}/cip_customer_lookup_type.dml //{{ hostvars['a360_web'].ansible_hostname }}/{{ a360_ai_serial }}
       become_user: "{{ functional_user }}"
 
     - name: Run the lookup load with act-admin
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
+      when: inventory_hostname == 'a360_web'
       shell: |
-        source {{ a360_root }}/bin/env.sh
-        export PATH={{ a360_root }}/bin:$PATH
+        source {{ exist_a360_root }}/bin/env.sh
+        export PATH={{ exist_a360_root }}/bin:$PATH
         act-admin lookups -e cip_customer -l ingested_attributes -f {{ a360_ai_serial }}/cip_customer_lookup_data.dat -d {{ a360_ai_serial }}/cip_customer_lookup_type.dml create
         act-admin lookups status -e cip_customer -l ingested_attributes
-      become_user: "{{ functional_user }}"
+      become_user: "{{ a360_ssh_user }}"
 
     - name: Hit the curl command on a360-host
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
+      when: inventory_hostname == 'a360_web'
       uri:
-        url: "http://{{ a360_hostname }}:{{ adc_webserver_port }}/entities/cip_customer?entity_id=10000001"
+        url: "http://{{ a360_webapp_server }}:{{ adc_webserver_port }}/entities/cip_customer?entity_id=10000001"
         method: GET
-        user: "{{ active_data_user }}"
-        password: "{{ active_data_password }}"
+        user: "{{ adc_user }}"
+        password: "{{ adc_password }}"
       register: http_response
 
     - name: Display HTTP Response
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
+      when: inventory_hostname == 'a360_web'
       debug:
         var: http_response
 
     - name: Create daily unload job from A360 
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
+      when: inventory_hostname == 'a360_web'
       shell: |
-        source {{ a360_root }}/bin/env.sh
-        export PATH={{ a360_root }}/bin:$PATH
-        cd {{ a360_root }}/sand/abinitio/act/main/
+        source {{ exist_a360_root }}/bin/env.sh
+        export PATH={{ exist_a360_root }}/bin:$PATH
+        cd {{ exist_a360_root }}/sand/abinitio/act/main/
         act-admin lookups -e cip_customer -l unload create
         ls -l $(air sandbox eval . ACT_API_SERIAL_LOOKUP)/cip_customer_unload*
         air sandbox pset pset/calc_cip_customer_subset_unload.pset -prototype '$GENERATED_ARTIFACT_PSET/calc_cip_customer_unload_lookup.pset'
         air sandbox parameter -path pset/calc_cip_customer_subset_unload.pset SUBSET_NAME subset_for_cip_outbound
         act-admin lookups -e cip_customer -l unload -p $(pwd)/pset/calc_cip_customer_subset_unload.pset create
       register: command_output
-      become_user: "{{ functional_user }}"
+      become_user: "{{ a360_ssh_user }}"
 
     - name: Check Daily unload job creation output
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
+      when: inventory_hostname == 'a360_web'
       debug:
         var: command_output.stdout_lines
 
     - name: Copy Generted Lookups from Act360 to CIP
-      when: ab_host_alias == hostvars['a360'].ab_host_alias
+      when: inventory_hostname == 'a360_web'
       shell: |
-        source {{ a360_root }}/bin/env.sh
-        m_cp {{ act_api_serial_lookup }}/cip_customer_unload.latest.dat //{{ hostvars['control'].ab_host_alias }}/{{ cip_common_serial_lookup }}/
-        m_cp {{ act_api_serial_lookup }}/cip_customer_unload.latest.dml //{{ hostvars['control'].ab_host_alias }}/{{ cip_common_serial_lookup }}/
+        source {{ exist_a360_root }}/bin/env.sh
+        m_cp {{ act_api_serial_lookup }}/cip_customer_unload.latest.dat //{{ hostvars['control'].ansible_hostname }}/{{ cip_common_serial_lookup }}/
+        m_cp {{ act_api_serial_lookup }}/cip_customer_unload.latest.dml //{{ hostvars['control'].ansible_hostname }}/{{ cip_common_serial_lookup }}/
       register: command_output
-      become_user: "{{ functional_user }}"
+      become_user: "{{ a360_ssh_user }}"
 
     - name: run a360_unload_to_subscriber_profile_lookup.pset
       when: ab_host_alias == hostvars['control'].ab_host_alias
@@ -408,7 +499,7 @@
         var: command_output.stdout_lines
 
     - name: Start CIP services
-      when: ab_host_alias != hostvars['a360'].ab_host_alias
+      when: inventory_hostname  | match('^server')
       shell: |
         source /etc/profile
         cd {{ cip_base_path }}/private_internal/bin
@@ -502,7 +593,7 @@
       when: ab_host_alias == hostvars['nbos_adapter'].ab_host_alias
 
     - name: Check CIP All Subsystem Status
-      when: ab_host_alias != hostvars['a360'].ab_host_alias
+      when: inventory_hostname  | match('^server')
       shell: |
         source /etc/profile
         cd {{ cip_base_path }}/private_internal/bin
@@ -511,6 +602,6 @@
       become_user: "{{ functional_user }}"
 
     - name: Check if CIP is running
-      when: ab_host_alias != hostvars['a360'].ab_host_alias
+      when: inventory_hostname  | match('^server')
       debug:
         var: command_output.stdout_lines

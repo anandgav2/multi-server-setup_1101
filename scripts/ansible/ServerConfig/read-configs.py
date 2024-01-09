@@ -23,7 +23,6 @@ for line in host_alias:
     ip = columns[1]
     pem_file = list(filter(lambda l: l.startswith(server + '_private_key:'), server_config))[0].split(': ')[1] if not pf else pf
     sub_systems = list(filter(lambda l: l.startswith(server + '_config:'), server_config))[0].split(': ')[1].split(',')
-    a360_flag = 0;
 
     print("    server" + str(cnt) + ":" )
     print("      ansible_host: "+ip)
@@ -101,11 +100,4 @@ for line in host_alias:
         print("      ansible_ssh_private_key_file: "+pem_file)
         print("      ansible_user: "+f_user)
         print("      ab_host_alias: '"+server+"'")
-
-if a360_flag == 0:
-    print("    a360:")
-    print("      ansible_host: null")
-    print("      ansible_ssh_private_key_file: "+pem_file)
-    print("      ansible_user: "+f_user)
-    print("      ab_host_alias: 'localhost'")
     
