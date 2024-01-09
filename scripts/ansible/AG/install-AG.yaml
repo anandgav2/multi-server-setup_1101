@@ -210,7 +210,7 @@
 
     - name: Enc AG admin Password
       shell: | 
-        ansible-vault encrypt_string --vault-password-file ../vault_key "{{ password }}" 
+        ansible-vault encrypt_string --vault-password-file ../cip_vault_key "{{ password }}" 
       delegate_to: localhost
       register: enc_password
       become: false

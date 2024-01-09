@@ -131,7 +131,7 @@
 
     - name: Enc Cafe User Password
       shell: | 
-        ansible-vault encrypt_string --vault-password-file ../vault_key "{{ web_app_user }}" 
+        ansible-vault encrypt_string --vault-password-file ../cip_vault_key "{{ web_app_user }}" 
       delegate_to: localhost
       register: enc_password
       become: false
