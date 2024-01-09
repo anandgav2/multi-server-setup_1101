@@ -14,6 +14,7 @@
         file: "{{ item }}"
       with_items:
         - "{{ installer_path }}/cip_setup_automation.yml"   
+        - "{{ installer_path }}/installer-versions.yml"
 
     - name: SET pem path blank
       set_fact:
