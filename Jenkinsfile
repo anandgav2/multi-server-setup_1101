@@ -210,7 +210,7 @@ pipeline {
                                     sh "echo ------- Control>Center INSTALLATION SUCCESSFUL ---------- >> ${env.LOG_FILE}"
                                     sh "echo ----------- Control>Center System,applications and runtime env creation started -----------  >> ${env.LOG_FILE}"
                                     sh 'cd "${WORKSPACE}/scripts/ansible/CC"  ; ansible-playbook -i ../../terraform/inventory.yml --vault-password-file=../cip_vault_key create_system_application_and_runtime_cc.yaml'
-                                    sh "echo ----------- Control>Center System,applications and runtime env creation SUCCESSFUL -----------  >> ${env.LOG_FILE}
+                                    sh "echo ----------- Control>Center System,applications and runtime env creation SUCCESSFUL -----------  >> ${env.LOG_FILE}"
                                     
                                 }
                             }
