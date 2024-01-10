@@ -27,6 +27,7 @@ cip_common_base_port: 27000
 data_mfs_depth: 4
 cp_data_mfs_depth: 8
 cip_db_name: "cip_db"
+cip_db_port: "5678"   # need open in terraform
 nbos_adc_config_type: "FILE"   #options - EME|DEFAULT|FILE
 nbos_adc_config: "test.dev.props"
 ###########################################################################################
