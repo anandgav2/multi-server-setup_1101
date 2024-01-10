@@ -45,11 +45,6 @@
       no_log: true
       become: false  
 
-    - name: Read Coop Configuration File
-      slurp:
-        src: "{{ installer_path }}/coop-config.ini"
-      register: coop_config_file_content
-
     - name: Find the Installer Tar
       find:
         paths: "{{ installer_path }}"
@@ -104,16 +99,6 @@
         su - {{ item }} -c "tar xvf {{ installer_path }}/Active360*.* -C {{ installer_path }}/"
       loop:
         - "{{ functional_user }}"
-
-    - name: Parse Coop Configuration Values
-      set_fact:
-        coop_config_values: "{{ (coop_config_file_content['content'] | b64decode).split('\n') | map('trim') }}"
-      register: parsed_config
-   
-    - name: Read Installation Directory value from config
-      set_fact:
-        destination: "{{ coop_config_values | select('match', '^destination=(.*)') | map('regex_replace', '^destination=(.*)', '\\1') | first }}"
-        app_hub_dest: "{{ coop_config_values | select('match', '^app_hub_dest=(.*)') | map('regex_replace', '^app_hub_dest=(.*)', '\\1') | first }}"
 
     - name: "Fetch JAVA_HOME"
       shell: |
