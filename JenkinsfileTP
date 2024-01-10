@@ -155,8 +155,8 @@ pipeline {
                     }
                 } /* close Batch #1*/
 
-                stage('Batch#2- AG,Cafe,CC & QueryIt ') {
-                    stages {
+                // stage('Batch#2- AG,Cafe,CC & QueryIt ') {
+                //     stages {
                         
                         // stage('Install AG')
                         // {
@@ -288,13 +288,13 @@ pipeline {
                         //         }
                         //     }
                         // }
-                   } /* close Batch #2 serial stages*/
-               } /* close Batch #2*/
+            //        } /* close Batch #2 serial stages*/
+            //    } /* close Batch #2*/
                 
-                stage('Batch#3- EME, CIP & Seed Data') 
-                {
-                    stages 
-                    {
+                // stage('Batch#3- EME, CIP & Seed Data') 
+                // {
+                //     stages 
+                //     {
                         // stage('Create EME')
                         // {
                         //     steps
@@ -371,8 +371,8 @@ pipeline {
                         //         }
                         //     }
                         // } 
-                    }/* close Batch#3 serial stages*/
-                }/* close Batch#3*/
+                //     }/* close Batch#3 serial stages*/
+                // }/* close Batch#3*/
                 
             }/* close parallel */
         }/* close parallel stage*/
