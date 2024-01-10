@@ -161,6 +161,35 @@
           debug:
              var: command_output
       when: Stage in ["Start CIPUI","All"] and ab_host_alias == hostvars['cipui'].ab_host_alias
+
+    - name: Destroying QueryIt
+      block:
+        - name: Kill a360 processes
+          shell: |
+            sudo rm -rf {{ cip_base_path }}/queryit
+            sudo sudo rm -rf {{ data_root_path }}/cip/serial/abinitio/queryitdata/
+          register: command_output
+	  loop:
+            - "{{ functional_user }}"
+          ignore_errors: true
+
+        - name: Print logs
+          debug:
+            var: command_output
+
+        - name: Stop QueryIt Instance
+          ansible.builtin.command:
+            cmd: sh -c "source /etc/profile && ab-qi service stop"
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+          args:
+            chdir: "{{ cip_base_path }}/queryit"
+	    
+        - name: Print logs
+          debug:
+             var: command_output
+      when: Stage in ["Install QueryIt","All"] and ab_host_alias == hostvars['queryit'].ab_host_alias and use_existing_queryit == "False"
       
     - name: Destroy CIP DB
       block:
@@ -177,6 +206,20 @@
              var: command_output
       when: Stage in ["Install CIP","All"]  and ab_host_alias == hostvars['cipdb'].ab_host_alias  and use_existing_cipdb == "False"
 
+    - name: Destroy CIP Sandbox
+      block:
+        - name: Delete CIP Sandbox
+          shell: |
+            sudo rm -rf {{ sandbox_root }}/{{functional_user}}
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+	    
+        - name: Print logs
+          debug:
+             var: command_output
+      when: Stage in ["Install CIP","All"]  and ab_host_alias| string in groups['cip_servers']| map('extract', hostvars) | map(attribute='ab_host_alias')
+      
     - name: Destroy EME
       block:
         - name: Shutdown  Repository
@@ -226,36 +269,6 @@
         debug:
            var: command_output
       when: Stage in ["Install Cafe","All"] and ab_host_alias == hostvars['cafe'].ab_host_alias
-      
-    - name: Destroying QueryIt
-      block:
-        - name: Kill a360 processes
-          shell: |
-            sudo rm -rf {{ cip_base_path }}/queryit
-            sudo sudo rm -rf {{ data_root_path }}/cip/serial/abinitio/queryitdata/
-          register: command_output
-	  loop:
-            - "{{ functional_user }}"
-          ignore_errors: true
-
-        - name: Print logs
-          debug:
-            var: command_output
-
-        - name: Stop QueryIt Instance
-          ansible.builtin.command:
-            cmd: sh -c "source /etc/profile && ab-qi service stop"
-          register: command_output
-          become_user: "{{ functional_user }}"
-          ignore_errors: true
-          args:
-            chdir: "{{ cip_base_path }}/queryit"
-	    
-        - name: Print logs
-          debug:
-             var: command_output
-      when: Stage in ["Install QueryIt","All"] and ab_host_alias == hostvars['queryit'].ab_host_alias and use_existing_queryit == "False"
-      
 
     - name: Destroy Control Center
       block:
