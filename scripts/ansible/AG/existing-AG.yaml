@@ -65,8 +65,8 @@
 
     - name: Get inportant Values
       set_fact:
-        port_number: "{{ ag_url | regex_search(':(\\d+)/', '\\1') | default('Not Found') }}"
-        deployment_name: "{{ ag_url | regex_search('.*/(.*)$', '\\1') | default('Not Found') }}"
+        port_number: "{{ ag_url | default('') | regex_search(':(\\d+)/', '\\1')  }}"
+        deployment_name: "{{ ag_url | default('') | regex_search('.*/(.*)$', '\\1')  }}"
 
     - name: Write Common Config
       lineinfile:
