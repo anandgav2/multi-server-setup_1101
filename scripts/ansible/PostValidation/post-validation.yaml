@@ -14,11 +14,11 @@
       loop: 
         - "{{ installer_path }}/cip_common_setup.yml"
         - "{{ installer_path }}/cip_setup_automation.yml"
-    
-    - name: set cip_base_path
+        - "{{ installer_path }}/cip_setup_server_config.yml"
+
+    - name: set post validation log path
       set_fact:
-        cip_base_path: "/disk1/sandbox/abinitio/cip-v4-1-0-36"
-        post_validation_log: "/disk1/installer/akshay_git/multi-server-cip-setup-automation/scripts/ansible/post_validation/log.log"
+        post_validation_log: "{{ installer_path }}/post_validation_log.log"
     
     - name: Delete existing file
       file:
