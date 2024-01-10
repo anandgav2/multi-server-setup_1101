@@ -21,10 +21,10 @@
         - "{{ installer_path }}/cip_setup_automation.yml"
         - "{{ installer_path }}/installer-versions.yml"
         - "{{ comm_config_file }}"
-        
+
     - name: Destroying A360 work
       block:
-        - name: Destroy DB's and Repo
+        - name: Destroy A360 DB's and Repo
           ansible.builtin.command: "{{ a360_root }}/bin/env.sh {{ item }}"
           with_items:
             ab-db destroy act_mhub
@@ -40,19 +40,19 @@
           debug:
             var: command_output
 
-	- name: Kill a360 processes
+        - name: Kill a360 processes
           shell: |
             sudo lsof -i -P -n | grep LISTEN | grep {{ act_base_port_prefix }} | awk '{ print $2 }' | sort | uniq | sudo xargs kill
             sudo ps -Af | grep {{ a360_root }} | grep -v "grep" | awk '{ print $2 }' | sort | uniq | sudo xargs kill
           register: command_output
-	  loop:
+          loop:
             - "{{ functional_user }}"
           ignore_errors: true
 
         - name: Print logs
           debug:
             var: command_output
-	    
+
         - name: Delete root directories
           shell: |
             sudo rm -rf {{ installer_path }}
@@ -62,14 +62,14 @@
             sudo rm -rf /usr/local/abinitio
             sudo rm -rf /var/abinitio/*
           register: command_output
-	  loop:
+          loop:
             - "{{ functional_user }}"
           ignore_errors: true
 
-	- name: Print logs
+        - name: Print logs
           debug:
             var: command_output
-	    
+
         - name: Stop Bridge
           ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
           with_items:
@@ -94,8 +94,7 @@
 
         - name: Print logs
           debug:
-          var: command_output
-      
+            var: command_output
       when: Stage in ["Install A360","All"] and ab_host_alias == hostvars['a360'].ab_host_alias and use_existing_a360 == "False"
 
     - name: Destroy ADC cluster
@@ -128,25 +127,19 @@
           ansible.builtin.copy:
             content: |
               #!/usr/bin/expect -f
-	    
               set timeout 20
-	    
               set confirmation "Y"
-	    
               cd "{{ cip_base_path }}/ui/web/"
-	    
               spawn npm run stopcip
-	    
               expect "Stop Y/N? :"
-	    
               send  "$confirmation\r"
-	    
               interact
+
             dest: "{{ cip_base_path }}/ui/web/stop_cip.exp"
             mode: "0755"
             owner: "{{ functional_user }}"
           ignore_errors: true
-	    
+
         - name: StopCIP
           shell: |
             #! bin/bash
@@ -156,12 +149,41 @@
           register: command_output
           become_user: "{{ functional_user }}"
           ignore_errors: true
-	    
+
         - name: Print logs
           debug:
              var: command_output
       when: Stage in ["Start CIPUI","All"] and ab_host_alias == hostvars['cipui'].ab_host_alias
-      
+
+    - name: Destroying QueryIt
+      block:
+        - name: Kill a360 processes
+          shell: |
+            sudo rm -rf {{ cip_base_path }}/queryit
+            sudo sudo rm -rf {{ data_root_path }}/cip/serial/abinitio/queryitdata/
+          register: command_output
+          loop:
+            - "{{ functional_user }}"
+          ignore_errors: true
+
+        - name: Print logs
+          debug:
+            var: command_output
+
+        - name: Stop QueryIt Instance
+          shell: |
+            source /etc/profile
+            cd {{ cip_base_path }}/queryit
+            ab-qi service stop
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+
+        - name: Print logs
+          debug:
+            var: command_output
+      when: Stage in ["Install QueryIt","All"] and ab_host_alias == hostvars['queryit'].ab_host_alias and use_existing_queryit == "False"
+
     - name: Destroy CIP DB
       block:
         - name: Destroy CIP DB
@@ -171,11 +193,25 @@
           register: command_output
           become_user: "{{ functional_user }}"
           ignore_errors: true
-	    
+
+        - name: Print logs
+          debug:
+            var: command_output
+      when: Stage in ["Install CIP","All"]  and ab_host_alias == hostvars['cipdb'].ab_host_alias  and use_existing_cipdb == "False"
+
+    - name: Destroy CIP Sandbox
+      block:
+        - name: Delete CIP Sandbox
+          shell: |
+            sudo rm -rf {{ sandbox_root }}/{{functional_user}}
+          register: command_output
+          become_user: "{{ functional_user }}"
+          ignore_errors: true
+
         - name: Print logs
           debug:
              var: command_output
-      when: Stage in ["Install CIP","All"]  and ab_host_alias == hostvars['cipdb'].ab_host_alias  and use_existing_cipdb == "False"
+      when: Stage in ["Install CIP","All"]  and ab_host_alias| string in groups['cip_servers']| map('extract', hostvars) | map(attribute='ab_host_alias')
 
     - name: Destroy EME
       block:
@@ -192,23 +228,23 @@
         - name: Destroy repository
           expect:
             command: sh -c "{{ installer_path }}/source_and_run.sh air repository destroy"
-              responses:
-                'Are you sure you want to do this \(yes\/no\)\?' : 'yes'
+            responses:
+              'Are you sure you want to do this \(yes\/no\)\?' : 'yes'
           timeout: 30
           register: command_output
           become_user: "{{ functional_user }}"
           ignore_errors: true
-	  
-	      - name: Print logs
+
+        - name: Print logs
           debug:
             var: command_output
-            
-	      - name: Delete root directories
+
+        - name: Delete root directories
           shell: |
             sudo rm -rf {{ data_root_path }}/eme/cipeme
           ignore_errors: true
       when: Stage in ["Create EME","All"] and ab_host_alias == hostvars['eme'].ab_host_alias
-      
+
     - name: Destroy Cafe
       block:
       - name: Destroy Cafe Application
@@ -221,41 +257,11 @@
         register: command_output
         become_user: "{{ functional_user }}"
         ignore_errors: true
-	  
+
       - name: Print logs
         debug:
            var: command_output
       when: Stage in ["Install Cafe","All"] and ab_host_alias == hostvars['cafe'].ab_host_alias
-      
-    - name: Destroying QueryIt
-      block:
-        - name: Kill a360 processes
-          shell: |
-            sudo rm -rf {{ cip_base_path }}/queryit
-            sudo sudo rm -rf {{ data_root_path }}/cip/serial/abinitio/queryitdata/
-          register: command_output
-	  loop:
-            - "{{ functional_user }}"
-          ignore_errors: true
-
-        - name: Print logs
-          debug:
-            var: command_output
-
-        - name: Stop QueryIt Instance
-          ansible.builtin.command:
-            cmd: sh -c "source /etc/profile && ab-qi service stop"
-          register: command_output
-          become_user: "{{ functional_user }}"
-          ignore_errors: true
-          args:
-            chdir: "{{ cip_base_path }}/queryit"
-	    
-        - name: Print logs
-          debug:
-             var: command_output
-      when: Stage in ["Install QueryIt","All"] and ab_host_alias == hostvars['queryit'].ab_host_alias and use_existing_queryit == "False"
-      
 
     - name: Destroy Control Center
       block:
@@ -269,11 +275,11 @@
           register: command_output
           become_user: "{{ functional_user }}"
           ignore_errors: true
-	    
+
         - name: Print logs
           debug:
-             var: command_output
-	    
+            var: command_output
+
         - name: Destroy Control Center DB
           ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
           with_items:
@@ -281,13 +287,13 @@
           register: command_output
           become_user: "{{ functional_user }}"
           ignore_errors: true
-	    
+
         - name: Print logs
           debug:
              var: command_output
       when: Stage in ["Install CC","All"] and ab_host_alias == hostvars['cc'].ab_host_alias and use_existing_cc == "False"
 
-      
+
     - name: Destroy AG
       block:
         - name: Destroy AG Application
@@ -300,11 +306,11 @@
           register: command_output
           become_user: "{{ functional_user }}"
           ignore_errors: true
-	    
+
         - name: Print logs
           debug:
              var: command_output
-	    
+
         - name: Destroy AG DB
           ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
           with_items:
@@ -312,12 +318,12 @@
           register: command_output
           become_user: "{{ functional_user }}"
           ignore_errors: true
-	    
+
         - name: Print logs
           debug:
              var: command_output
       when: Stage in ["Install AG","All"] and ab_host_alias == hostvars['ag'].ab_host_alias and use_existing_ag == "False"
-      
+
     - name: Destroying Co>op work
       block:
         - name: Shutdown  Daemon
@@ -325,6 +331,7 @@
           register: command_output
           become_user: "{{ functional_user }}"
           ignore_errors: true
+
 
         - name: Print logs
           debug:
@@ -335,6 +342,7 @@
           register: command_output
           become_user: "{{ functional_user }}"
           ignore_errors: true
+
 
         - name: Print logs
           debug:
@@ -393,5 +401,4 @@
             state: absent
           loop: "{{ found_files.files }}"
           become_user: "{{ functional_user }}"
-      when: Stage in ["Install CoOp","All"] and ab_host_alias != hostvars['a360'].ab_host_alias 
-
+      when: Stage in ["Install CoOp","All"] and ab_host_alias != hostvars['a360'].ab_host_alias
