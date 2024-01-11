@@ -95,7 +95,7 @@
         - name: Print logs
           debug:
             var: command_output
-      when: Stage in ["Install A360","All"] and ab_host_alias == hostvars['a360'].ab_host_alias and use_existing_a360 == "False"
+      when: Stage in ["Install_A360","All"] and ab_host_alias == hostvars['a360'].ab_host_alias and use_existing_a360 == false
 
     - name: Destroy ADC cluster
       block:
@@ -119,7 +119,7 @@
           register: command_output
           become_user: "{{ functional_user }}"
           ignore_errors: True
-      when: Stage in ["A360 and CIP Integration","All"] and ab_host_alias == hostvars['nbos_adapter'].ab_host_alias
+      when: Stage in ["A360_and_CIP_Integration","All"] and ab_host_alias == hostvars['nbos_adapter'].ab_host_alias
 
     - name: Stop CIP UI
       block:
@@ -153,7 +153,7 @@
         - name: Print logs
           debug:
              var: command_output
-      when: Stage in ["Start CIPUI","All"] and ab_host_alias == hostvars['cipui'].ab_host_alias
+      when: Stage in ["Start_CIPUI","All"] and ab_host_alias == hostvars['cipui'].ab_host_alias
 
     - name: Destroying QueryIt
       block:
@@ -182,7 +182,7 @@
         - name: Print logs
           debug:
             var: command_output
-      when: Stage in ["Install QueryIt","All"] and ab_host_alias == hostvars['queryit'].ab_host_alias and use_existing_queryit == "False"
+      when: Stage in ["Install_QueryIt","All"] and ab_host_alias == hostvars['queryit'].ab_host_alias and use_existing_queryit == false
 
     - name: Destroy CIP DB
       block:
@@ -197,7 +197,7 @@
         - name: Print logs
           debug:
             var: command_output
-      when: Stage in ["Install CIP","All"]  and ab_host_alias == hostvars['cipdb'].ab_host_alias  and use_existing_cipdb == "False"
+      when: Stage in ["Install_CIP","All"]  and ab_host_alias == hostvars['cipdb'].ab_host_alias  and use_existing_cipdb == false
 
     - name: Destroy CIP Sandbox
       block:
@@ -211,7 +211,7 @@
         - name: Print logs
           debug:
              var: command_output
-      when: Stage in ["Install CIP","All"]  and ab_host_alias| string in groups['cip_servers']| map('extract', hostvars) | map(attribute='ab_host_alias')
+      when: Stage in ["Install_CIP","All"]  and ab_host_alias| string in groups['cip_servers']| map('extract', hostvars) | map(attribute='ab_host_alias')
 
     - name: Destroy EME
       block:
@@ -243,7 +243,7 @@
           shell: |
             sudo rm -rf {{ data_root_path }}/eme/cipeme
           ignore_errors: true
-      when: Stage in ["Create EME","All"] and ab_host_alias == hostvars['eme'].ab_host_alias
+      when: Stage in ["Create_EME","All"] and ab_host_alias == hostvars['eme'].ab_host_alias
 
     - name: Destroy Cafe
       block:
@@ -261,7 +261,13 @@
       - name: Print logs
         debug:
            var: command_output
-      when: Stage in ["Install Cafe","All"] and ab_host_alias == hostvars['cafe'].ab_host_alias
+
+      - name: Delete Cafe tar and Directory if already exist
+        shell: |
+          rm -rf {{ installer_path }}/Cafe*{{ cafe_version }}*
+        become_user: "{{ functional_user }}"
+
+      when: Stage in ["Install_Cafe","All"] and ab_host_alias == hostvars['cafe'].ab_host_alias
 
     - name: Destroy Control Center
       block:
@@ -291,7 +297,13 @@
         - name: Print logs
           debug:
              var: command_output
-      when: Stage in ["Install CC","All"] and ab_host_alias == hostvars['cc'].ab_host_alias and use_existing_cc == "False"
+
+        - name: Delete CC tar and Directory if already exist
+          shell: |
+            rm -rf {{ installer_path }}/ControlCenter.*{{ cc_version }}*
+          become_user: "{{ functional_user }}"
+
+      when: Stage in ["Install_CC","All"] and ab_host_alias == hostvars['cc'].ab_host_alias and use_existing_cc == false
 
 
     - name: Destroy AG
@@ -322,7 +334,12 @@
         - name: Print logs
           debug:
              var: command_output
-      when: Stage in ["Install AG","All"] and ab_host_alias == hostvars['ag'].ab_host_alias and use_existing_ag == "False"
+
+        - name: Delete AG tar and Directory if already exist
+          shell: |
+            rm -rf {{ installer_path }}/AuthorizationGateway.*{{ ag_version }}*
+          become_user: "{{ functional_user }}"
+      when: Stage in ["Install_AG","All"] and ab_host_alias == hostvars['ag'].ab_host_alias and use_existing_ag == false
 
     - name: Destroying Co>op work
       block:
@@ -374,31 +391,16 @@
           debug:
             var: command_output
 
-        - name: Remove coop-config.ini file
-          ansible.builtin.file:
-            path: "{{ installer_path }}/coop-config.ini"
-            state: absent
 
         - name: Remove coop-config.ini file
           ansible.builtin.file:
             path: "{{ installer_path }}/coop-config.ini"
             state: absent
-
-        - name: Find the Installer Tar
-          find:
-            paths: "{{ installer_path }}"
-            patterns: "AbInitio*{{ coop_version }}*.*"
-          register: found_files
-          become: false
-
-        - name: Display  File List
-          ansible.builtin.debug:
-            var: found_files
-
-        - name: Remove coop tar file
-          ansible.builtin.file:
-            path: "{{ item.path }}"
-            state: absent
-          loop: "{{ found_files.files }}"
           become_user: "{{ functional_user }}"
-      when: Stage in ["Install CoOp","All"] and ab_host_alias != hostvars['a360'].ab_host_alias
+
+        - name: Delete coop tar and Directory if already exist
+          shell: |
+            rm -rf {{ installer_path }}/AbInitio*{{ coop_version }}*
+          become_user: "{{ functional_user }}"
+
+      when: Stage in ["Install_Coop","All"] and ab_host_alias != hostvars['a360'].ab_host_alias
