@@ -425,25 +425,25 @@
           var: check_parameter_override_file
           var: parameter_override_content
 
-    - name : parse a360 parameters from parameter_override_content
+    - name : parse parameters from parameter_override_content
       set_fact:
-         a360_parameters: "{{ parameter_override_content | select('match', '^a360:(.*)') | map('regex_replace', '^a360:(.*)', '\\1') }}"
+         cip_gte_4_parameters: "{{ parameter_override_content | select('match', '^cip_gte_4:(.*)') | map('regex_replace', '^cip_gte_4:(.*)', '\\1') }}"
          cip_parameters: "{{ parameter_override_content | select('match', '^cip:(.*)') | map('regex_replace', '^cip:(.*)', '\\1') }}"
 
-    - name: print a360_parameters and cip_parameters
+    - name: print cip_gte_4_parameters and cip_parameters
       debug:
-              var: a360_parameters
+              var: cip_gte_4_parameters
               var: cip_parameters
 
-    - name: check a360 parameters
+    - name: check cip_gte_4_parameters parameters
       shell: |
           source /etc/profile
           cd "{{ cip_base_path }}/private_internal"
           param=$(echo "{{ item }}" | awk -F':' '{print $1}')
           echo $param
           RC=$(air sandbox eval . $param)
-      register: select_a360_params
-      loop: "{{ a360_parameters }}"
+      register: select_cip_gte_4_params
+      loop: "{{ cip_gte_4_parameters }}"
       ignore_errors: true
       when: cip_version.split('-')[0] | int > 3
 
@@ -458,18 +458,18 @@
       loop: "{{ cip_parameters }}"
       ignore_errors: true
 
-    - name: print select_a360_params and select_cip_params
+    - name: print select_cip_gte_4_params and select_cip_params
       debug:
-              var: select_a360_params
+              var: select_cip_gte_4_params
               var: select_cip_params
 
-    - name: a360 parameter add into base pset
+    - name: add select_cip_gte_4_params into base pset
       lineinfile:
         path: "{{ cip_base_path }}/private_internal/dev.pset"
         line: "{{ item.item | split(':') | first}}@||||{{ item.item | split(':') | last }}"
         state: present
       when: item.rc == 0
-      loop: "{{ select_a360_params.results }}"
+      loop: "{{ select_cip_gte_4_params.results }}"
       when: cip_version.split('-')[0] | int > 3
 
     - name: cip parameter add into base pset
@@ -480,12 +480,12 @@
       when: item.rc == 0
       loop: "{{ select_cip_params.results }}"
 
-    - name: write warning for the a360 parameters if parameter is not able to resolve
+    - name: write warning for the parameters if parameter is not able to resolve
       include_tasks: ../write_log.yml
       vars:
           warning_msg: "Found issue in parameter {{ item.item | split(':') | first }}"
       when: item.rc == 1
-      loop: "{{ select_a360_params.results }}"
+      loop: "{{ select_cip_gte_4_params.results }}"
       when: cip_version.split('-')[0] | int > 3
 
     - name: write warning for the cip parameters if parameter is not able to resolve
@@ -514,7 +514,14 @@
         sed -i 's#^hosts:.*#hosts:                          {{ var_inbound_channel_adc_hosts_for_nbos_adc_adapter_queue }} {{ cip_common_nbos_server }}\ndata.engines.per.host@{{ cip_common_nbos_server }}: 0#g' {{ cip_base_path }}/private_internal/config/config.dev.props
       register: command_output
       become_user: "{{ functional_user }}"
-      when: adc_config_file_name == 'config.dev.props'
+      when: adc_config_file_name == 'config.dev.props' and var_inbound_channel_adc_hosts_for_nbos_adc_adapter_queue != cip_common_nbos_server
+
+    - name: replace hosts in config.dev.props file
+      shell: |
+        sed -i 's#^hosts:.*#hosts:                          {{ var_inbound_channel_adc_hosts_for_nbos_adc_adapter_queue }} {{ cip_common_nbos_server }}#g' {{ cip_base_path }}/private_internal/config/config.dev.props
+      register: command_output
+      become_user: "{{ functional_user }}"
+      when: adc_config_file_name == 'config.dev.props' and var_inbound_channel_adc_hosts_for_nbos_adc_adapter_queue == cip_common_nbos_server
 
     - name: checkin adc configuration
       ansible.builtin.command: "{{ installer_path }}/source_and_run.sh {{ item }}"
