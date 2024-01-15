@@ -91,19 +91,19 @@
         - "../QueryIT/config-params.yml"
 
 
-    - name: Set CIP Base path
-      set_fact:
-        cip_base_path: "{{ sandbox_root }}/{{ functional_user }}/cip-v{{ cip_version }}"
+    # - name: Set CIP Base path
+    #   set_fact:
+    #     cip_base_path: "{{ sandbox_root }}/{{ functional_user }}/cip-v{{ cip_version }}"
 
-    - name: Write Common Config
-      lineinfile:
-        path: "{{ comm_config_file }}"
-        line: |
-          cip_base_path: "{{ cip_base_path }}"
-        state: present
-      delegate_to: localhost
-      no_log: true
-      become: false
+    # - name: Write Common Config
+    #   lineinfile:
+    #     path: "{{ comm_config_file }}"
+    #     line: |
+    #       cip_base_path: "{{ cip_base_path }}"
+    #     state: present
+    #   delegate_to: localhost
+    #   no_log: true
+    #   become: false
 
     - name: Log step
       lineinfile:
