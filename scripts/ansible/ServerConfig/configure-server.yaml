@@ -269,8 +269,22 @@
     - name: Install passlib library using pip
       pip:
         name: passlib
-        state: present        
-  
+        state: present
+        
+   - name: Set CIP Base path
+      set_fact:
+        cip_base_path: "{{ sandbox_root }}/{{ functional_user }}/cip-v{{ cip_version }}"
+
+    - name: Write Common Config
+      lineinfile:
+        path: "{{ comm_config_file }}"
+        line: |
+          cip_base_path: "{{ cip_base_path }}"
+        state: present
+      delegate_to: localhost
+      no_log: true
+      become: false
+      
   handlers:
     - name: Reload Profile
       shell: source /etc/profile  # Command to reload the profile
