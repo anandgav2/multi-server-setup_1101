@@ -203,7 +203,7 @@
 
     - name: "update Segmentation queryitSandbox"
       command: >
-        jq ".Segmentation.queryitSandbox=\"{{ cip_base_path }}/queryit\"" "{{json_file}}"
+        jq ".Segmentation.queryitSandbox=\"{{ queryit_sandbox }}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -214,7 +214,7 @@
 
     - name: "update Segmentation queryitUsername"
       command: >
-        jq ".Segmentation.queryitUsername=\"{{ functional_user }}\"" "{{json_file}}"
+        jq ".Segmentation.queryitUsername=\"{{ queryit_user }}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
@@ -225,7 +225,7 @@
 
     - name: "update Segmentation queryitPassword"
       command: >
-        jq ".Segmentation.queryitPassword=\"{{ query_it_passwd }}\"" "{{json_file}}"
+        jq ".Segmentation.queryitPassword=\"{{ queryit_password }}\"" "{{json_file}}"
       register: json_modify_result
 
     - name: Write updated JSON back to file
