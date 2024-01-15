@@ -389,9 +389,9 @@
               CIP_COMMON_ADC_CONFIG_FILE@||||$PROJECT_DIR/config/{{ adc_config_file_name }}
               CIP_COMMON_CIPDB_PORT@||||{{ cip_db_port }}
               CIP_COMMON_CIPDB_DB_NAME@||||{{ cip_db_name }}
-              CIP_COMMON_QUERY_IT_SANDBOX@||||{{ cip_base_path }}/queryit   
-              CIP_COMMON_QUERY_IT_DB_PASSWORD@||||{{ query_it_en_passwd }}
-              CIP_COMMON_QUERY_IT_DB_USERNAME@||||{{ functional_user }}
+              CIP_COMMON_QUERY_IT_SANDBOX@||||{{ queryit_sandbox }}   
+              CIP_COMMON_QUERY_IT_DB_PASSWORD@||||{{ queryit_password }}
+              CIP_COMMON_QUERY_IT_DB_USERNAME@||||{{ queryit_user }}
               CIP_COMMON_ALL_TARGET_SERVERS@||||{{ cip_common_all_target_servers }}
               CIP_COMMON_CONTROL_SERVER@||||{{ cip_common_control_server }}
               CIP_COMMON_FULFILLMENT_SERVER@||||{{ cip_common_fulfillment_server }}
